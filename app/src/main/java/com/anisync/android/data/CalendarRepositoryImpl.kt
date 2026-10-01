@@ -3,6 +3,7 @@ package com.anisync.android.data
 import com.anisync.android.data.local.dao.AiringScheduleDao
 import com.anisync.android.data.local.dao.LibraryDao
 import com.anisync.android.data.local.entity.AiringScheduleEntity
+import com.anisync.android.data.util.ApiError
 import com.anisync.android.data.yamtrack.YamtrackGateway
 import com.anisync.android.domain.AiringEpisode
 import com.anisync.android.domain.CalendarRepository
@@ -34,7 +35,7 @@ class CalendarRepositoryImpl @Inject constructor(
 
     override suspend fun sync(): Result<Unit> = syncMutex.withLock {
         val owner = gateway.ownerId
-        if (owner < 0) return@withLock Result.Error("Not signed in")
+        if (owner < 0) return@withLock Result.Error("Not signed in", exception = ApiError.SessionExpired())
         when (val result = gateway.call { calendar() }) {
             is Result.Error -> result
             is Result.Success -> {

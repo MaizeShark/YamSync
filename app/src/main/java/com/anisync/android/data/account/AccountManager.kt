@@ -10,6 +10,7 @@ import com.anisync.android.data.yamtrack.html.YamtrackSession
 import com.anisync.android.domain.PreferencesRepository
 import com.anisync.android.domain.Result
 import com.anisync.android.widget.core.WidgetRefresh
+import com.anisync.android.worker.AiringScheduleWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -100,6 +101,9 @@ class AccountManager @Inject constructor(
                     bumpEpoch()
                     scope.launch { refreshWidgets() }
                 }
+                // Widgets and notifications read the calendar from Room; fill it now rather than
+                // at the next periodic run.
+                runCatching { AiringScheduleWorker.enqueueImmediate(context) }
                 Result.Success(account)
             }
         }

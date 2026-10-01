@@ -30,7 +30,8 @@ suspend fun <T> safeApiCall(
             else -> null
         }
         apiError?.toResult() ?: Result.Error(
-            message = e.message ?: ApiErrorMessages.describe(ApiError.Unknown("")),
+            // Some platform exceptions (NetworkOnMainThreadException) carry no message at all.
+            message = e.message?.takeIf { it.isNotBlank() } ?: ApiErrorMessages.describe(ApiError.Unknown("")),
             exception = e,
         )
     }

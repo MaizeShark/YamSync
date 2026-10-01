@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Yamtrack is self-hosted, often on a home network at a plain http:// address
+    (http://192.168.1.10:8000), so cleartext has to be allowed for any host.
+    User-installed CAs are trusted too, for servers behind a private certificate authority.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

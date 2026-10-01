@@ -85,7 +85,7 @@ class YamtrackSession(
      * GETs [path] and returns the body. Signs in again once if the session has run out.
      * [htmx] asks for the partial an HTMX request would get instead of the full page.
      */
-    suspend fun get(path: String, query: Map<String, String?> = emptyMap(), htmx: Boolean = false): String =
+    suspend fun get(path: String, query: Map<String, String?> = emptyMap(), htmx: Boolean = false): String = io {
         withReauth { execute(getRequest(url(path, query), htmx)) }.use { response ->
             when {
                 response.isSuccessful -> response.body?.string().orEmpty()
@@ -95,13 +95,16 @@ class YamtrackSession(
                 else -> throw ApiError.Unknown("The server answered $path with ${response.code}")
             }
         }
+    }
 
     /** GETs a page that needs no session (the calendar feed is addressed by token). */
-    suspend fun getPublic(path: String): String = execute(getRequest(url(path), htmx = false)).use { response ->
-        when {
-            response.isSuccessful -> response.body?.string().orEmpty()
-            response.code == 401 || response.code == 404 -> throw ApiError.PermissionDenied()
-            else -> throw ApiError.ServerError(response.code)
+    suspend fun getPublic(path: String): String = io {
+        execute(getRequest(url(path), htmx = false)).use { response ->
+            when {
+                response.isSuccessful -> response.body?.string().orEmpty()
+                response.code == 401 || response.code == 404 -> throw ApiError.PermissionDenied()
+                else -> throw ApiError.ServerError(response.code)
+            }
         }
     }
 
@@ -109,24 +112,26 @@ class YamtrackSession(
      * POSTs [form] to [path]. Returns the response for the caller to inspect; Yamtrack answers
      * most writes with a redirect, a few with a fragment or JSON.
      */
-    suspend fun post(path: String, form: Map<String, String>): PostResult = withReauth {
-        // Django only sets the CSRF cookie once a page that uses it has been served. A session
-        // restored from disk normally has it; one that does not gets it from any page.
-        if (csrfToken() == null) execute(getRequest(url("/"), htmx = false)).close()
-        val body = FormBody.Builder().apply { form.forEach { (k, v) -> add(k, v) } }.build()
-        val request = Request.Builder()
-            .url(url(path))
-            .post(body)
-            .header("X-CSRFToken", csrfToken().orEmpty())
-            .header("Referer", baseUrl.toString().trimEnd('/') + "/")
-            .build()
-        execute(request)
-    }.use { response ->
-        PostResult(response.code, response.header("Location"), response.body?.string().orEmpty())
+    suspend fun post(path: String, form: Map<String, String>): PostResult = io {
+        withReauth {
+            // Django only sets the CSRF cookie once a page that uses it has been served. A session
+            // restored from disk normally has it; one that does not gets it from any page.
+            if (csrfToken() == null) execute(getRequest(url("/"), htmx = false)).close()
+            val body = FormBody.Builder().apply { form.forEach { (k, v) -> add(k, v) } }.build()
+            val request = Request.Builder()
+                .url(url(path))
+                .post(body)
+                .header("X-CSRFToken", csrfToken().orEmpty())
+                .header("Referer", baseUrl.toString().trimEnd('/') + "/")
+                .build()
+            execute(request)
+        }.use { response ->
+            PostResult(response.code, response.header("Location"), response.body?.string().orEmpty())
+        }
     }
 
     /** Signs in with [username] and [password], replacing any session this one had. */
-    suspend fun login(username: String, password: String) {
+    suspend fun login(username: String, password: String): Unit = io {
         jar.clear()
         val loginUrl = url("/accounts/login/")
         val page = execute(getRequest(loginUrl, htmx = false)).use { response ->
@@ -151,7 +156,7 @@ class YamtrackSession(
             .build()
         execute(request).use { response ->
             // Success redirects away from the login page; failure re-renders the form with errors.
-            if (response.code in 300..399 && !isLoginRedirect(response.header("Location"))) return
+            if (response.code in 300..399 && !isLoginRedirect(response.header("Location"))) return@io
             val errors = Jsoup.parse(response.body?.string().orEmpty())
                 .select(".errorlist li, [role=alert], .text-red-400, .text-red-500")
                 .map { it.text().trim() }
@@ -207,6 +212,12 @@ class YamtrackSession(
         .get()
         .apply { if (htmx) header("HX-Request", "true") }
         .build()
+
+    /**
+     * Runs a whole exchange on the IO dispatcher. Reading a response body is network I/O too, and
+     * Android refuses it on the main thread, so the body has to be read here, not only the headers.
+     */
+    private suspend fun <T> io(block: suspend () -> T): T = withContext(Dispatchers.IO) { block() }
 
     private suspend fun execute(request: Request): Response = withContext(Dispatchers.IO) {
         val response = try {

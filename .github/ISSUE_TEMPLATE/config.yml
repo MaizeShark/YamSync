@@ -1,14 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Questions & General Discussion
-    url: https://github.com/Marco-9456/AniSync/discussions
+    url: https://github.com/MaizeShark/YamSync/discussions
     about: Ask questions, share ideas, or talk with the community here instead of opening an issue.
-  - name: AniList API Status
-    url: https://anilist.co/forum/thread
-    about: AniSync depends on the AniList GraphQL API. Check AniList status before reporting sync or login problems.
-  - name: F-Droid Package Page
-    url: https://f-droid.org/packages/com.anisync.android/
-    about: For F-Droid build issues, check the package page first; reproducible build problems are tracked upstream.
+  - name: Yamtrack
+    url: https://github.com/FuzzyGrim/Yamtrack
+    about: YamSync talks to your own Yamtrack server. Problems on the Yamtrack web UI itself belong there.
   - name: Latest Release
-    url: https://github.com/Marco-9456/AniSync/releases/latest
+    url: https://github.com/MaizeShark/YamSync/releases/latest
     about: Make sure you are on the latest version before filing a bug.

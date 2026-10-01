@@ -1,36 +1,23 @@
-<!--
-  ~ Copyright (C) 2026 The Android Open Source Project
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~      http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
+<?xml version="1.0" encoding="utf-8"?>
+<!-- YamSync glyph. The path is drawn in a 124-unit box centred on (62, 62); the group scales it
+     into the adaptive icon's 66dp safe zone. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="90"
     android:viewportHeight="90">
-  <group android:scaleX="0.7"
-      android:scaleY="0.7"
-      android:translateX="13.5"
-      android:translateY="13.5">
-    <path
-        android:pathData="M45,15C60.0315,15.0001 69.7556,44.7215 74.1972,62.3275C75.8556,68.9012 70.7796,75 64,75C57.2444,75 53.96,55 45,55C36.04,55 34.7467,75 26,75C19.2203,75 14.1444,68.9012 15.8027,62.3275C20.2443,44.7215 29.9684,14.9999 45,15Z">
+  <group android:scaleX="0.45"
+      android:scaleY="0.45"
+      android:translateX="17.1"
+      android:translateY="17.1">
+    <path android:pathData="M28 16C38 12 46 18 52 30C56 38 59 46 62 52C65 46 68 38 72 30C78 18 86 12 96 16C106 20 106 32 98 42C90 52 78 62 74 74C72 82 74 92 76 100C78 108 72 112 62 112C52 112 46 108 48 100C50 92 52 82 50 74C46 62 34 52 26 42C18 32 18 20 28 16Z">
       <aapt:attr name="android:fillColor">
         <gradient
-            android:startX="45"
-            android:startY="15"
-            android:endX="45"
-            android:endY="75"
+            android:startX="62"
+            android:startY="12"
+            android:endX="62"
+            android:endY="112"
             android:type="linear">
           <item android:offset="0" android:color="#FFFFFFFF"/>
           <item android:offset="1" android:color="#FF4C8FFF"/>

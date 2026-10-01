@@ -6,11 +6,11 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for suggesting an idea for AniSync.
+        Thanks for suggesting an idea for YamSync.
 
-        - Search [existing issues](https://github.com/Marco-9456/AniSync/issues?q=is%3Aissue) and [Discussions](https://github.com/Marco-9456/AniSync/discussions) first.
-        - For half-formed ideas or "would it be cool if…" prompts, open a [Discussion](https://github.com/Marco-9456/AniSync/discussions) instead — issues are for concrete requests.
-        - Features bound to AniList API capabilities will only land if AniList exposes the data.
+        - Search [existing issues](https://github.com/MaizeShark/YamSync/issues?q=is%3Aissue) and [Discussions](https://github.com/MaizeShark/YamSync/discussions) first.
+        - For half-formed ideas or "would it be cool if…" prompts, open a [Discussion](https://github.com/MaizeShark/YamSync/discussions) instead — issues are for concrete requests.
+        - YamSync can only show what your Yamtrack server provides.
 
   - type: checkboxes
     id: prerequisites
@@ -35,9 +35,9 @@ body:
     id: proposal
     attributes:
       label: Proposed solution
-      description: What should AniSync do? Be specific about UI placement, behavior, and edge cases.
+      description: What should YamSync do? Be specific about UI placement, behavior, and edge cases.
       placeholder: |
-        Add a small "NEW" badge on library cards when AniList reports a new airing episode since the last sync. Cleared when the user opens the entry.
+        Add a small "NEW" badge on library cards when the Yamtrack calendar reports a new episode since the last sync. Cleared when the user opens the entry.
     validations:
       required: true
 
@@ -74,14 +74,14 @@ body:
       required: true
 
   - type: dropdown
-    id: anilist-dependency
+    id: yamtrack-dependency
     attributes:
-      label: Does this require new AniList API data?
-      description: If yes, link the AniList GraphQL field or note that it is not yet exposed.
+      label: Does this need data YamSync does not read yet?
+      description: If yes, say where Yamtrack shows it (page, export, calendar) or that it does not have it at all.
       options:
-        - "No — uses data AniSync already has"
-        - "Yes — AniList exposes it, just not used yet"
-        - "Yes — would require AniList to expose new data"
+        - "No — uses data YamSync already has"
+        - "Yes — Yamtrack has it, YamSync just does not read it yet"
+        - "Yes — would need a change in Yamtrack itself"
         - "Not sure"
     validations:
       required: true

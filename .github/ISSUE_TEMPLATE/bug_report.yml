@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report something in AniSync that is broken, crashing, or behaving incorrectly.
+description: Report something in YamSync that is broken, crashing, or behaving incorrectly.
 title: "[Bug]: "
 labels: ["bug", "triage"]
 body:
@@ -8,9 +8,9 @@ body:
       value: |
         Thanks for taking the time to report a bug. Filling this out fully makes the issue much faster to triage.
 
-        - Search [existing issues](https://github.com/Marco-9456/AniSync/issues?q=is%3Aissue) first; duplicates will be closed.
-        - Make sure you are on the [latest release](https://github.com/Marco-9456/AniSync/releases/latest) before filing.
-        - For questions or general discussion, use [Discussions](https://github.com/Marco-9456/AniSync/discussions) instead.
+        - Search [existing issues](https://github.com/MaizeShark/YamSync/issues?q=is%3Aissue) first; duplicates will be closed.
+        - Make sure you are on the [latest release](https://github.com/MaizeShark/YamSync/releases/latest) before filing.
+        - For questions or general discussion, use [Discussions](https://github.com/MaizeShark/YamSync/discussions) instead.
 
   - type: checkboxes
     id: prerequisites
@@ -20,7 +20,7 @@ body:
       options:
         - label: I searched existing issues and did not find a duplicate.
           required: true
-        - label: I am on the latest release of AniSync.
+        - label: I am on the latest release of YamSync.
           required: true
         - label: I have read the relevant docs (README, CHANGELOG) when applicable.
           required: false
@@ -38,10 +38,10 @@ body:
     id: steps
     attributes:
       label: Steps to reproduce
-      description: Exact, numbered steps from a clean app state. Include the specific anime/manga title or AniList ID if relevant.
+      description: Exact, numbered steps from a clean app state. Include the specific title and media type if relevant, and your Yamtrack version.
       placeholder: |
-        1. Log in with AniList account.
-        2. Open Search tab and query "Frieren".
+        1. Sign in to a Yamtrack server.
+        2. Open Search and query "Frieren".
         3. Tap the first result.
         4. App closes immediately.
     validations:
@@ -68,7 +68,7 @@ body:
     attributes:
       label: App info
       description: |
-        In AniSync, go to **Settings → About** and tap **Copy app info**, then paste the result here. It produces output like:
+        In YamSync, go to **Settings → About** and tap **Copy app info**, then paste the result here. It produces output like:
         ```
         App version: 1.6.0
         Device information: Android 12 (API 31)
@@ -81,11 +81,10 @@ body:
   - type: dropdown
     id: build-source
     attributes:
-      label: Where did you install AniSync from?
+      label: Where did you install YamSync from?
       options:
         - GitHub Release (stable)
         - GitHub Release (preview)
-        - F-Droid
         - Self-built from source
         - Other
     validations:

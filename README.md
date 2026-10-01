@@ -1,116 +1,120 @@
-# AniSync
+<p align="center">
+  <img src=".github/logo.png" alt="YamSync logo" width="128">
+</p>
+
+<h1 align="center">YamSync</h1>
 
 <p align="center">
-  <img src=".github/hero.png" alt="AniSync, a native AniList client for Android" width="100%">
+  <strong>An Android client for <a href="https://github.com/FuzzyGrim/Yamtrack">Yamtrack</a>, the self-hosted media tracker</strong>
 </p>
 
 <p align="center">
-  <strong>A native Android client for AniList — track your anime and manga the way you want</strong>
+  <a href="https://developer.android.com/about/versions/oreo/"><img src="https://img.shields.io/badge/Min%20SDK-26-blue?style=flat" alt="Min SDK 26"></a>
+  <a href="https://developer.android.com/jetpack/compose"><img src="https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?style=flat&logo=jetpackcompose&logoColor=white" alt="Jetpack Compose"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue?style=flat" alt="GPLv3"></a>
+  <a href="https://github.com/MaizeShark/YamSync/releases/latest"><img src="https://img.shields.io/github/v/release/MaizeShark/YamSync?style=flat&logo=github&label=Latest" alt="Latest release"></a>
 </p>
 
-<p align="center">
-  <a href="https://www.android.com/"><img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=flat&logo=android&logoColor=white" alt="Platform"></a>
-  <a href="https://developer.android.com/about/versions/oreo/"><img src="https://img.shields.io/badge/Min%20SDK-26-blue?style=flat" alt="Min SDK"></a>
-  <a href="https://kotlinlang.org/"><img src="https://img.shields.io/badge/Kotlin-2.2.21-7F52FF?style=flat&logo=kotlin&logoColor=white" alt="Kotlin"></a>
-  <a href="https://developer.android.com/jetpack/compose"><img src="https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?style=flat&logo=jetpackcompose&logoColor=white" alt="Compose"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue?style=flat" alt="License"></a>
-</p>
+YamSync puts your Yamtrack library on your phone: anime, manga, TV shows and seasons, movies, games,
+books, comics and board games, all from your own server.
 
-<p align="center">
-  <a href="https://github.com/Marco-9456/AniSync/releases"><img src="https://img.shields.io/github/downloads/Marco-9456/AniSync/total?style=flat&logo=github&color=brightgreen&label=Downloads" alt="Total Downloads"></a>
-  <a href="https://github.com/Marco-9456/AniSync/releases/latest"><img src="https://img.shields.io/github/v/release/Marco-9456/AniSync?style=flat&logo=github&label=Latest" alt="Latest Release"></a>
-  <a href="https://f-droid.org/packages/com.anisync.android/"><img alt="F-Droid Version" src="https://img.shields.io/f-droid/v/com.anisync.android?style=flat&logo=f-droid&logoColor=%239BB9CC&color=%23CC8F91"></a>
-  <a href="https://github.com/Marco-9456/AniSync/stargazers"><img src="https://img.shields.io/github/stars/Marco-9456/AniSync?style=flat&logo=github&color=yellow" alt="Stars"></a>
-  <a href="https://hosted.weblate.org/engage/anisync/"><img src="https://hosted.weblate.org/widget/anisync/app/svg-badge.svg" alt="Translation status"></a>
-</p>
-
-<p align="center">
-  <a href="https://ko-fi.com/marco_9456"><img src="https://img.shields.io/badge/Ko--fi-Support-FF5E5B?style=flat&logo=ko-fi&logoColor=white" alt="Ko-Fi"></a>
-  <a href="https://github.com/sponsors/Marco-9456"><img src="https://img.shields.io/badge/GitHub-Sponsor-EA4AAA?style=flat&logo=githubsponsors&logoColor=white" alt="GitHub Sponsors"></a>
-</p>
-
-AniSync is a native Android app for [AniList.co](https://anilist.co) — a fast way to track your anime and manga, discover new stuff, and keep up with the community. No browser tab required.
+> [!IMPORTANT]
+> **This project is largely written by an AI.** YamSync is a fork of [AniSync](https://github.com/Marco-9456/AniSync).
+> The port from AniList to Yamtrack was written by an LLM, Anthropic's Claude in Claude Code:
+> the Yamtrack client, the rewritten screens, the tests and this README. MaizeShark directed and
+> reviewed the work and tested it on a real device and server. Read the code with that in mind, and
+> please report anything that looks wrong.
 
 > [!NOTE]
-> AniSync is not affiliated with AniList. It's a third-party client built for the AniList community.
+> YamSync is not affiliated with Yamtrack or with AniSync.
 
 ---
 
-<p align="center">
-  <img src=".github/showcase.png" width="100%" alt="AniSync screens: library, media details, discover, feed and forums, profile, home-screen widgets and notifications">
-</p>
+## Features
 
-<p align="center">
-  <img src=".github/share-cards.png" width="100%" alt="AniSync share cards for media, characters, staff, reviews, favourites and stats">
-</p>
+- **Every Yamtrack media type.** One library with a type picker: anime, manga, TV, seasons, movies,
+  games (play time in hours and minutes), books, comics and board games.
+- **Tracking.** Status, score (0–10), progress, start and end dates and notes. Rewatches are tracked
+  as new entries, the way Yamtrack keeps them. Status, score and remove also work on a selection.
+- **Home.** Everything in progress with a +1 button, plus what releases next.
+- **Search.** Every type and every metadata source your server uses (MyAnimeList, MangaUpdates, TMDB,
+  IGDB, Hardcover, Open Library, Comic Vine, BoardGameGeek). One tap adds to Planning.
+- **Details.** Synopsis, info, seasons and episodes with "mark watched", cast, related titles,
+  streaming providers and, for anime, openings and endings from AnimeThemes.
+- **Calendar, widgets and notifications.** Built from your server's release calendar: new episodes of
+  what you are watching, and premieres of what you planned.
+- **Several accounts and servers**, with an optional "stay signed in" that renews the session by itself.
 
----
+## Requirements
 
-## :sparkles: Features
+- Android 8.0 (API 26) or newer.
+- A Yamtrack server you can reach from your phone, with a username and password. Plain `http://`
+  addresses on your home network work. Servers that only allow single sign-on are not supported yet.
 
-Everything you'd want from an AniList client, in one app:
+## Installing
 
-- **Tracking** — obviously. Statuses, scores, progress, notes, and custom lists for your anime and manga.
-- **Search & Discovery** — trending, seasonal, and upcoming titles, plus proper filters for when you know exactly what you're after.
-- **Media Details** — characters, voice actors, staff, trailers, reviews, recommendations, and where to watch.
-- **Feed** — see what your friends are watching and judge them accordingly.
-- **Forums** — browse, post, like, and subscribe without ever leaving the app.
-- **Stats** — nice charts that prove you watch too much anime.
-- **Widgets & Notifications** — airing schedules on your home screen and reminders before episodes drop.
+Download the APK for your phone from the [releases page](https://github.com/MaizeShark/YamSync/releases)
+(`arm64-v8a` fits almost every recent phone, `universal` fits everything), or build it yourself.
+YamSync checks this repository for new releases and can update itself.
 
----
+On first launch, enter the address you open Yamtrack at in a browser (for example
+`http://192.168.1.10:8000`), your username and your password.
 
-## :scroll: Changelog
+## How it works
 
-Curious what's new (or what broke and got fixed)? Check the [CHANGELOG](docs/CHANGELOG.md) or the [releases page](https://github.com/Marco-9456/AniSync/releases).
+Yamtrack has no API for apps. YamSync therefore talks to it the way a browser does: it signs in with
+the normal login form, reads your library from Yamtrack's CSV export and the home page, edits entries
+through the same forms the web UI posts, and reads releases from the calendar feed. Your Yamtrack
+server needs no changes or plugins.
 
----
+The downside is that a Yamtrack update which changes its pages can break YamSync until it catches up.
+When a page can't be read, YamSync says so instead of showing empty data. It was developed and tested
+against Yamtrack v0.26.3. All of this sits behind one interface (`YamtrackApi`), so a proper JSON API
+can replace it later without touching the rest of the app.
 
-## Contributing
+Everything stays between your phone and your server. YamSync has no analytics or tracking. If
+"stay signed in" is on, your password is stored encrypted on the device so the app can sign in again
+when the session ends.
 
-Contributions are welcome! Read [CONTRIBUTING.md](docs/CONTRIBUTING.md), fork, branch, and open a PR.
+## Known limitations
 
----
+- Yamtrack's own lists aren't shown yet.
+- Servers behind single sign-on, HTTPS through a reverse proxy, and Yamtrack hosted under a sub-path
+  are untested.
+- The developer documents in [`docs/`](docs) are inherited from AniSync and partly describe the old
+  AniList code.
+
+## Building
+
+You need JDK 17 and the Android SDK.
+
+```sh
+./gradlew assembleStableDebug       # debug APKs in app/build/outputs/apk/stable/debug/
+./gradlew testStableDebugUnitTest   # unit tests
+```
+
+The page parsers are tested against saved Yamtrack pages in `app/src/test/resources/yamtrack/`. A
+second set of tests runs against a live server when you set `YAMTRACK_TEST_URL`,
+`YAMTRACK_TEST_USER` and `YAMTRACK_TEST_PASSWORD` (use a throwaway account: they create and delete
+entries).
+
+### Releases
+
+Pushing a tag like `v1.0.1` runs `.github/workflows/build-release.yml`, which builds signed APKs and
+attaches them to a GitHub release. It needs the repository secrets `SIGNING_KEY` (the base64-encoded
+keystore), `KEYSTORE_PASSWORD`, `KEY_ALIAS` and `KEY_PASSWORD`. Raise `versionName` in
+`app/build.gradle.kts` to match the tag, because the in-app updater compares the two.
+
+## Credits
+
+- [AniSync](https://github.com/Marco-9456/AniSync) by Marco-9456. YamSync is a fork of it and keeps its
+  interface, widgets and much of its code.
+- [Yamtrack](https://github.com/FuzzyGrim/Yamtrack) by FuzzyGrim, the tracker this app talks to.
+- [AnimeThemes](https://animethemes.moe) for openings and endings.
 
 ## License
 
-This project's source code is licensed under the **GNU General Public License v3.0** — see the [LICENSE](LICENSE) file for details.
+GNU General Public License v3.0, the same as AniSync. See [LICENSE](LICENSE).
 
-> [!WARNING]
-> **Brand & Naming Guidelines**
->
-> While the source code is freely available under the GPLv3, the **AniSync** name and brand identity are protected. Any derivative works — including forks and unofficial builds — are strictly prohibited from using "AniSync" as the name for an AniList client application.
-
----
-
-## Acknowledgments
-
-- [AniList](https://anilist.co) for the excellent GraphQL API
-- [Material Design 3](https://m3.material.io) for the design system
-- [Seal](https://github.com/JunkFood02/Seal) and [ReadYou](https://github.com/ReadYouApp/ReadYou) for UI/UX inspiration
-- The Android and Kotlin communities for amazing tools and libraries
-
----
-
-## The FAQ
-
-* *Why isn't the app on the Play Store?*
-  * I need MONEY <img src="https://files.catbox.moe/uqa4ad.jpg" width="50" alt="DUTCH"> — and a new laptop or rent matters more to me than handing it to Google.
-* *Where do I actually get it, then?*
-  * F-Droid or the GitHub releases page — the badges up top link straight to both. That's it. No sketchy APK mirror sites, please.
-* *Is it free? Any ads or tracking?*
-  * Completely free and open source under GPLv3. No ads, no trackers, no analytics, no telemetry — I don't collect anything about you.
-* *Is it safe to log in?*
-  * Yep. Login goes through AniList's official OAuth, so the app never sees your password. Your access token is encrypted on-device with AES-256-GCM and only ever talks to AniList's API — nothing else.
-* *Why isn't the app on the AniList clients list?*
-  * It's a bit complicated, but long story short: a mod told me the app wasn't getting added because the release thread was AI-generated. I rewrote it, let them know, and then didn't hear anything for quite a while. When I followed up recently, the same mod now says the app is vibecoded, so they won't add it. I asked right away how they reached that conclusion — and never heard back again.
-
-  Getting told your first open-source project is "vibecoded" stung, not gonna lie. But whatever. If a mod with actual front-end and back-end experience reviews the app down the line and changes their mind, great; if not, no hard feelings either. I still love AniList :)
-* *Why another AniList client? Aren't there enough?*
-  * Maybe! But I wanted one that felt genuinely native and looked like a proper Material 3 app. Building it turned out to be way more fun than I expected, so here we are.
-* *Found a bug or want a feature?*
-  * Open an issue on GitHub. I actually read them and usually reply fast (see the vibecoded saga above). No promises on every feature, but good ideas tend to make it in.
-* *Can I help translate?*
-  * Please do — AniSync is on Weblate (badge's up top). Pick your language and go, no coding required.
-* *Will it ever come to iOS?*
-  * Probably not. Compose Multiplatform exists, but I don't want to touch it — every multiplatform app I've tried ran noticeably worse than native Android, since the iOS side wasn't native. Unless I actually learn Swift and SwiftUI (not happening any time soon), it's staying Android-only.
+AniSync's README asks that forks not use the AniSync name for an AniList client. YamSync uses its own
+name and is not an AniList client.

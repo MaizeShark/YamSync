@@ -115,3 +115,5 @@ notes.md
 *.swp
 *.bak
 *.jar
+# Local checkout of the Yamtrack server, used as a reference and test server; not part of this repo
+/Yamtrack/

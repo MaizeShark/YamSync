@@ -46,14 +46,13 @@ class UpdateManager @Inject constructor(
     companion object {
         private const val TAG = "UpdateManager"
         /**
-         * The release list to check, or null to never check. Not set yet: the upstream AniSync
-         * releases are the AniList app and must not be offered as an update.
+         * The release list to check, or null to never check. Must never be the upstream AniSync
+         * repository: those releases are the AniList app.
          *
-         * Forgejo answers in the GitHub shape this parser reads (`tag_name`, `prerelease`,
-         * `assets[].name` / `browser_download_url`), at
-         * `https://<host>/api/v1/repos/<owner>/<repo>/releases`.
+         * Forgejo answers in the same shape (`tag_name`, `prerelease`, `assets[].name` /
+         * `browser_download_url`) at `https://<host>/api/v1/repos/<owner>/<repo>/releases`.
          */
-        private val RELEASES_URL: String? = null
+        private val RELEASES_URL: String? = "https://api.github.com/repos/MaizeShark/YamSync/releases"
         private const val CONNECT_TIMEOUT_MS = 15_000
         private const val READ_TIMEOUT_MS = 30_000
         private const val DOWNLOAD_READ_TIMEOUT_MS = 60_000
@@ -127,17 +126,7 @@ class UpdateManager @Inject constructor(
 
                         if (versionCode > latestVersionCode) {
                             val assets = releaseJson["assets"]?.jsonArray ?: continue
-                            val downloadUrl = assets
-                                .mapNotNull { asset ->
-                                    val obj = asset.jsonObject
-                                    val name =
-                                        obj["name"]?.jsonPrimitive?.content
-                                            ?: return@mapNotNull null
-                                    if (name.endsWith(".apk")) {
-                                        obj["browser_download_url"]?.jsonPrimitive?.content
-                                    } else null
-                                }
-                                .firstOrNull()
+                            val downloadUrl = apkFor(assets)
 
                             if (!downloadUrl.isNullOrEmpty()) {
                                 val authorObj = releaseJson["author"]?.jsonObject
@@ -384,16 +373,7 @@ class UpdateManager @Inject constructor(
                         val tagName =
                             releaseJson["tag_name"]?.jsonPrimitive?.content ?: continue
                         val assets = releaseJson["assets"]?.jsonArray ?: continue
-                        val downloadUrl = assets
-                            .mapNotNull { asset ->
-                                val obj = asset.jsonObject
-                                val name =
-                                    obj["name"]?.jsonPrimitive?.content ?: return@mapNotNull null
-                                if (name.endsWith(".apk")) {
-                                    obj["browser_download_url"]?.jsonPrimitive?.content
-                                } else null
-                            }
-                            .firstOrNull()
+                        val downloadUrl = apkFor(assets)
 
                         if (!downloadUrl.isNullOrEmpty()) {
                             val authorObj = releaseJson["author"]?.jsonObject
@@ -439,6 +419,22 @@ class UpdateManager @Inject constructor(
      * - "v2.3.0" -> 2_003_000
      * - "1.0" -> 1_000_000
      */
+    /**
+     * The download URL of the APK built for this device. Releases carry one APK per ABI (plus a
+     * universal one), named `YamSync-v<version>-<abi>-release.apk`; installing the wrong ABI fails
+     * or runs emulated, so the device's preferred ABIs are tried in order, then the universal APK.
+     */
+    private fun apkFor(assets: kotlinx.serialization.json.JsonArray): String? {
+        val apks = assets.mapNotNull { asset ->
+            val obj = asset.jsonObject
+            val name = obj["name"]?.jsonPrimitive?.content ?: return@mapNotNull null
+            val url = obj["browser_download_url"]?.jsonPrimitive?.content ?: return@mapNotNull null
+            if (name.endsWith(".apk")) name to url else null
+        }
+        return pickApk(apks.map { it.first }, android.os.Build.SUPPORTED_ABIS.toList())
+            ?.let { chosen -> apks.first { it.first == chosen }.second }
+    }
+
     internal fun versionToCode(version: String): Int {
         val cleanVersion = version.replace(Regex("[^0-9.]"), "")
         val parts = cleanVersion.split(".")
@@ -449,4 +445,15 @@ class UpdateManager @Inject constructor(
         }
         return code
     }
+}
+
+/**
+ * Picks the APK for a device from release asset [names]: the first of [deviceAbis] that some name
+ * mentions, else a universal build, else whatever APK there is.
+ */
+internal fun pickApk(names: List<String>, deviceAbis: List<String>): String? {
+    for (abi in deviceAbis) {
+        names.firstOrNull { "-$abi-" in it || it.endsWith("-$abi.apk") }?.let { return it }
+    }
+    return names.firstOrNull { "universal" in it } ?: names.firstOrNull()
 }

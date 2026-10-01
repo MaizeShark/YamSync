@@ -559,7 +559,6 @@
     <string name="library_move_count_to">Pindahkan %1$d ke %2$s</string>
     <string name="library_score_count">Beri skor %1$d entri</string>
     <string name="library_removing_title">Menghapus %1$d entri</string>
-    <string name="library_adding_title">Menambahkan %1$d entri ke %2$s</string>
     <string name="library_bulk_progress">%1$d dari %2$d selesai</string>
     <string name="library_empty_all_title">Pustakamu kosong</string>
     <string name="library_empty_current_title">Tidak ada yang berjalan</string>

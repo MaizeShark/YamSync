@@ -580,7 +580,6 @@
     <string name="library_move_count_to">Mover %1$d para %2$s</string>
     <string name="library_score_count">Nota para %1$d itens</string>
     <string name="library_removing_title">Removendo %1$d itens</string>
-    <string name="library_adding_title">Adicionando %1$d itens para %2$s</string>
     <string name="library_bulk_progress">%1$d de %2$d feito</string>
     <string name="library_empty_all_title">Sua bilioteca está vazia</string>
     <string name="library_empty_current_title">Nada em andamento</string>

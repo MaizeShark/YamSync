@@ -51,7 +51,6 @@
     <string name="library_empty_completed_desc">Les titres que vous finissez sont gardés ici avec votre score.</string>
     <string name="library_empty_completed_title">Aucun titre fini pour l\'instant</string>
     <string name="library_empty_paused_title">Aucun titre mis en pause</string>
-    <string name="library_adding_title">Ajout de %1$d entrées à %2$s</string>
     <string name="library_bulk_progress">%1$d sur %2$d terminé</string>
     <string name="library_empty_all_title">Votre bibliothèque est vide</string>
     <string name="library_empty_current_desc">Débutez quelque chose et il trônera en haut de cette liste.</string>

@@ -13,16 +13,13 @@ import javax.inject.Singleton
 enum class MainTab {
     LIBRARY,
     DISCOVER,
-    FEED,
-    FORUM,
     PROFILE;
 
     /**
-     * Whether this tab owns a search bar for the second tap to open. Feed has nothing to search
-     * (AniList exposes no activity text search) and people search lives in Discover, so those two
-     * answer a second tap the way they answer the first.
+     * Whether this tab owns a search bar for the second tap to open. Profile has nothing to
+     * search, so it answers a second tap the way it answers the first.
      */
-    val hasSearch: Boolean get() = this == LIBRARY || this == DISCOVER || this == FORUM
+    val hasSearch: Boolean get() = this == LIBRARY || this == DISCOVER
 }
 
 /** A request aimed at one tab. [id] only ever grows, so a late reader can still tell it apart. */

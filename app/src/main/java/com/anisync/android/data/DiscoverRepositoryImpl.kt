@@ -38,61 +38,6 @@ class DiscoverRepositoryImpl @Inject constructor(
         return fetchMedia(listOf(MediaSort.ID_DESC), type)
     }
 
-    override suspend fun getRecentReviews(
-        mediaType: MediaType?,
-        mediaId: Int?,
-        userId: Int?,
-        sort: com.anisync.android.domain.ReviewSortOption,
-        page: Int
-    ): Result<com.anisync.android.domain.UserReviewsPage> {
-        return safeApiCall {
-            val response = apolloClient.query(
-                com.anisync.android.GetRecentReviewsQuery(
-                    mediaType = mediaType?.let { Optional.present(it) } ?: Optional.absent(),
-                    mediaId = mediaId?.let { Optional.present(it) } ?: Optional.absent(),
-                    userId = userId?.let { Optional.present(it) } ?: Optional.absent(),
-                    sort = Optional.present(listOf(sort.apiValue)),
-                    page = Optional.present(page)
-                )
-            )
-            .fetchPolicy(FetchPolicy.NetworkOnly)
-            .doNotStore(true)
-            .execute()
-
-            if (response.hasErrors()) {
-                throw Exception(response.errors?.first()?.message ?: "Failed to fetch recent reviews")
-            }
-
-            val reviews = response.data?.Page?.reviews?.filterNotNull()?.map { review ->
-                com.anisync.android.domain.MediaReview(
-                    id = review.id,
-                    summary = review.summary ?: "",
-                    body = review.body,
-                    score = review.score ?: 0,
-                    rating = review.rating ?: 0,
-                    ratingAmount = review.ratingAmount ?: 0,
-                    userRating = review.userRating?.name,
-                    userName = review.user?.name ?: "Unknown",
-                    userAvatarUrl = review.user?.avatar?.large,
-                    createdAt = review.createdAt.toLong(),
-                    mediaTitle = review.media?.title?.userPreferred,
-                    mediaCoverUrl = review.media?.coverImage?.large,
-                    mediaCover = com.anisync.android.domain.CoverImage.of(
-                        review.media?.coverImage?.medium,
-                        review.media?.coverImage?.large,
-                        review.media?.coverImage?.extraLarge
-                    ),
-                    mediaBannerUrl = review.media?.bannerImage
-                )
-            } ?: emptyList()
-
-            com.anisync.android.domain.UserReviewsPage(
-                reviews = reviews,
-                hasNextPage = response.data?.Page?.pageInfo?.hasNextPage == true
-            )
-        }
-    }
-
     override suspend fun getUpcoming(type: MediaType): Result<List<LibraryEntry>> {
         return safeApiCall {
             val response = apolloClient.query(

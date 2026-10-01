@@ -4,7 +4,6 @@ import androidx.room.TypeConverter
 import com.anisync.android.domain.AnimeStatusCounts
 import com.anisync.android.domain.CharacterInfo
 import com.anisync.android.domain.ExternalLink
-import com.anisync.android.domain.ForumCategory
 import com.anisync.android.domain.LibraryEntry
 import com.anisync.android.domain.LibraryStatus
 import com.anisync.android.domain.MediaReview
@@ -15,7 +14,6 @@ import com.anisync.android.domain.StudioInfo
 import com.anisync.android.domain.StudioRef
 import com.anisync.android.domain.Tag
 import com.anisync.android.domain.Trailer
-import com.anisync.android.domain.UserActivity
 import com.anisync.android.type.MediaFormat
 import com.anisync.android.type.MediaType
 import kotlinx.serialization.json.Json
@@ -108,16 +106,6 @@ class Converters {
     fun toLibraryEntryList(list: List<LibraryEntry>): String = json.encodeToString(list)
 
     @TypeConverter
-    fun fromUserActivityList(value: String): List<UserActivity> = try {
-        json.decodeFromString(value)
-    } catch (e: Exception) {
-        emptyList()
-    }
-
-    @TypeConverter
-    fun toUserActivityList(list: List<UserActivity>): String = json.encodeToString(list)
-
-    @TypeConverter
     fun fromAnimeStatusCounts(value: String): AnimeStatusCounts = try {
         json.decodeFromString(value)
     } catch (e: Exception) {
@@ -162,16 +150,6 @@ class Converters {
     @TypeConverter
     fun toTrailer(trailer: Trailer?): String? = trailer?.let { json.encodeToString(it) }
 
-    @TypeConverter
-    fun fromForumCategoryList(value: String): List<ForumCategory> = try {
-        json.decodeFromString(value)
-    } catch (e: Exception) {
-        emptyList()
-    }
-
-    @TypeConverter
-    fun toForumCategoryList(list: List<ForumCategory>): String = json.encodeToString(list)
-
     // --- RecommendedMedia Converters ---
 
     @TypeConverter
@@ -195,17 +173,6 @@ class Converters {
 
     @TypeConverter
     fun toMediaReviewList(list: List<MediaReview>): String = json.encodeToString(list)
-
-    @TypeConverter
-    fun fromStaffDetailsList(value: String): List<com.anisync.android.domain.StaffDetails> = try {
-        json.decodeFromString(value)
-    } catch (e: Exception) {
-        emptyList()
-    }
-
-    @TypeConverter
-    fun toStaffDetailsList(list: List<com.anisync.android.domain.StaffDetails>): String =
-        json.encodeToString(list)
 
     @TypeConverter
     fun fromGenreStatList(value: String): List<com.anisync.android.domain.GenreStat> = try {

@@ -3,11 +3,8 @@ package com.anisync.android.data.account
 import android.content.Context
 import com.anisync.android.GetViewerQuery
 import com.anisync.android.data.AppSettings
-import com.anisync.android.data.NotificationBadgeStore
 import com.anisync.android.data.local.dao.AiringScheduleDao
 import com.anisync.android.data.local.dao.LibraryDao
-import com.anisync.android.data.local.dao.SavedForumThreadDao
-import com.anisync.android.domain.ActivityRepository
 import com.anisync.android.domain.PreferencesRepository
 import com.anisync.android.widget.core.WidgetRefresh
 import com.apollographql.apollo.ApolloClient
@@ -45,12 +42,8 @@ class AccountManager @Inject constructor(
     private val apolloClient: ApolloClient,
     private val libraryDao: LibraryDao,
     private val airingScheduleDao: AiringScheduleDao,
-    private val savedForumThreadDao: SavedForumThreadDao,
     private val preferencesRepository: PreferencesRepository,
     private val appSettings: AppSettings,
-    private val notificationBadgeStore: NotificationBadgeStore,
-    private val notificationReadStore: com.anisync.android.data.NotificationReadStore,
-    private val activityRepository: ActivityRepository,
     private val tokenedClientFactory: TokenedApolloClientFactory,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -177,9 +170,6 @@ class AccountManager @Inject constructor(
     }
 
     private fun bumpEpoch() {
-        // Runs after the switch, so the badge picks up the account we are moving to rather than
-        // the one whose state was just cleared.
-        notificationReadStore.syncBadge()
         _sessionEpoch.value += 1
     }
 
@@ -227,11 +217,8 @@ class AccountManager @Inject constructor(
     private suspend fun clearLocalState() {
         withContext(Dispatchers.IO) {
             runCatching { apolloClient.apolloStore.clearAll() }
-            savedForumThreadDao.deleteAll()
             // Notification dedup is per-account now (kept across switches) — not wiped here.
             appSettings.clearAccountScoped()
-            activityRepository.clearViewerCache()
-            notificationBadgeStore.reset()
         }
     }
 

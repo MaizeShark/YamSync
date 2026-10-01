@@ -38,9 +38,17 @@ class SearchRepositoryImpl @Inject constructor(
      * a user with adult content off never sees 18+ results unless they explicitly ask for them via
      * the chip. This is the fix for the previously-inert toggle.
      */
-    private fun resolveAdultFilter(mode: com.anisync.android.domain.AdultMode): Optional<Boolean?> =
-        resolveAdultIsAdult(mode, appSettings.showAdultContent.value)
-            ?.let { Optional.present(it) } ?: Optional.absent()
+    private fun resolveAdultFilter(mode: com.anisync.android.domain.AdultMode): Optional<Boolean?> {
+        // null leaves the filter off; the global preference hides adult media unless the search
+        // explicitly asks for it.
+        val isAdult = when (mode) {
+            com.anisync.android.domain.AdultMode.ANY ->
+                if (appSettings.showAdultContent.value) null else false
+            com.anisync.android.domain.AdultMode.HIDE -> false
+            com.anisync.android.domain.AdultMode.ONLY -> true
+        }
+        return isAdult?.let { Optional.present(it) } ?: Optional.absent()
+    }
 
     @Volatile private var cachedGenres: List<String>? = null
     @Volatile private var cachedTags: List<MediaTag>? = null

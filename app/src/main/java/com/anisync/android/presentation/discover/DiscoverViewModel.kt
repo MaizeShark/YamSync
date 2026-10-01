@@ -14,7 +14,6 @@ import com.anisync.android.domain.GroupedSearchResults
 import com.anisync.android.domain.IntRangeFilter
 import com.anisync.android.domain.LibraryEntry
 import com.anisync.android.domain.LibraryStatus
-import com.anisync.android.domain.MediaReview
 import com.anisync.android.domain.MediaTag
 import com.anisync.android.domain.OriginCountry
 import com.anisync.android.domain.Result
@@ -462,8 +461,7 @@ class DiscoverViewModel @Inject constructor(
                             releasing = f.releasing.copy(isLoading = true, error = null),
                             popular = f.popular.copy(isLoading = true, error = null),
                             notYetReleased = f.notYetReleased.copy(isLoading = true, error = null),
-                            newlyAdded = f.newlyAdded.copy(isLoading = true, error = null),
-                            reviews = f.reviews.copy(isLoading = true, error = null)
+                            newlyAdded = f.newlyAdded.copy(isLoading = true, error = null)
                         )
                     }
                 )
@@ -482,7 +480,6 @@ class DiscoverViewModel @Inject constructor(
                 add(launch {
                     loadEntries(mediaType, { discoverRepository.getNewlyAdded(it) }) { f, v -> f.copy(newlyAdded = v) }
                 })
-                add(launch { loadReviews(mediaType) })
                 if (DiscoverSection.AIRING_TODAY in supported) {
                     add(launch { loadAiringToday(mediaType) })
                 }
@@ -516,17 +513,6 @@ class DiscoverViewModel @Inject constructor(
         // A tab switch mid-flight must not write the old tab's rail over the new one.
         _uiState.update {
             if (it.mediaType != mediaType) it else it.copy(feeds = assign(it.feeds, feed))
-        }
-    }
-
-    private suspend fun loadReviews(mediaType: MediaType) {
-        val result = discoverRepository.getRecentReviews(mediaType = mediaType, page = 1)
-        val feed = when (result) {
-            is Result.Success -> SectionFeed(items = result.data.reviews, isLoading = false)
-            is Result.Error -> SectionFeed<MediaReview>(isLoading = false, error = result.message)
-        }
-        _uiState.update {
-            if (it.mediaType != mediaType) it else it.copy(feeds = it.feeds.copy(reviews = feed))
         }
     }
 
@@ -645,7 +631,6 @@ class DiscoverViewModel @Inject constructor(
                 DiscoverSection.RELEASING_NOW ->
                     loadEntries(mediaType, { discoverRepository.getReleasing(it) }) { f, v -> f.copy(releasing = v) }
                 DiscoverSection.AIRING_TODAY -> loadAiringToday(mediaType)
-                DiscoverSection.REVIEWS -> loadReviews(mediaType)
             }
         }
     }

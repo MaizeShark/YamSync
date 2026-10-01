@@ -1,6 +1,6 @@
 package com.anisync.android.data.network
 
-import com.anisync.android.GetActivityLikesQuery
+import com.anisync.android.GetMediaDetailsQuery
 import com.anisync.android.GetMediaStatsQuery
 import com.anisync.android.GetViewerQuery
 import com.apollographql.apollo.api.ApolloRequest
@@ -27,16 +27,16 @@ class RequestCoalescerTest {
 
     @Test
     fun `the same query with the same variables shares a key`() {
-        val a = ApolloRequest.Builder(GetActivityLikesQuery(activityId = 7)).build()
-        val b = ApolloRequest.Builder(GetActivityLikesQuery(activityId = 7)).build()
+        val a = ApolloRequest.Builder(GetMediaDetailsQuery(id = Optional.present(7))).build()
+        val b = ApolloRequest.Builder(GetMediaDetailsQuery(id = Optional.present(7))).build()
 
         assertEquals(coalescer.key(a), coalescer.key(b))
     }
 
     @Test
     fun `the same query with different variables does not`() {
-        val a = ApolloRequest.Builder(GetActivityLikesQuery(activityId = 7)).build()
-        val b = ApolloRequest.Builder(GetActivityLikesQuery(activityId = 8)).build()
+        val a = ApolloRequest.Builder(GetMediaDetailsQuery(id = Optional.present(7))).build()
+        val b = ApolloRequest.Builder(GetMediaDetailsQuery(id = Optional.present(8))).build()
 
         assertNotEquals(coalescer.key(a), coalescer.key(b))
     }

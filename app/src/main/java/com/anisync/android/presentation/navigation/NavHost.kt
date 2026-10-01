@@ -23,43 +23,18 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.composable
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
-import com.anisync.android.presentation.activity.ActivityDetailScreen
-import com.anisync.android.presentation.activity.EditActivityScreen
 import com.anisync.android.presentation.calendar.CalendarScreen
 import com.anisync.android.presentation.notes.NotesJournalScreen
-import com.anisync.android.presentation.details.CharacterDetailsScreen
-import com.anisync.android.presentation.details.CharacterMediaGridScreen
 import com.anisync.android.presentation.details.MediaDetailsScreen
-import com.anisync.android.presentation.details.MediaRecommendationsGridScreen
 import com.anisync.android.presentation.details.MediaRelationsGridScreen
 import com.anisync.android.presentation.details.MediaThemesScreen
-import com.anisync.android.presentation.details.StaffDetailsScreen
-import com.anisync.android.presentation.details.StaffMediaGridScreen
-import com.anisync.android.presentation.details.StaffProductionMediaGridScreen
-import com.anisync.android.presentation.details.StudioDetailsScreen
-import com.anisync.android.presentation.details.StudioMediaGridScreen
 import com.anisync.android.presentation.discover.DiscoverListDetail
 import com.anisync.android.presentation.discover.DiscoverScreen
-import com.anisync.android.presentation.discover.FavoritesGridScreen
 import com.anisync.android.presentation.discover.SectionGridScreen
-import com.anisync.android.presentation.feed.CreateStatusScreen
-import com.anisync.android.presentation.feed.FeedListDetail
-import com.anisync.android.presentation.feed.FeedScreen
-import com.anisync.android.presentation.forum.ForumCategoryScreen
-import com.anisync.android.presentation.forum.ForumMediaThreadsScreen
-import com.anisync.android.presentation.forum.ForumListDetail
-import com.anisync.android.presentation.forum.ForumScreen
-import com.anisync.android.presentation.forum.ForumThreadInputScreen
-import com.anisync.android.presentation.forum.EditThreadBodyScreen
-import com.anisync.android.presentation.forum.ThreadDetailScreen
 import com.anisync.android.presentation.library.LibraryListDetail
 import com.anisync.android.presentation.library.LibraryScreen
 import com.anisync.android.presentation.login.LoginScreen
-import com.anisync.android.presentation.notifications.NotificationsListDetail
 import com.anisync.android.presentation.profile.ProfileScreen
-import com.anisync.android.presentation.review.RecentReviewsScreen
-import com.anisync.android.presentation.review.ReviewDetailScreen
-import com.anisync.android.presentation.review.WriteReviewScreen
 import com.anisync.android.presentation.settings.AboutScreen
 import com.anisync.android.presentation.settings.AcknowledgmentsScreen
 import com.anisync.android.presentation.settings.AniListSettingsScreen
@@ -68,7 +43,6 @@ import com.anisync.android.presentation.settings.FontSettingsScreen
 import com.anisync.android.presentation.settings.LanguageScreen
 import com.anisync.android.presentation.settings.LinksScreen
 import com.anisync.android.presentation.settings.LookAndFeelScreen
-import com.anisync.android.presentation.settings.MediaUploadSettingsScreen
 import com.anisync.android.presentation.settings.NotificationsScreen
 import com.anisync.android.presentation.settings.OpenSourceLicensesScreen
 import com.anisync.android.presentation.settings.SettingsListDetail
@@ -88,9 +62,7 @@ import com.anisync.android.presentation.util.LocalAniLinkCallbacks
 private val tabOrder = mapOf(
     Library::class.qualifiedName to 0,
     Discover::class.qualifiedName to 1,
-    Feed::class.qualifiedName to 2,
-    Forum::class.qualifiedName to 3,
-    Profile::class.qualifiedName to 4
+    Profile::class.qualifiedName to 2
 )
 
 /**
@@ -115,20 +87,6 @@ fun AniSyncNavHost(
     modifier: Modifier = Modifier,
     startDestination: Any = Library
 ) {
-    val navigateToUserProfile: (String) -> Unit = { username ->
-        username.trim().takeIf { it.isNotEmpty() }?.let { nonEmptyUsername ->
-            navController.navigate(UserProfile(nonEmptyUsername))
-        }
-    }
-
-    val navigateToActivity: (Int) -> Unit = { activityId ->
-        navController.navigate(ActivityDetail(activityId))
-    }
-
-    val navigateToActivityReply: (Int, Int) -> Unit = { activityId, replyId ->
-        navController.navigate(ActivityDetail(activityId = activityId, targetReplyId = replyId))
-    }
-
     // =============================================================================
     // MATERIAL 3 MOTION SPECS (Memoized)
     // =============================================================================
@@ -213,35 +171,11 @@ fun AniSyncNavHost(
 
     SharedTransitionLayout(modifier = modifier) {
         // Provide centralized link routing callbacks so any screen can navigate
-        // in-app when a recognizable AniList URL is clicked (forum posts, etc.)
+        // in-app when a recognizable media URL is clicked in rich text.
         val aniLinkCallbacks = remember(navController) {
             AniLinkCallbacks(
                 onMediaClick = { mediaId ->
                     navController.navigateSafely(MediaDetails(mediaId, "link"))
-                },
-                onThreadClick = { threadId, commentId ->
-                    navController.navigateSafely(
-                        ForumThreadDetail(
-                            threadId = threadId,
-                            threadTitle = "",
-                            commentId = commentId ?: 0
-                        )
-                    )
-                },
-                onCharacterClick = { characterId ->
-                    navController.navigateSafely(CharacterDetails(characterId))
-                },
-                onStaffClick = { staffId ->
-                    navController.navigateSafely(StaffDetails(staffId))
-                },
-                onUserClick = { username ->
-                    navController.navigateSafely(UserProfile(username))
-                },
-                onReviewClick = { reviewId ->
-                    navController.navigateSafely(ReviewDetail(reviewId))
-                },
-                onActivityClick = { activityId ->
-                    navController.navigateSafely(ActivityDetail(activityId))
                 }
             )
         }
@@ -343,34 +277,6 @@ fun AniSyncNavHost(
                 )
             }
 
-            // =================================================================
-            // FEED TAB - Shared Axis X (Horizontal)
-            // =================================================================
-
-            composable<Feed>(
-                enterTransition = {
-                    val forward = isForwardNavigation(
-                        fromRoute = initialState.destination.route,
-                        toRoute = Feed::class.qualifiedName
-                    )
-                    sharedAxisXEnter(forward = forward)
-                },
-                exitTransition = {
-                    val forward = isForwardNavigation(
-                        fromRoute = Feed::class.qualifiedName,
-                        toRoute = targetState.destination.route
-                    )
-                    sharedAxisXExit(forward = forward)
-                },
-                popEnterTransition = { sharedAxisXEnter(forward = false) },
-                popExitTransition = { sharedAxisXExit(forward = false) }
-            ) {
-                FeedListDetail(
-                    navController = navController,
-                    onActivityClickFullScreen = navigateToActivity,
-                )
-            }
-
             composable<Profile>(
                 enterTransition = {
                     val forward = isForwardNavigation(
@@ -389,145 +295,18 @@ fun AniSyncNavHost(
                 popEnterTransition = { sharedAxisXEnter(forward = false) },
                 popExitTransition = { sharedAxisXExit(forward = false) }
             ) {
-                // Optimization: Memoize callbacks
-                val onProfileMediaClick = remember(onMediaClick) { 
-                    { mediaId: Int -> onMediaClick(mediaId, "profile") } 
-                }
-                val onLogout = remember(navController) {
-                    {
-                        navController.navigate(Login) {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    }
-                }
-                val onStatistics = remember(navController) {
-                    { userId: Int -> navController.navigate(Statistics(userId)) }
-                }
-                val onNavigateToSettings = remember(navController) {
-                    { navController.navigate(Settings) }
-                }
-                val onNavigateToNotifications = remember(navController) {
-                    { navController.navigate(Notifications) }
+                val onProfileMediaClick = remember(onMediaClick) {
+                    { mediaId: Int -> onMediaClick(mediaId, "profile") }
                 }
 
                 ProfileScreen(
                     onMediaClick = onProfileMediaClick,
-                    onCharacterClick = { characterId ->
-                        navController.navigate(CharacterDetails(characterId))
-                    },
-                    onStaffClick = { staffId ->
-                        navController.navigate(StaffDetails(staffId))
-                    },
-                    onVoiceActorClick = { staffId ->
-                        navController.navigate(StaffDetails(staffId))
-                    },
-                    onStudioClick = { studioId ->
-                        navController.navigate(StudioDetails(studioId))
-                    },
-                    onUserClick = navigateToUserProfile,
-                    onThreadClick = { threadId, threadTitle ->
-                        navController.navigate(ForumThreadDetail(threadId, threadTitle))
-                    },
-                    onCommentClick = { threadId, commentId, threadTitle ->
-                        navController.navigate(
-                            ForumThreadDetail(threadId, threadTitle, commentId)
-                        )
-                    },
-                    onActivityClick = navigateToActivity,
-                    onLastReplyClick = navigateToActivityReply,
-                    onLogoutClick = onLogout,
-                    onNavigateToSettings = onNavigateToSettings,
-                    onNavigateToNotifications = onNavigateToNotifications,
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
-                )
-            }
-
-            composable<UserProfile>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() },
-                deepLinks = listOf(
-                    navDeepLink { uriPattern = "anisync://user/{username}" },
-                    navDeepLink { uriPattern = "https://anilist.co/user/{username}" }
-                )
-            ) {
-                val onProfileMediaClick = remember(onMediaClick) { 
-                    { mediaId: Int -> onMediaClick(mediaId, "user_profile") } 
-                }
-                
-                ProfileScreen(
-                    onMediaClick = onProfileMediaClick,
-                    onCharacterClick = { characterId ->
-                        navController.navigate(CharacterDetails(characterId))
-                    },
-                    onStaffClick = { staffId ->
-                        navController.navigate(StaffDetails(staffId))
-                    },
-                    onVoiceActorClick = { staffId ->
-                        navController.navigate(StaffDetails(staffId))
-                    },
-                    onStudioClick = { studioId ->
-                        navController.navigate(StudioDetails(studioId))
-                    },
-                    onUserClick = navigateToUserProfile,
-                    onThreadClick = { threadId, threadTitle ->
-                        navController.navigate(ForumThreadDetail(threadId, threadTitle))
-                    },
-                    onCommentClick = { threadId, commentId, threadTitle ->
-                        navController.navigate(
-                            ForumThreadDetail(threadId, threadTitle, commentId)
-                        )
-                    },
-                    onActivityClick = navigateToActivity,
-                    onLastReplyClick = navigateToActivityReply,
-                    onLogoutClick = { }, // Not used for other users
-                    onNavigateToSettings = { }, // Not used for other users
-                    isOwnProfile = false,
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
-                )
-            }
-
-            // =================================================================
-            // FORUM TAB - Shared Axis X (Horizontal)
-            // =================================================================
-
-            composable<Forum>(
-                enterTransition = {
-                    val forward = isForwardNavigation(
-                        fromRoute = initialState.destination.route,
-                        toRoute = Forum::class.qualifiedName
-                    )
-                    sharedAxisXEnter(forward = forward)
-                },
-                exitTransition = {
-                    val forward = isForwardNavigation(
-                        fromRoute = Forum::class.qualifiedName,
-                        toRoute = targetState.destination.route
-                    )
-                    sharedAxisXExit(forward = forward)
-                },
-                popEnterTransition = { sharedAxisXEnter(forward = false) },
-                popExitTransition = { sharedAxisXExit(forward = false) }
-            ) {
-                val onThreadClick = remember(navController) {
-                    { threadId: Int, threadTitle: String ->
-                        navController.navigate(ForumThreadDetail(threadId, threadTitle))
-                    }
-                }
-                ForumListDetail(
-                    navController = navController,
-                    onThreadClickFullScreen = onThreadClick,
                     onNavigateToSettings = { navController.navigate(Settings) },
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedVisibilityScope = this
                 )
             }
 
-            // =================================================================
-            // DETAILS SCREEN - Shared Axis Z (Depth)
-            // =================================================================
-            // Navigating to detail view uses scale+fade for depth perception
             // =================================================================
             // MEDIA DETAILS SCREEN - Shared Axis Z (Depth)
             // =================================================================
@@ -562,288 +341,11 @@ fun AniSyncNavHost(
                     onRelationClick = { relationMediaId ->
                         navController.navigate(MediaDetails(relationMediaId, "media_details"))
                     },
-                    onCharacterClick = { characterId ->
-                        navController.navigate(CharacterDetails(characterId))
-                    },
-                    onStaffClick = { staffId ->
-                        navController.navigate(StaffDetails(staffId))
-                    },
-                    onStudioClick = { studioId ->
-                        navController.navigate(StudioDetails(studioId))
-                    },
                     onRelatedSeeAllClick = { mediaId, mediaTitle ->
                         navController.navigate(MediaRelationsGrid(mediaId, mediaTitle))
                     },
-                    onRecommendationsSeeAllClick = { mediaId, mediaTitle ->
-                        navController.navigate(MediaRecommendationsGrid(mediaId, mediaTitle))
-                    },
                     onThemesSeeAllClick = { mediaId, mediaTitle, totalEpisodes, coverUrl ->
                         navController.navigate(MediaThemes(mediaId, mediaTitle, totalEpisodes, coverUrl))
-                    },
-                    onWriteReviewClick = { mediaId, mediaTitle ->
-                        navController.navigate(WriteReview(mediaId, mediaTitle))
-                    },
-                    onReviewClick = { reviewId ->
-                        navController.navigate(ReviewDetail(reviewId, sourceScreen = "media_details"))
-                    },
-                    onDiscussionClick = { threadId, threadTitle ->
-                        navController.navigate(ForumThreadDetail(threadId, threadTitle))
-                    },
-                    onViewAllDiscussions = { mediaId, mediaTitle ->
-                        navController.navigate(ForumMediaThreads(mediaId, mediaTitle))
-                    },
-                    onStartDiscussion = { mediaId, title, coverUrl ->
-                        navController.navigate(
-                            CreateThread(
-                                mediaId = mediaId,
-                                mediaTitle = title,
-                                mediaCoverUrl = coverUrl.orEmpty()
-                            )
-                        )
-                    },
-                    onUserClick = navigateToUserProfile,
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
-                )
-            }
-
-            // =================================================================
-            // MEDIA RECOMMENDATIONS GRID - Shared Axis Z (Depth)
-            // =================================================================
-            composable<MediaRecommendationsGrid>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) { backStackEntry ->
-                val grid: MediaRecommendationsGrid = backStackEntry.toRoute()
-                MediaRecommendationsGridScreen(
-                    mediaId = grid.mediaId,
-                    mediaTitle = grid.mediaTitle,
-                    onBackClick = { navController.popBackStack() },
-                    onRecommendationClick = { recId ->
-                        navController.navigate(MediaDetails(recId, "recommendations_grid"))
-                    },
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
-                )
-            }
-
-            // =================================================================
-            // WRITE REVIEW EDITOR - Shared Axis Z (Depth)
-            // =================================================================
-            composable<WriteReview>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) {
-                WriteReviewScreen(
-                    onBackClick = { navController.popBackStack() },
-                    onReviewSaved = { navController.popBackStack() }
-                )
-            }
-
-            // =================================================================
-            // REVIEW DETAIL SCREEN - Fade (banner morph carries the motion)
-            // =================================================================
-            composable<ReviewDetail>(
-                deepLinks = listOf(
-                    navDeepLink { uriPattern = "anisync://review/{reviewId}" },
-                    navDeepLink { uriPattern = "https://anilist.co/review/{reviewId}" },
-                    navDeepLink { uriPattern = "https://anilist.co/review/{reviewId}/{slug}" }
-                ),
-                // Fade only: the review card's banner morphs into the detail hero banner
-                // (shared bounds); a slide would double-move it, like the media cover did.
-                enterTransition = { fadeIn(animationSpec = effectsSpec) },
-                exitTransition = { fadeOut(animationSpec = effectsSpec) },
-                popEnterTransition = { fadeIn(animationSpec = effectsSpec) },
-                popExitTransition = { fadeOut(animationSpec = effectsSpec) }
-            ) { backStackEntry ->
-                val route: ReviewDetail = backStackEntry.toRoute()
-                ReviewDetailScreen(
-                    reviewId = route.reviewId,
-                    sourceScreen = route.sourceScreen,
-                    onBackClick = { navController.popBackStack() },
-                    onUserClick = navigateToUserProfile,
-                    onMediaClick = { mediaId ->
-                        navController.navigate(MediaDetails(mediaId, "review"))
-                    },
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
-                )
-            }
-
-            // =================================================================
-            // RECENT REVIEWS SCREEN - Shared Axis Z (Depth)
-            // =================================================================
-            composable<RecentReviews>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) {
-                RecentReviewsScreen(
-                    onBackClick = { navController.popBackStack() },
-                    onReviewClick = { reviewId ->
-                        navController.navigate(ReviewDetail(reviewId, sourceScreen = "recent_reviews"))
-                    },
-                    onUserClick = navigateToUserProfile,
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
-                )
-            }
-
-            // =================================================================
-            // CHARACTER DETAILS SCREEN - Shared Axis Z (Depth)
-            // =================================================================
-            composable<CharacterDetails>(
-                deepLinks = listOf(
-                    // AniList character URLs (e.g., https://anilist.co/character/40882)
-                    navDeepLink { uriPattern = "https://anilist.co/character/{characterId}" },
-                    // AniList character URLs with slug
-                    navDeepLink { uriPattern = "https://anilist.co/character/{characterId}/{slug}" }
-                ),
-                // Fade only: the character image morphs from the cast row / VA card (shared
-                // bounds); a slide would double-move it, like the media cover did.
-                enterTransition = { fadeIn(animationSpec = effectsSpec) },
-                exitTransition = { fadeOut(animationSpec = effectsSpec) },
-                popEnterTransition = { fadeIn(animationSpec = effectsSpec) },
-                popExitTransition = { fadeOut(animationSpec = effectsSpec) }
-            ) { backStackEntry ->
-                val character: CharacterDetails = backStackEntry.toRoute()
-                CharacterDetailsScreen(
-                    characterId = character.characterId,
-                    onBackClick = { navController.popBackStack() },
-                    onMediaClick = { mediaId ->
-                        navController.navigate(MediaDetails(mediaId, com.anisync.android.presentation.util.TransitionKeys.CHARACTER))
-                    },
-                    onStaffClick = { staffId ->
-                        navController.navigate(StaffDetails(staffId))
-                    },
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
-                )
-            }
-
-            // =================================================================
-            // STAFF DETAILS SCREEN - Shared Axis Z (Depth)
-            // =================================================================
-            composable<StaffDetails>(
-                deepLinks = listOf(
-                    navDeepLink { uriPattern = "https://anilist.co/staff/{staffId}" },
-                    navDeepLink { uriPattern = "https://anilist.co/staff/{staffId}/{slug}" }
-                ),
-                // Fade only: the staff image morphs from the staff row (shared bounds);
-                // a slide would double-move it, like the media cover did.
-                enterTransition = { fadeIn(animationSpec = effectsSpec) },
-                exitTransition = { fadeOut(animationSpec = effectsSpec) },
-                popEnterTransition = { fadeIn(animationSpec = effectsSpec) },
-                popExitTransition = { fadeOut(animationSpec = effectsSpec) }
-            ) { backStackEntry ->
-                val staff: StaffDetails = backStackEntry.toRoute()
-                StaffDetailsScreen(
-                    staffId = staff.staffId,
-                    onBackClick = { navController.popBackStack() },
-                    onMediaClick = { mediaId ->
-                        navController.navigate(MediaDetails(mediaId, "staff"))
-                    },
-                    onCharacterClick = { characterId ->
-                        navController.navigate(CharacterDetails(characterId))
-                    },
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
-                )
-            }
-
-            // =================================================================
-            // STUDIO DETAILS SCREEN - Shared Axis Z (Depth)
-            // =================================================================
-            composable<StudioDetails>(
-                deepLinks = listOf(
-                    navDeepLink { uriPattern = "https://anilist.co/studio/{studioId}" },
-                    navDeepLink { uriPattern = "https://anilist.co/studio/{studioId}/{slug}" }
-                ),
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) { backStackEntry ->
-                val studio: StudioDetails = backStackEntry.toRoute()
-                StudioDetailsScreen(
-                    studioId = studio.studioId,
-                    onBackClick = { navController.popBackStack() },
-                    onMediaClick = { mediaId ->
-                        navController.navigate(MediaDetails(mediaId, "studio"))
-                    },
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
-                )
-            }
-
-            // =================================================================
-            // STUDIO MEDIA GRID - Shared Axis Z (Depth)
-            // =================================================================
-            composable<StudioMediaGrid>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) { backStackEntry ->
-                val grid: StudioMediaGrid = backStackEntry.toRoute()
-                StudioMediaGridScreen(
-                    studioId = grid.studioId,
-                    studioName = grid.studioName,
-                    onBackClick = { navController.popBackStack() },
-                    onMediaClick = { mediaId ->
-                        navController.navigate(MediaDetails(mediaId, "studio_grid"))
-                    },
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
-                )
-            }
-
-            // =================================================================
-            // STAFF MEDIA GRID - Shared Axis Z (Depth)
-            // =================================================================
-            composable<StaffMediaGrid>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) { backStackEntry ->
-                val grid: StaffMediaGrid = backStackEntry.toRoute()
-                StaffMediaGridScreen(
-                    staffId = grid.staffId,
-                    staffName = grid.staffName,
-                    onBackClick = { navController.popBackStack() },
-                    onMediaClick = { mediaId ->
-                        navController.navigate(MediaDetails(mediaId, "staff_grid"))
-                    },
-                    onCharacterClick = { characterId ->
-                        navController.navigate(CharacterDetails(characterId))
-                    },
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
-                )
-            }
-
-            // =================================================================
-            // STAFF PRODUCTION MEDIA GRID - Shared Axis Z (Depth)
-            // =================================================================
-            composable<StaffProductionMediaGrid>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) { backStackEntry ->
-                val grid: StaffProductionMediaGrid = backStackEntry.toRoute()
-                StaffProductionMediaGridScreen(
-                    staffId = grid.staffId,
-                    staffName = grid.staffName,
-                    onBackClick = { navController.popBackStack() },
-                    onMediaClick = { mediaId ->
-                        navController.navigate(MediaDetails(mediaId, "staff_production_grid"))
                     },
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedVisibilityScope = this
@@ -862,28 +364,16 @@ fun AniSyncNavHost(
             ) { backStackEntry ->
                 val sectionGrid: SectionGrid = backStackEntry.toRoute()
 
-                if (sectionGrid.sectionType == "favorites") {
-                    FavoritesGridScreen(
-                        sectionTitle = sectionGrid.sectionTitle,
-                        onBackClick = { navController.popBackStack() },
-                        onMediaClick = { mediaId ->
-                            navController.navigate(MediaDetails(mediaId, "sectiongrid"))
-                        },
-                        sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedVisibilityScope = this
-                    )
-                } else {
-                    SectionGridScreen(
-                        sectionTitle = sectionGrid.sectionTitle,
-                        sectionType = sectionGrid.sectionType,
-                        onBackClick = { navController.popBackStack() },
-                        onMediaClick = { mediaId ->
-                            navController.navigate(MediaDetails(mediaId, "sectiongrid"))
-                        },
-                        sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedVisibilityScope = this
-                    )
-                }
+                SectionGridScreen(
+                    sectionTitle = sectionGrid.sectionTitle,
+                    sectionType = sectionGrid.sectionType,
+                    onBackClick = { navController.popBackStack() },
+                    onMediaClick = { mediaId ->
+                        navController.navigate(MediaDetails(mediaId, "sectiongrid"))
+                    },
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedVisibilityScope = this
+                )
             }
 
             // =================================================================
@@ -927,156 +417,6 @@ fun AniSyncNavHost(
             }
 
             // =================================================================
-            // CHARACTER MEDIA GRID - Shared Axis Z (Depth)
-            // =================================================================
-            composable<CharacterMediaGrid>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) { backStackEntry ->
-                val grid: CharacterMediaGrid = backStackEntry.toRoute()
-                CharacterMediaGridScreen(
-                    characterId = grid.characterId,
-                    characterName = grid.characterName,
-                    onBackClick = { navController.popBackStack() },
-                    onMediaClick = { mediaId ->
-                        navController.navigate(MediaDetails(mediaId, com.anisync.android.presentation.util.TransitionKeys.CHARACTER_GRID))
-                    },
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
-                )
-            }
-
-            // =================================================================
-            // FORUM CATEGORY BROWSE - Shared Axis Z (Depth)
-            // =================================================================
-            composable<ForumCategoryBrowse>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) { backStackEntry ->
-                val route: ForumCategoryBrowse = backStackEntry.toRoute()
-                ForumCategoryScreen(
-                    categoryId = route.categoryId,
-                    categoryName = route.categoryName,
-                    onBackClick = { navController.popBackStack() },
-                    onThreadClick = { threadId, threadTitle ->
-                        navController.navigate(ForumThreadDetail(threadId, threadTitle))
-                    },
-                    onThreadCommentClick = { threadId, commentId ->
-                        navController.navigate(
-                            ForumThreadDetail(threadId, "", commentId)
-                        )
-                    },
-                    onUserClick = navigateToUserProfile
-                )
-            }
-
-            // =================================================================
-            // FORUM THREAD DETAIL - Shared Axis Z (Depth)
-            // =================================================================
-            composable<ForumThreadDetail>(
-                deepLinks = listOf(
-                    navDeepLink<ForumThreadDetail>(basePath = "anisync://forum/thread"),
-                    // AniList forum thread URLs (e.g., https://anilist.co/forum/thread/12345)
-                    navDeepLink { uriPattern = "https://anilist.co/forum/thread/{threadId}" },
-                    // AniList forum thread URLs with slug
-                    navDeepLink { uriPattern = "https://anilist.co/forum/thread/{threadId}/{slug}" },
-                    // Comment-anchored URLs
-                    navDeepLink { uriPattern = "https://anilist.co/forum/thread/{threadId}/comment/{commentId}" },
-                ),
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) { backStackEntry ->
-                val route: ForumThreadDetail = backStackEntry.toRoute()
-                ThreadDetailScreen(
-                    threadId = route.threadId,
-                    threadTitle = route.threadTitle,
-                    targetCommentId = if (route.commentId != 0) route.commentId else null,
-                    onBackClick = { navController.popBackStack() },
-                    onUserClick = navigateToUserProfile,
-                    onEditThread = { navController.navigate(EditThreadBody(it)) }
-                )
-            }
-
-            // =================================================================
-            // ACTIVITY DETAIL - Shared Axis Z (Depth)
-            // =================================================================
-            composable<ActivityDetail>(
-                deepLinks = listOf(
-                    navDeepLink<ActivityDetail>(basePath = "anisync://activity"),
-                    navDeepLink { uriPattern = "https://anilist.co/activity/{activityId}" },
-                    navDeepLink { uriPattern = "https://anilist.co/activity/{activityId}/{slug}" }
-                ),
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) { backStackEntry ->
-                val route: ActivityDetail = backStackEntry.toRoute()
-                ActivityDetailScreen(
-                    activityId = route.activityId,
-                    targetReplyId = if (route.targetReplyId != 0) route.targetReplyId else null,
-                    onBackClick = { navController.popBackStack() },
-                    onUserClick = navigateToUserProfile,
-                    onEditActivity = { navController.navigate(EditActivity(it)) }
-                )
-            }
-
-            // =================================================================
-            // EDIT ACTIVITY - Shared Axis Z (Depth)
-            // =================================================================
-            composable<EditActivity>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) {
-                EditActivityScreen(
-                    onBackClick = { navController.popBackStack() },
-                    onSaved = { navController.popBackStack() }
-                )
-            }
-
-            // =================================================================
-            // CREATE STATUS - Shared Axis Z (Depth)
-            // =================================================================
-            composable<CreateStatus>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) {
-                CreateStatusScreen(
-                    onBackClick = { navController.popBackStack() },
-                    onPosted = { navController.popBackStack() }
-                )
-            }
-
-            // =================================================================
-            // NOTIFICATIONS INBOX - Shared Axis Z (Depth)
-            // =================================================================
-            composable<Notifications>(
-                deepLinks = listOf(
-                    navDeepLink { uriPattern = "anisync://notifications" }
-                ),
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) {
-                NotificationsListDetail(
-                    navController = navController,
-                    onBackClick = { navController.popBackStack() },
-                    onSettingsClick = { navController.navigate(SettingsNotifications) },
-                )
-            }
-
-            // =================================================================
             // AIRING CALENDAR - Shared Axis Z (Depth)
             // =================================================================
             composable<Calendar>(
@@ -1109,64 +449,6 @@ fun AniSyncNavHost(
                     onBackClick = { navController.popBackStack() },
                     onMediaClick = { mediaId ->
                         navController.navigate(MediaDetails(mediaId, "notes"))
-                    }
-                )
-            }
-
-            // =================================================================
-            // CREATE THREAD - Shared Axis Z (Depth)
-            // =================================================================
-            composable<CreateThread>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) {
-                ForumThreadInputScreen(
-                    onBackClick = { navController.popBackStack() },
-                    onThreadCreated = { navController.popBackStack() }
-                )
-            }
-
-            // =================================================================
-            // EDIT THREAD BODY - Shared Axis Z (Depth)
-            // =================================================================
-            composable<EditThreadBody>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) {
-                EditThreadBodyScreen(
-                    onBackClick = { navController.popBackStack() },
-                    onSaved = { navController.popBackStack() }
-                )
-            }
-
-            // =================================================================
-            // FORUM MEDIA THREADS - Shared Axis Z (Depth)
-            // =================================================================
-            composable<ForumMediaThreads>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) { backStackEntry ->
-                val route: ForumMediaThreads = backStackEntry.toRoute()
-                ForumMediaThreadsScreen(
-                    mediaTitle = route.mediaTitle,
-                    onBackClick = { navController.popBackStack() },
-                    onThreadClick = { threadId, threadTitle ->
-                        navController.navigate(ForumThreadDetail(threadId, threadTitle))
-                    },
-                    onThreadCommentClick = { threadId, commentId ->
-                        navController.navigate(ForumThreadDetail(threadId, "", commentId))
-                    },
-                    onUserClick = navigateToUserProfile,
-                    onCreateThread = {
-                        navController.navigate(
-                            CreateThread(mediaId = route.mediaId, mediaTitle = route.mediaTitle)
-                        )
                     }
                 )
             }
@@ -1367,17 +649,6 @@ fun AniSyncNavHost(
                 )
             }
 
-            // Media upload host config
-            composable<SettingsMediaUpload>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) {
-                MediaUploadSettingsScreen(
-                    onBackClick = { navController.popBackStack() }
-                )
-            }
         }
         }
     }

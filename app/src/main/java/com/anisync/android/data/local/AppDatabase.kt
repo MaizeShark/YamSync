@@ -5,13 +5,11 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.anisync.android.data.local.dao.LibraryDao
 import com.anisync.android.data.local.dao.MediaDetailsDao
-import com.anisync.android.data.local.dao.SavedForumThreadDao
 import com.anisync.android.data.local.dao.UserProfileDao
 import com.anisync.android.data.local.entity.AiringScheduleEntity
 import com.anisync.android.data.local.entity.LibraryEntryEntity
 import com.anisync.android.data.local.entity.MediaDetailsEntity
 import com.anisync.android.data.local.entity.MediaThemesEntity
-import com.anisync.android.data.local.entity.SavedForumThreadEntity
 import com.anisync.android.data.local.entity.TrendingEntity
 import com.anisync.android.data.local.entity.UserProfileEntity
 
@@ -20,6 +18,11 @@ import com.anisync.android.data.local.entity.UserProfileEntity
  *
  * Version History:
  * ─────────────────────────────────────────────────────────────────────────────
+ * v29 (Oct 2026):
+ *   - Dropped saved_forum_threads and the social/favourite columns of user_profile along with
+ *     those features. No migration: every table is a refetchable cache, so the destructive
+ *     fallback rebuilds them.
+ *
  * v28 (Sep 2026):
  *   - Added field to library_entries:
  *     • priority - raw AniList MediaList.priority, shown as Low/Medium/High and
@@ -121,10 +124,9 @@ import com.anisync.android.data.local.entity.UserProfileEntity
         UserProfileEntity::class,
         AiringScheduleEntity::class,
         TrendingEntity::class,
-        SavedForumThreadEntity::class,
         MediaThemesEntity::class
     ],
-    version = 28,
+    version = 29,
     exportSchema = true,
     autoMigrations = [
         androidx.room.AutoMigration(from = 2, to = 3),
@@ -160,6 +162,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userProfileDao(): UserProfileDao
     abstract fun airingScheduleDao(): com.anisync.android.data.local.dao.AiringScheduleDao
     abstract fun trendingDao(): com.anisync.android.data.local.dao.TrendingDao
-    abstract fun savedForumThreadDao(): SavedForumThreadDao
     abstract fun mediaThemesDao(): com.anisync.android.data.local.dao.MediaThemesDao
 }

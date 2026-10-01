@@ -60,7 +60,6 @@ private data class UpdatesAndNavBarState(
 class SettingsViewModel @Inject constructor(
     private val appSettings: AppSettings,
     private val notificationPreferences: NotificationPreferences,
-    private val notificationReadStore: com.anisync.android.data.NotificationReadStore,
     private val notificationScheduler: NotificationScheduler,
     private val notificationDebugService: NotificationDebugService,
     private val accountManager: AccountManager,
@@ -137,41 +136,13 @@ class SettingsViewModel @Inject constructor(
             ThemePaletteState(paletteId, customColor, style, coverQuality, showAdult)
         },
         combine(
-            combine(
-                appSettings.notificationsEnabled,
-                notificationPreferences.watchingEnabled,
-                notificationPreferences.planningEnabled,
-                notificationPreferences.upcomingEnabled,
-                notificationPreferences.streamingDelayMinutes
-            ) { enabled, watching, planning, upcoming, delay ->
-                listOf<Any>(enabled, watching, planning, upcoming, delay)
-            },
-            combine(
-                notificationPreferences.threadCommentReplyEnabled,
-                notificationPreferences.threadSubscribedEnabled,
-                notificationPreferences.threadCommentMentionEnabled,
-                notificationPreferences.threadLikeEnabled,
-                notificationPreferences.threadCommentLikeEnabled
-            ) { commentReply, subscribed, commentMention, threadLike, commentLike ->
-                listOf<Any>(commentReply, subscribed, commentMention, threadLike, commentLike)
-            },
-            combine(
-                notificationPreferences.activityReplyEnabled,
-                notificationPreferences.activityMentionEnabled,
-                notificationPreferences.activityLikeEnabled,
-                notificationPreferences.activityMessageEnabled,
-                notificationPreferences.followsEnabled
-            ) { reply, mention, like, message, follows ->
-                listOf<Any>(reply, mention, like, message, follows)
-            },
-            combine(
-                notificationPreferences.inboxReadTrackingEnabled,
-                notificationPreferences.inboxMarkReadOnOpen
-            ) { readTracking, markOnOpen ->
-                listOf<Any>(readTracking, markOnOpen)
-            }
-        ) { airing, forum, activity, inbox ->
-            airing + forum + activity + inbox
+            appSettings.notificationsEnabled,
+            notificationPreferences.watchingEnabled,
+            notificationPreferences.planningEnabled,
+            notificationPreferences.upcomingEnabled,
+            notificationPreferences.streamingDelayMinutes
+        ) { enabled, watching, planning, upcoming, delay ->
+            listOf<Any>(enabled, watching, planning, upcoming, delay)
         },
         combine(
             appSettings.autoUpdateEnabled,
@@ -211,18 +182,6 @@ class SettingsViewModel @Inject constructor(
             planningNotificationsEnabled = notifications[2] as Boolean,
             upcomingNotificationsEnabled = notifications[3] as Boolean,
             streamingDelayMinutes = notifications[4] as Int,
-            threadCommentReplyEnabled = notifications[5] as Boolean,
-            threadSubscribedEnabled = notifications[6] as Boolean,
-            threadCommentMentionEnabled = notifications[7] as Boolean,
-            threadLikeEnabled = notifications[8] as Boolean,
-            threadCommentLikeEnabled = notifications[9] as Boolean,
-            activityReplyEnabled = notifications[10] as Boolean,
-            activityMentionEnabled = notifications[11] as Boolean,
-            activityLikeEnabled = notifications[12] as Boolean,
-            activityMessageEnabled = notifications[13] as Boolean,
-            followsEnabled = notifications[14] as Boolean,
-            inboxReadTrackingEnabled = notifications[15] as Boolean,
-            inboxMarkReadOnOpen = notifications[16] as Boolean,
             isAutoUpdateEnabled = updatesAndNav.autoUpdate,
             isPrereleaseAllowed = updatesAndNav.allowPrerelease,
             navBarStyle = updatesAndNav.navBarStyle,
@@ -304,57 +263,6 @@ class SettingsViewModel @Inject constructor(
                 action.enabled
             )
 
-            is SettingsAction.SetThreadCommentReplyEnabled -> notificationPreferences.setThreadCommentReplyEnabled(
-                action.enabled
-            )
-
-            is SettingsAction.SetThreadSubscribedEnabled -> notificationPreferences.setThreadSubscribedEnabled(
-                action.enabled
-            )
-
-            is SettingsAction.SetThreadCommentMentionEnabled -> notificationPreferences.setThreadCommentMentionEnabled(
-                action.enabled
-            )
-
-            is SettingsAction.SetThreadLikeEnabled -> notificationPreferences.setThreadLikeEnabled(
-                action.enabled
-            )
-
-            is SettingsAction.SetThreadCommentLikeEnabled -> notificationPreferences.setThreadCommentLikeEnabled(
-                action.enabled
-            )
-
-            is SettingsAction.SetActivityReplyEnabled -> notificationPreferences.setActivityReplyEnabled(
-                action.enabled
-            )
-
-            is SettingsAction.SetActivityMentionEnabled -> notificationPreferences.setActivityMentionEnabled(
-                action.enabled
-            )
-
-            is SettingsAction.SetActivityLikeEnabled -> notificationPreferences.setActivityLikeEnabled(
-                action.enabled
-            )
-
-            is SettingsAction.SetActivityMessageEnabled -> notificationPreferences.setActivityMessageEnabled(
-                action.enabled
-            )
-
-            is SettingsAction.SetFollowsEnabled -> notificationPreferences.setFollowsEnabled(
-                action.enabled
-            )
-
-            is SettingsAction.SetInboxReadTrackingEnabled -> {
-                notificationPreferences.setInboxReadTrackingEnabled(action.enabled)
-                // Switching it off drops the record it kept, so switching it back on starts from
-                // AniList's own unread count instead of a watermark left behind weeks ago.
-                if (!action.enabled) notificationReadStore.forget()
-            }
-
-            is SettingsAction.SetInboxMarkReadOnOpen -> notificationPreferences.setInboxMarkReadOnOpen(
-                action.enabled
-            )
-
             is SettingsAction.SetStreamingDelayMinutes -> notificationPreferences.setStreamingDelayMinutes(
                 action.minutes
             )
@@ -382,7 +290,6 @@ class SettingsViewModel @Inject constructor(
             SettingsAction.SendTestPlanningNotification -> notificationDebugService.sendTestPlanningNotification()
             SettingsAction.SendTestAdvanceNotification -> notificationDebugService.sendTestAdvanceNotification()
             SettingsAction.SendTestImminentNotification -> notificationDebugService.sendTestImminentNotification()
-            SettingsAction.BumpInboxBadge -> notificationDebugService.bumpInboxBadge()
             SettingsAction.ClearAllNotifications -> notificationDebugService.clearAllNotifications()
             is SettingsAction.ShowTestToast -> showSampleToast(action.type)
             is SettingsAction.SetSimulatedRateLimit -> {

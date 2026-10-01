@@ -2,29 +2,22 @@ package com.anisync.android.presentation
 
 import android.view.ViewConfiguration
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.anisync.android.data.AppSettings
 import com.anisync.android.data.NavBarStyle
-import com.anisync.android.data.NotificationBadgeStore
-import com.anisync.android.data.NotificationReadStore
 import com.anisync.android.data.network.RateLimitMonitor
 import com.anisync.android.domain.MainTab
 import com.anisync.android.domain.TabReselectBus
 import com.anisync.android.presentation.components.alert.ToastManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
  * Top-level ViewModel scoped to [MainScreen]. Surfaces app-wide state
- * the bottom navigation needs — currently the inbox unread count (for
- * the Profile destination badge) and the user's nav bar preferences.
+ * the bottom navigation needs — currently the user's nav bar preferences.
  */
 @HiltViewModel
 class MainScreenViewModel @Inject constructor(
-    private val notificationBadgeStore: NotificationBadgeStore,
-    private val notificationReadStore: NotificationReadStore,
     private val appSettings: AppSettings,
     val toastManager: ToastManager,
     /** Drives the rate limit notice and the pull-to-refresh gates. */
@@ -32,8 +25,6 @@ class MainScreenViewModel @Inject constructor(
     private val tabReselectBus: TabReselectBus,
     searchLauncher: com.anisync.android.domain.DiscoverSearchLauncher
 ) : ViewModel() {
-
-    val unreadNotificationCount: StateFlow<Int> = notificationBadgeStore.unreadCount
 
     /**
      * "Open Discover search with preset filters" navigation triggers. MainScreen
@@ -99,10 +90,6 @@ class MainScreenViewModel @Inject constructor(
         appSettings.setLastMainTab(tabKey)
     }
 
-    fun refreshNotificationBadge() {
-        viewModelScope.launch { notificationBadgeStore.refresh() }
-    }
-
     /**
      * The tip card the app floats on the first launch after an update. Checked here rather than in
      * the Application: this is the point where there is a window to float it over.
@@ -111,9 +98,6 @@ class MainScreenViewModel @Inject constructor(
 
     init {
         appSettings.noteAppVersion()
-        // Rows already read on this device are subtracted from AniList's count, which only ever
-        // clears all at once. Applied here so the badge is right before the inbox is ever opened.
-        notificationReadStore.syncBadge()
     }
 
     fun onSupportPromptDismissed() {

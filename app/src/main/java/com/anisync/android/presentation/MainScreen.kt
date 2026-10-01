@@ -27,14 +27,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuOpen
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.DynamicFeed
 import androidx.compose.material.icons.filled.Explore
-import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.VideoLibrary
-import androidx.compose.material.icons.outlined.DynamicFeed
 import androidx.compose.material.icons.outlined.Explore
-import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.VideoLibrary
 import androidx.compose.material3.Badge
@@ -98,8 +94,6 @@ import com.anisync.android.presentation.components.navigation.CompactNavBarItem
 import com.anisync.android.presentation.navigation.AniSyncNavHost
 import com.anisync.android.presentation.navigation.Discover
 import com.anisync.android.presentation.navigation.navigateSafely
-import com.anisync.android.presentation.navigation.Feed
-import com.anisync.android.presentation.navigation.Forum
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
@@ -134,7 +128,7 @@ private data class BottomNavItem<T : Any>(
 )
 
 /**
- * The five top-level destinations, shared by every navigation container (bottom bar, rail) so the
+ * The top-level destinations, shared by every navigation container (bottom bar, rail) so the
  * destination set, ordering, and badge logic never diverge across form factors.
  */
 @Composable
@@ -157,24 +151,6 @@ private fun rememberMainNavItems(): List<BottomNavItem<*>> = remember {
             Icons.Filled.Explore,
             Icons.Outlined.Explore,
             persistKey = "discover"
-        ),
-        BottomNavItem(
-            R.string.nav_feed,
-            Feed,
-            Feed::class,
-            MainTab.FEED,
-            Icons.Filled.DynamicFeed,
-            Icons.Outlined.DynamicFeed,
-            persistKey = "feed"
-        ),
-        BottomNavItem(
-            R.string.nav_forum,
-            Forum,
-            Forum::class,
-            MainTab.FORUM,
-            Icons.Filled.Forum,
-            Icons.Outlined.Forum,
-            persistKey = "forum"
         ),
         BottomNavItem(
             R.string.nav_profile,
@@ -228,10 +204,8 @@ fun MainScreen(
     // media details): switch to the Discover tab; DiscoverViewModel picks the request
     // up from the same launcher, applies the filters and expands the search overlay.
     LaunchedEffect(navController) {
-        // Routes the launcher pop below stops at — the five main tab roots.
-        val mainTabClasses = listOf(
-            Library::class, Discover::class, Feed::class, Forum::class, Profile::class
-        )
+        // Routes the launcher pop below stops at — the main tab roots.
+        val mainTabClasses = listOf(Library::class, Discover::class, Profile::class)
         viewModel.discoverSearchNavigations.collect {
             // This tab switch is app-initiated (a ranking/genre/tag tap), not a
             // deliberate "leave and come back later": first pop the detail chain
@@ -253,26 +227,19 @@ fun MainScreen(
             navController.popBackStack(route = Discover, inclusive = false)
         }
     }
-    val unreadNotificationCount by viewModel.unreadNotificationCount.collectAsStateWithLifecycle()
     val navBarStyle by viewModel.navBarStyle.collectAsStateWithLifecycle()
     val navBarShowLabels by viewModel.navBarShowLabels.collectAsStateWithLifecycle()
     val navBarCornerRadius by viewModel.navBarCornerRadius.collectAsStateWithLifecycle()
     val navBarSuppressor = remember { MainNavBarSuppressor() }
 
-    // Cold-launch restore: open on the tab the user last visited (Library/Discover/
-    // Feed/Forum). Compose Navigation restores its own back stack across process
+    // Cold-launch restore: open on the tab the user last visited (Library/Discover).
+    // Compose Navigation restores its own back stack across process
     // death, so this only governs a genuinely fresh start.
     val startDestination: Any = remember(viewModel.startTabKey) {
         when (viewModel.startTabKey) {
             "discover" -> Discover
-            "feed" -> Feed
-            "forum" -> Forum
             else -> Library
         }
-    }
-
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        viewModel.refreshNotificationBadge()
     }
 
     // Navigation container per Material 3: a navigation bar on compact width (phone portrait) AND on
@@ -308,7 +275,6 @@ fun MainScreen(
                 CompactNavLayout(
                     navController = navController,
                     startDestination = startDestination,
-                    unreadNotificationCount = unreadNotificationCount,
                     navBarStyle = navBarStyle,
                     navBarShowLabels = navBarShowLabels,
                     navBarCornerRadius = navBarCornerRadius,
@@ -322,7 +288,6 @@ fun MainScreen(
                 RailNavLayout(
                     navController = navController,
                     startDestination = startDestination,
-                    unreadNotificationCount = unreadNotificationCount,
                     onTabSelected = viewModel::onMainTabSelected,
                     onTabTapped = viewModel::onTabTapped,
                     onTabSearch = viewModel::onTabSearchRequested,
@@ -362,7 +327,6 @@ private fun MainNavHost(
 private fun CompactNavLayout(
     navController: NavHostController,
     startDestination: Any,
-    unreadNotificationCount: Int,
     navBarStyle: NavBarStyle,
     navBarShowLabels: Boolean,
     navBarCornerRadius: Float,
@@ -378,7 +342,6 @@ private fun CompactNavLayout(
             if (navBarStyle == NavBarStyle.ANCHORED) {
                 MainBottomBar(
                     navController = navController,
-                    unreadNotificationCount = unreadNotificationCount,
                     style = NavBarStyle.ANCHORED,
                     showLabels = navBarShowLabels,
                     cornerRadius = navBarCornerRadius,
@@ -425,7 +388,6 @@ private fun CompactNavLayout(
                 ) {
                     MainBottomBar(
                         navController = navController,
-                        unreadNotificationCount = unreadNotificationCount,
                         style = NavBarStyle.FLOATING,
                         showLabels = navBarShowLabels,
                         cornerRadius = navBarCornerRadius,
@@ -453,7 +415,6 @@ private fun CompactNavLayout(
 private fun RailNavLayout(
     navController: NavHostController,
     startDestination: Any,
-    unreadNotificationCount: Int,
     onTabSelected: (String) -> Unit,
     onTabTapped: (MainTab, Boolean) -> Unit,
     onTabSearch: (MainTab) -> Unit,
@@ -474,7 +435,6 @@ private fun RailNavLayout(
             Row(modifier = Modifier.fillMaxSize()) {
                 MainWideNavigationRail(
                     navController = navController,
-                    unreadNotificationCount = unreadNotificationCount,
                     onTabSelected = onTabSelected,
                     onTabTapped = onTabTapped,
                     onTabSearch = onTabSearch
@@ -521,7 +481,6 @@ private fun tabSearchActionModifier(
 @Composable
 private fun MainBottomBar(
     navController: NavHostController,
-    unreadNotificationCount: Int,
     style: NavBarStyle,
     showLabels: Boolean,
     cornerRadius: Float,
@@ -539,8 +498,6 @@ private fun MainBottomBar(
             val dest = navBackStackEntryState.value?.destination
             val onWhitelistedRoute = dest?.hasRoute<Library>() == true ||
                     dest?.hasRoute<Discover>() == true ||
-                    dest?.hasRoute<Feed>() == true ||
-                    dest?.hasRoute<Forum>() == true ||
                     dest?.hasRoute<Profile>() == true
             onWhitelistedRoute && navBarSuppressor?.isSuppressed != true
         }
@@ -578,8 +535,6 @@ private fun MainBottomBar(
 
             navItems.forEach { item ->
                 val isSelected = currentDestination?.hasRoute(item.routeClass) == true
-                val isProfile = item.routeClass == Profile::class
-                val showBadge = isProfile && unreadNotificationCount > 0
                 val iconVector =
                     if (isSelected) item.selectedIcon else item.unselectedIcon
                 val itemTitle = stringResource(item.titleResId)
@@ -611,17 +566,7 @@ private fun MainBottomBar(
                             overflow = TextOverflow.Ellipsis
                         )
                     },
-                    showLabel = showLabels,
-                    badge = if (showBadge) {
-                        {
-                            ProfileNavBarIconWithBadge(
-                                iconVector = iconVector,
-                                title = itemTitle,
-                                unreadCount = unreadNotificationCount,
-                                isSelected = isSelected
-                            )
-                        }
-                    } else null
+                    showLabel = showLabels
                 )
             }
         }
@@ -672,7 +617,6 @@ private fun RailHeaderFab(fab: RailFab, expanded: Boolean, modifier: Modifier = 
 @Composable
 private fun MainWideNavigationRail(
     navController: NavHostController,
-    unreadNotificationCount: Int,
     onTabSelected: (String) -> Unit,
     onTabTapped: (MainTab, Boolean) -> Unit,
     onTabSearch: (MainTab) -> Unit
@@ -693,8 +637,6 @@ private fun MainWideNavigationRail(
             val dest = navBackStackEntryState.value?.destination
             val onWhitelistedRoute = dest?.hasRoute<Library>() == true ||
                     dest?.hasRoute<Discover>() == true ||
-                    dest?.hasRoute<Feed>() == true ||
-                    dest?.hasRoute<Forum>() == true ||
                     dest?.hasRoute<Profile>() == true
             onWhitelistedRoute && navBarSuppressor?.isSuppressed != true
         }
@@ -763,8 +705,6 @@ private fun MainWideNavigationRail(
 
             navItems.forEach { item ->
                 val isSelected = currentDestination?.hasRoute(item.routeClass) == true
-                val isProfile = item.routeClass == Profile::class
-                val showBadge = isProfile && unreadNotificationCount > 0
                 val iconVector = if (isSelected) item.selectedIcon else item.unselectedIcon
                 val itemTitle = stringResource(item.titleResId)
 
@@ -781,16 +721,7 @@ private fun MainWideNavigationRail(
                     },
                     modifier = tabSearchActionModifier(item.tab, itemTitle, onTabSearch),
                     icon = {
-                        if (showBadge) {
-                            ProfileNavBarIconWithBadge(
-                                iconVector = iconVector,
-                                title = itemTitle,
-                                unreadCount = unreadNotificationCount,
-                                isSelected = isSelected
-                            )
-                        } else {
-                            Icon(imageVector = iconVector, contentDescription = itemTitle)
-                        }
+                        Icon(imageVector = iconVector, contentDescription = itemTitle)
                     },
                     label = {
                         Text(
@@ -807,61 +738,3 @@ private fun MainWideNavigationRail(
     }
 }
 
-/**
- * Profile destination icon with the inbox unread badge.
- *
- * Per Material 3 badge guidelines:
- *  - Unselected destinations show the **large badge** (number) so the
- *    count is visible at a glance.
- *  - The selected destination collapses to the **small badge** (6.dp dot,
- *    no label) — the user is already in context, the count is redundant
- *    and the larger pill would compete with the destination's active
- *    indicator.
- *  - Counts >999 render as `999+`. TalkBack reads a pluralised label
- *    matching the displayed count, or "more than 999" on overflow.
- */
-@Composable
-private fun ProfileNavBarIconWithBadge(
-    iconVector: ImageVector,
-    title: String,
-    unreadCount: Int,
-    isSelected: Boolean
-) {
-    val badgeLabel = if (isSelected) {
-        stringResource(R.string.notifications_unread_indicator_a11y)
-    } else if (unreadCount > 999) {
-        stringResource(R.string.notifications_unread_overflow_a11y)
-    } else {
-        pluralStringResource(
-            R.plurals.notifications_unread_count_a11y,
-            unreadCount,
-            unreadCount
-        )
-    }
-    val combinedDescription = "$title, $badgeLabel"
-
-    // Empty contentDescription on the Badge keeps TalkBack from announcing
-    // it twice — the icon-level description already carries both the
-    // destination label and the unread state in a single utterance.
-    val badgeModifier = Modifier.semantics { contentDescription = "" }
-
-    BadgedBox(
-        badge = {
-            if (isSelected) {
-                // Small badge (6.dp dot) — Material 3 omits content on selected
-                // destinations because the count is redundant in-context.
-                Badge(modifier = badgeModifier)
-            } else {
-                // Large badge — numeric label, capped at 999+ per M3.
-                Badge(modifier = badgeModifier) {
-                    Text(text = if (unreadCount > 999) "999+" else unreadCount.toString())
-                }
-            }
-        }
-    ) {
-        Icon(
-            imageVector = iconVector,
-            contentDescription = combinedDescription
-        )
-    }
-}

@@ -63,22 +63,13 @@ import com.anisync.android.domain.UserProfile
 import com.anisync.android.presentation.components.SegmentedTabGroup
 import com.anisync.android.presentation.components.CustomPullToRefreshIndicator
 import com.anisync.android.presentation.components.alert.rememberRateLimitedRefresh
-import com.anisync.android.presentation.details.components.ReviewDetailsSheet
-import com.anisync.android.presentation.profile.components.DirectMessageInputSheet
-import com.anisync.android.presentation.profile.components.ProfileBioSheet
 import com.anisync.android.presentation.profile.components.ProfileTopSection
 import com.anisync.android.presentation.util.LocalAdaptiveInfo
 import com.anisync.android.presentation.util.LocalMainNavBarInset
 import com.anisync.android.presentation.util.dashboardColumns
-import com.anisync.android.presentation.util.profileGridColumns
 import com.anisync.android.presentation.profile.sections.ProfileOverviewSection
-import com.anisync.android.presentation.profile.sections.profileActivityTab
-import com.anisync.android.presentation.profile.sections.profileFavoritesTab
 import com.anisync.android.presentation.profile.sections.profileMediaTab
-import com.anisync.android.presentation.profile.sections.profileReviewsTab
-import com.anisync.android.presentation.profile.sections.profileSocialTab
 import com.anisync.android.presentation.profile.sections.profileStatsTab
-import com.anisync.android.presentation.share.FavouritesShareCard
 import com.anisync.android.presentation.share.ProfileStatsShareCard
 import com.anisync.android.presentation.share.ShareCardTemplate
 import com.anisync.android.presentation.share.ShareImageSheet
@@ -99,23 +90,11 @@ fun ProfileContent(
     uiState: ProfileUiState,
     /** See ProfileViewModel.scrollToTopRequest: the tab was reselected. */
     scrollToTopRequest: Long = 0L,
-    isOwnProfile: Boolean,
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
     onAction: (ProfileAction) -> Unit,
     onSettingsClick: () -> Unit,
-    onNotificationsClick: () -> Unit = {},
-    unreadNotificationCount: Int = 0,
     onMediaClick: (Int) -> Unit = {},
-    onCharacterClick: (Int) -> Unit = {},
-    onStaffClick: (Int) -> Unit = {},
-    onVoiceActorClick: (Int) -> Unit = {},
-    onStudioClick: (Int) -> Unit = {},
-    onUserClick: (String) -> Unit = {},
-    onThreadClick: (threadId: Int, threadTitle: String) -> Unit = { _, _ -> },
-    onCommentClick: (threadId: Int, commentId: Int, threadTitle: String) -> Unit = { _, _, _ -> },
-    onActivityClick: (Int) -> Unit = {},
-    onLastReplyClick: (activityId: Int, replyId: Int) -> Unit = { _, _ -> },
     showAccountSwitcher: Boolean = false,
     onAccountSwitchClick: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -124,42 +103,24 @@ fun ProfileContent(
     val pullToRefreshState = rememberPullToRefreshState()
     val statsColumns = dashboardColumns()
 
-    // Share-as-image sheets for the Stats and Favourites tabs, hosted at screen scope below.
+    // Share-as-image sheet for the Stats tab, hosted at screen scope below.
     var statsShareVisible by remember { mutableStateOf(false) }
-    var favouritesShareVisible by remember { mutableStateOf(false) }
 
     if (LocalAdaptiveInfo.current.supportsTwoPane) {
         ProfileWideLayout(
             profile = profile,
             uiState = uiState,
-            isOwnProfile = isOwnProfile,
             sharedTransitionScope = sharedTransitionScope,
             animatedVisibilityScope = animatedVisibilityScope,
             onAction = onAction,
             onSettingsClick = onSettingsClick,
-            onNotificationsClick = onNotificationsClick,
-            unreadNotificationCount = unreadNotificationCount,
             onMediaClick = onMediaClick,
-            onCharacterClick = onCharacterClick,
-            onStaffClick = onStaffClick,
-            onVoiceActorClick = onVoiceActorClick,
-            onStudioClick = onStudioClick,
-            onUserClick = onUserClick,
-            onThreadClick = onThreadClick,
-            onCommentClick = onCommentClick,
-            onActivityClick = onActivityClick,
-            onLastReplyClick = onLastReplyClick,
             showAccountSwitcher = showAccountSwitcher,
             onAccountSwitchClick = onAccountSwitchClick,
             statsColumns = statsColumns,
             modifier = modifier
         )
     } else {
-    // Portrait grids (favorite characters/staff, social following/followers) keep their 3-up phone
-    // density and gain columns on wider windows; studio chips are wider so they start 2-up.
-    val portraitColumns = profileGridColumns(baseMinSize = 150.dp)
-    val studioColumns = profileGridColumns(baseMinSize = 240.dp, compactColumns = 2)
-
     // The banner runs under the status bar, so the tab strip can't be a stickyHeader: that docks at
     // the list's top edge, which is behind the clock. Instead the strip is a real in-list item and a
     // pinned copy takes over once it reaches the bar, the same swap the media-detail tabs use.
@@ -197,32 +158,7 @@ fun ProfileContent(
         item(key = "profile_header", contentType = "header") {
             ProfileTopSection(
                 profile = profile,
-                isOwnProfile = isOwnProfile,
                 onSettingsClick = onSettingsClick,
-                onEditProfileClick = {
-                    onAction(ProfileAction.SetEditProfileDialogVisible(true))
-                },
-                onShowBiography = {
-                    onAction(ProfileAction.SetBiographySheetVisible(true))
-                },
-                isFollowing = uiState.isFollowingUser,
-                isFollowerOfViewer = uiState.isFollowerOfViewer,
-                isFollowLoading = uiState.isFollowLoading,
-                onFollowClick = { onAction(ProfileAction.ToggleFollow) },
-                onMessageClick = { onAction(ProfileAction.ShowMessageComposer) },
-                onNotificationsClick = onNotificationsClick,
-                unreadNotificationCount = unreadNotificationCount,
-                topActionIcon = if (isOwnProfile) Icons.Default.Settings else Icons.Default.Share,
-                onTopActionClick = {
-                    if (isOwnProfile) {
-                        onSettingsClick()
-                    } else {
-                        ShareUtils.shareText(
-                            context = context,
-                            text = "${profile.name}\nhttps://anilist.co/user/${profile.name}"
-                        )
-                    }
-                },
                 showAccountSwitcher = showAccountSwitcher,
                 onAccountSwitchClick = onAccountSwitchClick
             )
@@ -249,21 +185,9 @@ fun ProfileContent(
             animatedVisibilityScope = animatedVisibilityScope,
             onAction = onAction,
             onMediaClick = onMediaClick,
-            onCharacterClick = onCharacterClick,
-            onStaffClick = onStaffClick,
-            onVoiceActorClick = onVoiceActorClick,
-            onStudioClick = onStudioClick,
-            onUserClick = onUserClick,
-            onThreadClick = onThreadClick,
-            onCommentClick = onCommentClick,
-            onActivityClick = onActivityClick,
-            onLastReplyClick = onLastReplyClick,
-            portraitColumns = portraitColumns,
-            studioColumns = studioColumns,
             statsColumns = statsColumns,
             showShareActions = true,
-            onShareStats = { statsShareVisible = true },
-            onShareFavourites = { favouritesShareVisible = true }
+            onShareStats = { statsShareVisible = true }
         )
     }
 
@@ -285,16 +209,7 @@ fun ProfileContent(
     }
     }
 
-    if (uiState.isBiographySheetVisible) {
-        ProfileBioSheet(
-            about = profile.about.orEmpty(),
-            onDismissRequest = {
-                onAction(ProfileAction.SetBiographySheetVisible(false))
-            }
-        )
-    }
-
-    val profileUrl = "https://anilist.co/user/${profile.name}"
+    val profileUrl = ""
 
     if (statsShareVisible) {
         uiState.statsData?.let { stats ->
@@ -317,83 +232,6 @@ fun ProfileContent(
             }
         }
     }
-
-    if (favouritesShareVisible) {
-        val isAnime = uiState.selectedFavoritesFilter == ProfileFavoritesFilter.ANIME
-        val entries = if (isAnime) profile.favoriteAnime else profile.favoriteMangaOverview
-        if (entries.isNotEmpty()) {
-            ShareImageSheet(
-                onDismiss = { favouritesShareVisible = false },
-                link = profileUrl,
-                templates = listOf(ShareCardTemplate.STANDARD, ShareCardTemplate.HERO),
-                templateLabel = { tmpl ->
-                    stringResource(
-                        if (tmpl == ShareCardTemplate.STANDARD) R.string.share_template_grid
-                        else R.string.share_template_ranked
-                    )
-                }
-            ) {
-                FavouritesShareCard(
-                    heading = stringResource(
-                        if (isAnime) R.string.share_fav_heading_anime
-                        else R.string.share_fav_heading_manga
-                    ),
-                    eyebrow = stringResource(R.string.share_fav_eyebrow),
-                    entries = entries,
-                    bannerUrl = profile.bannerUrl,
-                    handle = profile.name
-                )
-            }
-        }
-    }
-
-    uiState.selectedReview?.let { review ->
-        ReviewDetailsSheet(
-            review = review,
-            onRateReview = { id, r -> onAction(ProfileAction.RateReview(id, r)) },
-            onUserClick = onUserClick,
-            onMediaClick = { mediaId ->
-                // Close the sheet first so the back gesture returns to the profile, not a
-                // lingering sheet, once the media-details screen is popped.
-                onAction(ProfileAction.SelectReview(null))
-                onMediaClick(mediaId)
-            },
-            onDismiss = { onAction(ProfileAction.SelectReview(null)) }
-        )
-    }
-
-    if (uiState.isMessageComposerVisible) {
-        DirectMessageInputSheet(
-            recipientName = profile.name,
-            isSending = uiState.isSendingMessage,
-            errorMessage = uiState.messageSendError,
-            onDismissRequest = { onAction(ProfileAction.HideMessageComposer) },
-            onSend = { text, isPrivate ->
-                onAction(ProfileAction.SendMessage(text, isPrivate))
-            }
-        )
-    }
-
-    val editing = uiState.editingActivity
-    if (editing != null) {
-        val isMessage = editing.type == com.anisync.android.domain.ActivityType.MESSAGE
-        val bounds = if (isMessage) {
-            com.anisync.android.domain.ContentLimits.MessageActivity
-        } else {
-            com.anisync.android.domain.ContentLimits.TextActivity
-        }
-        com.anisync.android.presentation.components.richtext.RichTextInputSheet(
-            title = stringResource(R.string.activity_edit_status_title),
-            placeholder = stringResource(R.string.feed_compose_placeholder),
-            submitLabel = stringResource(R.string.activity_edit_save),
-            isSubmitting = uiState.isSavingActivityEdit,
-            prefillBody = editing.bodyMarkdown ?: editing.text,
-            minLength = bounds.min,
-            maxLength = bounds.max,
-            onSubmit = { body -> onAction(ProfileAction.SubmitActivityEdit(body)) },
-            onDismiss = { onAction(ProfileAction.DismissActivityEdit) }
-        )
-    }
 }
 
 /**
@@ -409,21 +247,9 @@ internal fun LazyListScope.profileSelectedTabContent(
     animatedVisibilityScope: AnimatedVisibilityScope?,
     onAction: (ProfileAction) -> Unit,
     onMediaClick: (Int) -> Unit,
-    onCharacterClick: (Int) -> Unit,
-    onStaffClick: (Int) -> Unit,
-    onVoiceActorClick: (Int) -> Unit,
-    onStudioClick: (Int) -> Unit,
-    onUserClick: (String) -> Unit,
-    onThreadClick: (threadId: Int, threadTitle: String) -> Unit,
-    onCommentClick: (threadId: Int, commentId: Int, threadTitle: String) -> Unit,
-    onActivityClick: (Int) -> Unit,
-    onLastReplyClick: (activityId: Int, replyId: Int) -> Unit,
-    portraitColumns: Int,
-    studioColumns: Int,
     statsColumns: Int,
     showShareActions: Boolean = false,
-    onShareStats: () -> Unit = {},
-    onShareFavourites: () -> Unit = {}
+    onShareStats: () -> Unit = {}
 ) {
     when (uiState.selectedTab) {
         ProfileTab.OVERVIEW -> {
@@ -431,54 +257,10 @@ internal fun LazyListScope.profileSelectedTabContent(
                 ProfileOverviewSection(
                     profile = profile,
                     activityHistory = uiState.statsData?.activityHistory.orEmpty(),
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedVisibilityScope = animatedVisibilityScope,
                     onNavigateToTab = { onAction(ProfileAction.SelectTab(it)) },
-                    onMediaClick = onMediaClick,
-                    onCharacterClick = onCharacterClick,
-                    onStaffClick = onStaffClick,
-                    onUserClick = onUserClick,
-                    onActivityClick = onActivityClick,
-                    onLastReplyClick = onLastReplyClick,
-                    onSubscribeClick = { onAction(ProfileAction.ToggleActivitySubscription(it)) },
-                    onLikeActivity = { onAction(ProfileAction.ToggleActivityLike(it)) },
-                    onDeleteActivity = { onAction(ProfileAction.DeleteActivity(it)) },
-                    onEditActivity = { onAction(ProfileAction.EditActivity(it)) },
-                    viewerId = uiState.viewerId
+                    onMediaClick = onMediaClick
                 )
             }
-        }
-
-        ProfileTab.ACTIVITY -> {
-            profileActivityTab(
-                profile = profile,
-                selectedFilter = uiState.selectedActivityFilter,
-                onFilterSelected = { onAction(ProfileAction.SelectActivityFilter(it)) },
-                onUserClick = onUserClick,
-                onActivityClick = onActivityClick,
-                onMediaClick = onMediaClick,
-                onLastReplyClick = onLastReplyClick,
-                onSubscribeClick = { onAction(ProfileAction.ToggleActivitySubscription(it)) },
-                onLikeActivity = { onAction(ProfileAction.ToggleActivityLike(it)) },
-                onDeleteActivity = { onAction(ProfileAction.DeleteActivity(it)) },
-                onEditActivity = { onAction(ProfileAction.EditActivity(it)) },
-                viewerId = uiState.viewerId,
-                activitiesHasNextPage = uiState.activitiesHasNextPage,
-                isActivitiesPaginating = uiState.isActivitiesPaginating,
-                onLoadMore = { onAction(ProfileAction.LoadMoreActivities) }
-            )
-        }
-
-        ProfileTab.SOCIAL -> {
-            profileSocialTab(
-                uiState = uiState,
-                onTabSelected = { onAction(ProfileAction.SelectSocialTab(it)) },
-                onUserClick = onUserClick,
-                onThreadClick = onThreadClick,
-                onCommentClick = onCommentClick,
-                onLoadMore = { onAction(ProfileAction.LoadMoreSocial) },
-                userColumns = portraitColumns
-            )
         }
 
         ProfileTab.ANIME -> {
@@ -514,45 +296,6 @@ internal fun LazyListScope.profileSelectedTabContent(
             )
         }
 
-        ProfileTab.FAVORITES -> {
-            val favShareable = when (uiState.selectedFavoritesFilter) {
-                ProfileFavoritesFilter.ANIME -> profile.favoriteAnime.isNotEmpty()
-                ProfileFavoritesFilter.MANGA -> profile.favoriteMangaOverview.isNotEmpty()
-                else -> false
-            }
-            if (showShareActions && favShareable) {
-                item(key = "favourites_share_action") {
-                    ShareTabAction(
-                        label = stringResource(R.string.share_favourites_card),
-                        onClick = onShareFavourites
-                    )
-                }
-            }
-            profileFavoritesTab(
-                profile = profile,
-                selectedFilter = uiState.selectedFavoritesFilter,
-                onFilterSelected = { onAction(ProfileAction.SelectFavoritesFilter(it)) },
-                sharedTransitionScope = sharedTransitionScope,
-                animatedVisibilityScope = animatedVisibilityScope,
-                onMediaClick = onMediaClick,
-                onCharacterClick = onCharacterClick,
-                onStaffClick = onStaffClick,
-                onStudioClick = onStudioClick,
-                // List rows are wide; 2-up is the most that stays legible (incl. the right pane).
-                listColumns = statsColumns.coerceAtMost(2),
-                studioColumns = studioColumns
-            )
-        }
-
-        ProfileTab.REVIEWS -> {
-            profileReviewsTab(
-                uiState = uiState,
-                onUserClick = onUserClick,
-                onReviewClick = { onAction(ProfileAction.SelectReview(it)) },
-                onLoadMore = { onAction(ProfileAction.LoadMoreReviews) }
-            )
-        }
-
         ProfileTab.STATS -> {
             if (showShareActions && uiState.statsData != null) {
                 item(key = "stats_share_action") {
@@ -565,11 +308,7 @@ internal fun LazyListScope.profileSelectedTabContent(
             profileStatsTab(
                 uiState = uiState,
                 onStatsTypeSelected = { onAction(ProfileAction.SelectStatsType(it)) },
-                onVoiceActorClick = onVoiceActorClick,
-                onStaffClick = onStaffClick,
-                onStudioClick = onStudioClick,
                 onMediaClick = onMediaClick,
-                onActivityClick = onActivityClick,
                 statsColumns = statsColumns
             )
         }
@@ -604,12 +343,8 @@ private fun ShareTabAction(
 private fun profileTabIcon(tab: ProfileTab): ImageVector {
     return when (tab) {
         ProfileTab.OVERVIEW -> Icons.Default.Person
-        ProfileTab.ACTIVITY -> Icons.Default.Schedule
         ProfileTab.ANIME -> Icons.Default.Tv
         ProfileTab.MANGA -> Icons.AutoMirrored.Filled.MenuBook
-        ProfileTab.FAVORITES -> Icons.Default.Group
-        ProfileTab.SOCIAL -> Icons.Default.Forum
-        ProfileTab.REVIEWS -> Icons.Default.RateReview
         ProfileTab.STATS -> Icons.Default.BarChart
     }
 }

@@ -68,19 +68,7 @@ fun NotificationsScreen(
     val watchingEnabled = uiState.watchingNotificationsEnabled
     val planningEnabled = uiState.planningNotificationsEnabled
     val upcomingEnabled = uiState.upcomingNotificationsEnabled
-    val threadCommentReplyEnabled = uiState.threadCommentReplyEnabled
-    val threadSubscribedEnabled = uiState.threadSubscribedEnabled
-    val threadCommentMentionEnabled = uiState.threadCommentMentionEnabled
-    val threadLikeEnabled = uiState.threadLikeEnabled
-    val threadCommentLikeEnabled = uiState.threadCommentLikeEnabled
-    val activityReplyEnabled = uiState.activityReplyEnabled
-    val activityMentionEnabled = uiState.activityMentionEnabled
-    val activityLikeEnabled = uiState.activityLikeEnabled
-    val activityMessageEnabled = uiState.activityMessageEnabled
-    val followsEnabled = uiState.followsEnabled
     val streamingDelayMinutes = uiState.streamingDelayMinutes
-    val inboxReadTrackingEnabled = uiState.inboxReadTrackingEnabled
-    val inboxMarkReadOnOpen = uiState.inboxMarkReadOnOpen
 
     var hasSystemPermission by rememberSaveable { mutableStateOf(true) }
 
@@ -169,33 +157,6 @@ fun NotificationsScreen(
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Not gated on the master switch above: this group is the in-app inbox, which has
-            // nothing to do with whether the device is allowed to post notifications.
-            SettingsSectionLabel(stringResource(R.string.notification_group_inbox))
-
-            SettingsGroup {
-                SwitchSettingsItem(
-                    title = stringResource(R.string.notification_inbox_read_tracking),
-                    subtitle = stringResource(R.string.notification_inbox_read_tracking_desc),
-                    checked = inboxReadTrackingEnabled,
-                    onCheckedChange = {
-                        viewModel.onAction(SettingsAction.SetInboxReadTrackingEnabled(it))
-                    }
-                )
-                SettingsDivider()
-                SwitchSettingsItem(
-                    title = stringResource(R.string.notification_inbox_mark_read_on_open),
-                    subtitle = stringResource(R.string.notification_inbox_mark_read_on_open_desc),
-                    checked = inboxMarkReadOnOpen,
-                    enabled = inboxReadTrackingEnabled,
-                    onCheckedChange = {
-                        viewModel.onAction(SettingsAction.SetInboxMarkReadOnOpen(it))
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             SettingsSectionLabel(stringResource(R.string.notification_group_airing))
 
             SettingsGroup {
@@ -234,98 +195,6 @@ fun NotificationsScreen(
                         onValueChange = { viewModel.onAction(SettingsAction.SetStreamingDelayMinutes(it)) }
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SettingsSectionLabel(stringResource(R.string.notification_group_forum))
-
-            SettingsGroup {
-                SwitchSettingsItem(
-                    title = stringResource(R.string.notification_thread_comment_reply),
-                    subtitle = stringResource(R.string.notification_thread_comment_reply_desc),
-                    checked = threadCommentReplyEnabled,
-                    enabled = isNotificationsEnabled,
-                    onCheckedChange = { viewModel.onAction(SettingsAction.SetThreadCommentReplyEnabled(it)) }
-                )
-                SettingsDivider()
-                SwitchSettingsItem(
-                    title = stringResource(R.string.notification_thread_subscribed),
-                    subtitle = stringResource(R.string.notification_thread_subscribed_desc),
-                    checked = threadSubscribedEnabled,
-                    enabled = isNotificationsEnabled,
-                    onCheckedChange = { viewModel.onAction(SettingsAction.SetThreadSubscribedEnabled(it)) }
-                )
-                SettingsDivider()
-                SwitchSettingsItem(
-                    title = stringResource(R.string.notification_thread_comment_mention),
-                    subtitle = stringResource(R.string.notification_thread_comment_mention_desc),
-                    checked = threadCommentMentionEnabled,
-                    enabled = isNotificationsEnabled,
-                    onCheckedChange = { viewModel.onAction(SettingsAction.SetThreadCommentMentionEnabled(it)) }
-                )
-                SettingsDivider()
-                SwitchSettingsItem(
-                    title = stringResource(R.string.notification_thread_like),
-                    subtitle = stringResource(R.string.notification_thread_like_desc),
-                    checked = threadLikeEnabled,
-                    enabled = isNotificationsEnabled,
-                    onCheckedChange = { viewModel.onAction(SettingsAction.SetThreadLikeEnabled(it)) }
-                )
-                SettingsDivider()
-                SwitchSettingsItem(
-                    title = stringResource(R.string.notification_thread_comment_like),
-                    subtitle = stringResource(R.string.notification_thread_comment_like_desc),
-                    checked = threadCommentLikeEnabled,
-                    enabled = isNotificationsEnabled,
-                    onCheckedChange = { viewModel.onAction(SettingsAction.SetThreadCommentLikeEnabled(it)) }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SettingsSectionLabel(stringResource(R.string.notification_group_activity))
-
-            SettingsGroup {
-                SwitchSettingsItem(
-                    title = stringResource(R.string.notification_channel_activity_reply),
-                    subtitle = stringResource(R.string.notification_channel_activity_reply_desc),
-                    checked = activityReplyEnabled,
-                    enabled = isNotificationsEnabled,
-                    onCheckedChange = { viewModel.onAction(SettingsAction.SetActivityReplyEnabled(it)) }
-                )
-                SettingsDivider()
-                SwitchSettingsItem(
-                    title = stringResource(R.string.notification_channel_activity_mention),
-                    subtitle = stringResource(R.string.notification_channel_activity_mention_desc),
-                    checked = activityMentionEnabled,
-                    enabled = isNotificationsEnabled,
-                    onCheckedChange = { viewModel.onAction(SettingsAction.SetActivityMentionEnabled(it)) }
-                )
-                SettingsDivider()
-                SwitchSettingsItem(
-                    title = stringResource(R.string.notification_channel_activity_like),
-                    subtitle = stringResource(R.string.notification_channel_activity_like_desc),
-                    checked = activityLikeEnabled,
-                    enabled = isNotificationsEnabled,
-                    onCheckedChange = { viewModel.onAction(SettingsAction.SetActivityLikeEnabled(it)) }
-                )
-                SettingsDivider()
-                SwitchSettingsItem(
-                    title = stringResource(R.string.notification_channel_activity_message),
-                    subtitle = stringResource(R.string.notification_channel_activity_message_desc),
-                    checked = activityMessageEnabled,
-                    enabled = isNotificationsEnabled,
-                    onCheckedChange = { viewModel.onAction(SettingsAction.SetActivityMessageEnabled(it)) }
-                )
-                SettingsDivider()
-                SwitchSettingsItem(
-                    title = stringResource(R.string.notification_follows),
-                    subtitle = stringResource(R.string.notification_follows_desc),
-                    checked = followsEnabled,
-                    enabled = isNotificationsEnabled,
-                    onCheckedChange = { viewModel.onAction(SettingsAction.SetFollowsEnabled(it)) }
-                )
             }
         }
     }

@@ -140,19 +140,8 @@ sealed interface RichTextBlock {
                 slug != null -> decodeSlug(slug)
                 else -> "${type.replaceFirstChar { it.uppercase() }} #$id"
             }
-
-        val previewKey: LinkPreviewKey
-            get() = if (isUser) LinkPreviewKey("user", 0, slug)
-            else LinkPreviewKey(type.lowercase(), id)
     }
 }
-
-data class LinkPreviewKey(
-    val type: String,
-    val id: Int,
-    /** Username for user links, which have no numeric id. */
-    val name: String? = null
-)
 
 data class TableRow(val cells: List<TableCell>)
 data class TableCell(

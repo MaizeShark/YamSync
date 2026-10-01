@@ -9,7 +9,7 @@ import coil.decode.ImageDecoderDecoder
 import coil.decode.SvgDecoder
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
-import com.anisync.android.data.media.MediaHttp
+import com.anisync.android.data.network.MediaHttp
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

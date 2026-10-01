@@ -7,7 +7,6 @@ import com.anisync.android.domain.AiringEpisode
 import com.anisync.android.domain.DiscoverSection
 import com.anisync.android.domain.GroupedSearchResults
 import com.anisync.android.domain.LibraryEntry
-import com.anisync.android.domain.MediaReview
 import com.anisync.android.domain.SearchFilters
 import com.anisync.android.presentation.discover.components.BrowseChip
 import com.anisync.android.type.MediaType
@@ -79,8 +78,7 @@ data class DiscoverFeeds(
     val releasing: SectionFeed<LibraryEntry> = SectionFeed(),
     val popular: SectionFeed<LibraryEntry> = SectionFeed(),
     val notYetReleased: SectionFeed<LibraryEntry> = SectionFeed(),
-    val newlyAdded: SectionFeed<LibraryEntry> = SectionFeed(),
-    val reviews: SectionFeed<MediaReview> = SectionFeed()
+    val newlyAdded: SectionFeed<LibraryEntry> = SectionFeed()
 ) {
     /** Nothing has come back yet, which is the only time the screen shows a shimmer. */
     val isInitialLoad: Boolean
@@ -94,7 +92,6 @@ data class DiscoverFeeds(
         DiscoverSection.POPULAR -> popular
         DiscoverSection.NOT_YET_RELEASED -> notYetReleased
         DiscoverSection.NEWLY_ADDED -> newlyAdded
-        DiscoverSection.REVIEWS -> reviews
     }
 
     fun markLoading(section: DiscoverSection): DiscoverFeeds = when (section) {
@@ -104,7 +101,6 @@ data class DiscoverFeeds(
         DiscoverSection.POPULAR -> copy(popular = popular.retrying())
         DiscoverSection.NOT_YET_RELEASED -> copy(notYetReleased = notYetReleased.retrying())
         DiscoverSection.NEWLY_ADDED -> copy(newlyAdded = newlyAdded.retrying())
-        DiscoverSection.REVIEWS -> copy(reviews = reviews.retrying())
     }
 }
 

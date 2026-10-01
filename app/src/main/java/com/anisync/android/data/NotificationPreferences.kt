@@ -17,73 +17,20 @@ import javax.inject.Singleton
 class NotificationPreferences @Inject constructor(
     @ApplicationContext context: Context
 ) {
-    private val prefs: SharedPreferences = 
+    private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     // Watching list - new episodes for shows you're watching
     private val _watchingEnabled = MutableStateFlow(prefs.getBoolean(KEY_WATCHING_ENABLED, true))
     val watchingEnabled: StateFlow<Boolean> = _watchingEnabled.asStateFlow()
 
-    // Planning list - when Episode 1 airs for shows in your planning list
+    // Planning list - premieres of shows you plan to watch
     private val _planningEnabled = MutableStateFlow(prefs.getBoolean(KEY_PLANNING_ENABLED, true))
     val planningEnabled: StateFlow<Boolean> = _planningEnabled.asStateFlow()
 
-    // Upcoming alerts - proactive "airing soon" notifications
+    // Upcoming - episodes airing soon
     private val _upcomingEnabled = MutableStateFlow(prefs.getBoolean(KEY_UPCOMING_ENABLED, true))
     val upcomingEnabled: StateFlow<Boolean> = _upcomingEnabled.asStateFlow()
-
-    // Forum - thread comment replies
-    private val _threadCommentReplyEnabled = MutableStateFlow(prefs.getBoolean(KEY_THREAD_COMMENT_REPLY_ENABLED, true))
-    val threadCommentReplyEnabled: StateFlow<Boolean> = _threadCommentReplyEnabled.asStateFlow()
-
-    // Forum - subscribed thread updates
-    private val _threadSubscribedEnabled = MutableStateFlow(prefs.getBoolean(KEY_THREAD_SUBSCRIBED_ENABLED, true))
-    val threadSubscribedEnabled: StateFlow<Boolean> = _threadSubscribedEnabled.asStateFlow()
-
-    // Forum - thread comment mentions
-    private val _threadCommentMentionEnabled = MutableStateFlow(prefs.getBoolean(KEY_THREAD_COMMENT_MENTION_ENABLED, true))
-    val threadCommentMentionEnabled: StateFlow<Boolean> = _threadCommentMentionEnabled.asStateFlow()
-
-    // Forum - thread likes
-    private val _threadLikeEnabled = MutableStateFlow(prefs.getBoolean(KEY_THREAD_LIKE_ENABLED, true))
-    val threadLikeEnabled: StateFlow<Boolean> = _threadLikeEnabled.asStateFlow()
-
-    // Forum - thread comment likes
-    private val _threadCommentLikeEnabled = MutableStateFlow(prefs.getBoolean(KEY_THREAD_COMMENT_LIKE_ENABLED, true))
-    val threadCommentLikeEnabled: StateFlow<Boolean> = _threadCommentLikeEnabled.asStateFlow()
-
-    // Activity - replies to your status / subscribed replies
-    private val _activityReplyEnabled = MutableStateFlow(prefs.getBoolean(KEY_ACTIVITY_REPLY_ENABLED, true))
-    val activityReplyEnabled: StateFlow<Boolean> = _activityReplyEnabled.asStateFlow()
-
-    // Activity - @mentions inside an activity
-    private val _activityMentionEnabled = MutableStateFlow(prefs.getBoolean(KEY_ACTIVITY_MENTION_ENABLED, true))
-    val activityMentionEnabled: StateFlow<Boolean> = _activityMentionEnabled.asStateFlow()
-
-    // Activity - likes on your activity / reply
-    private val _activityLikeEnabled = MutableStateFlow(prefs.getBoolean(KEY_ACTIVITY_LIKE_ENABLED, true))
-    val activityLikeEnabled: StateFlow<Boolean> = _activityLikeEnabled.asStateFlow()
-
-    // Activity - direct messages
-    private val _activityMessageEnabled = MutableStateFlow(prefs.getBoolean(KEY_ACTIVITY_MESSAGE_ENABLED, true))
-    val activityMessageEnabled: StateFlow<Boolean> = _activityMessageEnabled.asStateFlow()
-
-    // Activity - new followers
-    private val _followsEnabled = MutableStateFlow(prefs.getBoolean(KEY_FOLLOWS_ENABLED, true))
-    val followsEnabled: StateFlow<Boolean> = _followsEnabled.asStateFlow()
-
-    // Inbox - keep a local record of which notifications have been read.
-    // AniList serves one unread count and no per-notification flag, so New/Earlier, the dots and
-    // Mark all read all run off state this device keeps. Off, the inbox carries no read state and
-    // the visit itself clears the count, which is what the website does.
-    private val _inboxReadTrackingEnabled =
-        MutableStateFlow(prefs.getBoolean(KEY_INBOX_READ_TRACKING, true))
-    val inboxReadTrackingEnabled: StateFlow<Boolean> = _inboxReadTrackingEnabled.asStateFlow()
-
-    // Inbox - treat opening the inbox as reading everything in it.
-    private val _inboxMarkReadOnOpen =
-        MutableStateFlow(prefs.getBoolean(KEY_INBOX_MARK_READ_ON_OPEN, false))
-    val inboxMarkReadOnOpen: StateFlow<Boolean> = _inboxMarkReadOnOpen.asStateFlow()
 
     // Streaming availability delay (minutes) for "episode aired" notifications.
     // Lets users on streaming sites that post episodes after the official airing time
@@ -108,66 +55,6 @@ class NotificationPreferences @Inject constructor(
         prefs.edit().putBoolean(KEY_UPCOMING_ENABLED, enabled).apply()
     }
 
-    fun setThreadCommentReplyEnabled(enabled: Boolean) {
-        _threadCommentReplyEnabled.value = enabled
-        prefs.edit().putBoolean(KEY_THREAD_COMMENT_REPLY_ENABLED, enabled).apply()
-    }
-
-    fun setThreadSubscribedEnabled(enabled: Boolean) {
-        _threadSubscribedEnabled.value = enabled
-        prefs.edit().putBoolean(KEY_THREAD_SUBSCRIBED_ENABLED, enabled).apply()
-    }
-
-    fun setThreadCommentMentionEnabled(enabled: Boolean) {
-        _threadCommentMentionEnabled.value = enabled
-        prefs.edit().putBoolean(KEY_THREAD_COMMENT_MENTION_ENABLED, enabled).apply()
-    }
-
-    fun setThreadLikeEnabled(enabled: Boolean) {
-        _threadLikeEnabled.value = enabled
-        prefs.edit().putBoolean(KEY_THREAD_LIKE_ENABLED, enabled).apply()
-    }
-
-    fun setThreadCommentLikeEnabled(enabled: Boolean) {
-        _threadCommentLikeEnabled.value = enabled
-        prefs.edit().putBoolean(KEY_THREAD_COMMENT_LIKE_ENABLED, enabled).apply()
-    }
-
-    fun setActivityReplyEnabled(enabled: Boolean) {
-        _activityReplyEnabled.value = enabled
-        prefs.edit().putBoolean(KEY_ACTIVITY_REPLY_ENABLED, enabled).apply()
-    }
-
-    fun setActivityMentionEnabled(enabled: Boolean) {
-        _activityMentionEnabled.value = enabled
-        prefs.edit().putBoolean(KEY_ACTIVITY_MENTION_ENABLED, enabled).apply()
-    }
-
-    fun setActivityLikeEnabled(enabled: Boolean) {
-        _activityLikeEnabled.value = enabled
-        prefs.edit().putBoolean(KEY_ACTIVITY_LIKE_ENABLED, enabled).apply()
-    }
-
-    fun setActivityMessageEnabled(enabled: Boolean) {
-        _activityMessageEnabled.value = enabled
-        prefs.edit().putBoolean(KEY_ACTIVITY_MESSAGE_ENABLED, enabled).apply()
-    }
-
-    fun setFollowsEnabled(enabled: Boolean) {
-        _followsEnabled.value = enabled
-        prefs.edit().putBoolean(KEY_FOLLOWS_ENABLED, enabled).apply()
-    }
-
-    fun setInboxReadTrackingEnabled(enabled: Boolean) {
-        _inboxReadTrackingEnabled.value = enabled
-        prefs.edit().putBoolean(KEY_INBOX_READ_TRACKING, enabled).apply()
-    }
-
-    fun setInboxMarkReadOnOpen(enabled: Boolean) {
-        _inboxMarkReadOnOpen.value = enabled
-        prefs.edit().putBoolean(KEY_INBOX_MARK_READ_ON_OPEN, enabled).apply()
-    }
-
     fun setStreamingDelayMinutes(minutes: Int) {
         val clamped = minutes.coerceIn(MIN_STREAMING_DELAY_MINUTES, MAX_STREAMING_DELAY_MINUTES)
         _streamingDelayMinutes.value = clamped
@@ -181,19 +68,7 @@ class NotificationPreferences @Inject constructor(
         setWatchingEnabled(true)
         setPlanningEnabled(true)
         setUpcomingEnabled(true)
-        setThreadCommentReplyEnabled(true)
-        setThreadSubscribedEnabled(true)
-        setThreadCommentMentionEnabled(true)
-        setThreadLikeEnabled(true)
-        setThreadCommentLikeEnabled(true)
-        setActivityReplyEnabled(true)
-        setActivityMentionEnabled(true)
-        setActivityLikeEnabled(true)
-        setActivityMessageEnabled(true)
-        setFollowsEnabled(true)
         setStreamingDelayMinutes(0)
-        setInboxReadTrackingEnabled(true)
-        setInboxMarkReadOnOpen(false)
     }
 
     companion object {
@@ -201,19 +76,7 @@ class NotificationPreferences @Inject constructor(
         private const val KEY_WATCHING_ENABLED = "watching_enabled"
         private const val KEY_PLANNING_ENABLED = "planning_enabled"
         private const val KEY_UPCOMING_ENABLED = "upcoming_enabled"
-        private const val KEY_THREAD_COMMENT_REPLY_ENABLED = "thread_comment_reply_enabled"
-        private const val KEY_THREAD_SUBSCRIBED_ENABLED = "thread_subscribed_enabled"
-        private const val KEY_THREAD_COMMENT_MENTION_ENABLED = "thread_comment_mention_enabled"
-        private const val KEY_THREAD_LIKE_ENABLED = "thread_like_enabled"
-        private const val KEY_THREAD_COMMENT_LIKE_ENABLED = "thread_comment_like_enabled"
-        private const val KEY_ACTIVITY_REPLY_ENABLED = "activity_reply_enabled"
-        private const val KEY_ACTIVITY_MENTION_ENABLED = "activity_mention_enabled"
-        private const val KEY_ACTIVITY_LIKE_ENABLED = "activity_like_enabled"
-        private const val KEY_ACTIVITY_MESSAGE_ENABLED = "activity_message_enabled"
-        private const val KEY_FOLLOWS_ENABLED = "follows_enabled"
         private const val KEY_STREAMING_DELAY_MINUTES = "streaming_delay_minutes"
-        private const val KEY_INBOX_READ_TRACKING = "inbox_read_tracking"
-        private const val KEY_INBOX_MARK_READ_ON_OPEN = "inbox_mark_read_on_open"
         const val MIN_STREAMING_DELAY_MINUTES = 0
         const val MAX_STREAMING_DELAY_MINUTES = 180
     }

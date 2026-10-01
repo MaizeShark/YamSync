@@ -48,9 +48,7 @@ import com.anisync.android.presentation.login.AniListAuth
 import com.anisync.android.util.AppLinksUtil
 
 /**
- * AniList settings: one screen merging account management (add / switch / remove / logout) with the
- * AniList account options (adult content, languages, score format, activity, profile color). The
- * accounts section drives identity; the options below it reflect and edit the active account.
+ * Account settings: add, switch, remove and log out of the signed-in accounts.
  */
 @Composable
 fun AniListSettingsScreen(
@@ -58,12 +56,10 @@ fun AniListSettingsScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     accountViewModel: AccountViewModel = hiltViewModel(),
-    optionsViewModel: AniListOptionsViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val accounts by accountViewModel.accounts.collectAsStateWithLifecycle()
     val activeAccount by accountViewModel.activeAccount.collectAsStateWithLifecycle()
-    val optionsState by optionsViewModel.uiState.collectAsStateWithLifecycle()
 
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
     var accountToRemove by remember { mutableStateOf<Account?>(null) }
@@ -154,7 +150,7 @@ fun AniListSettingsScreen(
         }
     ) {
         // ── Accounts ─────────────────────────────────────────────────────────────────────────────
-        SectionLabel(stringResource(R.string.settings_account))
+        SettingsSectionLabel(stringResource(R.string.settings_account))
         SettingsGroup {
             accounts.forEach { account ->
                 AccountRow(
@@ -175,20 +171,6 @@ fun AniListSettingsScreen(
                 icon = Icons.Outlined.PersonAddAlt,
                 onClick = ::launchOAuth
             )
-        }
-
-        // ── AniList account options (active account) ───────────────────────────────────────────────
-        if (activeAccount != null) {
-            if (optionsState.isLoading && optionsState.options == null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp),
-                    contentAlignment = Alignment.Center,
-                ) { AppCircularProgressIndicator() }
-            } else {
-                AniListOptionsContent(optionsState, optionsViewModel::onAction)
-            }
         }
 
     }

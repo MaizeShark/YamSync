@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Build
-import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
@@ -186,13 +185,6 @@ fun SettingsScreen(
                 subtitle = stringResource(R.string.settings_storage_subtitle, uiState.cacheSize),
                 icon = Icons.Outlined.Storage,
                 onClick = { onCategorySelected(SettingsCategory.Storage) }
-            ),
-            CategoryData(
-                key = "media_upload",
-                title = stringResource(R.string.settings_media_upload),
-                subtitle = stringResource(R.string.settings_media_upload_desc),
-                icon = Icons.Outlined.CloudUpload,
-                onClick = { onCategorySelected(SettingsCategory.MediaUpload) }
             ),
             CategoryData(
                 key = "links",
@@ -372,7 +364,6 @@ private fun SettingsCategory.cardKey(): String = when (this) {
     SettingsCategory.AniList -> "anilist"
     SettingsCategory.Notifications -> "notifications"
     SettingsCategory.Storage -> "storage"
-    SettingsCategory.MediaUpload -> "media_upload"
     SettingsCategory.Updates -> "updates"
     SettingsCategory.Sponsors -> "sponsors"
     SettingsCategory.About -> "about"

@@ -143,6 +143,16 @@ data class CharacterInfo(
 )
 
 @Serializable
+data class VoiceActor(
+    val id: Int,
+    val nameFull: String,
+    val nameNative: String?,
+    val nameUserPreferred: String,
+    val imageUrl: String?,
+    val language: String?
+)
+
+@Serializable
 data class NextAiringEpisode(
     val episode: Int,
     val airingAt: Long,         // unix seconds, absolute — survives cache reads

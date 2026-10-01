@@ -15,7 +15,7 @@ import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import com.anisync.android.data.media.MediaHttp
+import com.anisync.android.data.network.MediaHttp
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 

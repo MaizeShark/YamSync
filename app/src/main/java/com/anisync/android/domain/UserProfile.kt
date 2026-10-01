@@ -13,9 +13,6 @@ data class UserProfile(
     val avatarUrl: String?,
     val bannerUrl: String?,
     val about: String?,
-    /** Raw markdown source for the bio. Used to prefill the edit-profile screen so the
-     *  server-rendered HTML isn't sent back as the new about (which would corrupt formatting). */
-    val aboutMarkdown: String? = null,
     val activeAt: Long?,
     val animeCount: Int,
     val daysWatched: Float, // Converted from minutes
@@ -23,13 +20,7 @@ data class UserProfile(
     val chaptersRead: Int,
     val meanScore: Float,
     val animeStatusCounts: AnimeStatusCounts,
-    val favoriteAnime: List<LibraryEntry>,
-    val activities: List<UserActivity>,
     val topGenres: List<GenreStat> = emptyList(),
-    val favoriteMangaOverview: List<LibraryEntry> = emptyList(),
-    val favoriteCharactersOverview: List<CharacterInfo> = emptyList(),
-    val favoriteStaffOverview: List<StaffDetails> = emptyList(),
-    val favoriteStudiosOverview: List<StudioInfo> = emptyList(),
     val donatorTier: Int = 0,
     val donatorBadge: String? = null,
     val moderatorRoles: List<String> = emptyList(),

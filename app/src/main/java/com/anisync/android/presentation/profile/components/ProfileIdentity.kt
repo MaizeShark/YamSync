@@ -180,7 +180,7 @@ fun ProfileBannerSurface(
 @Composable
 fun ProfileIdentityInfo(
     profile: UserProfile,
-    isOwnProfile: Boolean,
+    isOwnProfile: Boolean = true,
     modifier: Modifier = Modifier,
     /** Whether the authenticated viewer follows this user (drives the Mutual vs Follows you label). */
     viewerFollows: Boolean = false,
@@ -220,7 +220,7 @@ fun ProfileDisplayName(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun ProfileIdentityDetails(
     profile: UserProfile,
-    isOwnProfile: Boolean,
+    isOwnProfile: Boolean = true,
     modifier: Modifier = Modifier,
     viewerFollows: Boolean = false,
     followsViewer: Boolean = false
@@ -332,20 +332,12 @@ fun ProfileIdentityDetails(
 }
 
 /**
- * The header action buttons: edit / notifications (+ optional account switch) on your own profile,
- * follow / message on others'. The caller positions the [Row] (the compact header overlaps it on the
- * banner seam; the wide identity pane stacks it under the meta).
+ * The header action buttons: the account switch, shown when more than one account is signed in.
+ * The caller positions the [Row] (the compact header overlaps it on the banner seam; the wide
+ * identity pane stacks it under the meta).
  */
 @Composable
 fun ProfileActionButtons(
-    isOwnProfile: Boolean,
-    isFollowing: Boolean,
-    isFollowLoading: Boolean,
-    onFollowClick: () -> Unit,
-    onMessageClick: () -> Unit,
-    onEditProfileClick: () -> Unit,
-    onNotificationsClick: () -> Unit,
-    unreadNotificationCount: Int,
     showAccountSwitcher: Boolean,
     onAccountSwitchClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -354,99 +346,15 @@ fun ProfileActionButtons(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
     ) {
-        if (isOwnProfile) {
-            if (showAccountSwitcher) {
-                FilledTonalIconButton(
-                    onClick = onAccountSwitchClick,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SwapHoriz,
-                        contentDescription = stringResource(R.string.account_switch),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
+        if (showAccountSwitcher) {
             FilledTonalIconButton(
-                onClick = onEditProfileClick,
+                onClick = onAccountSwitchClick,
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.size(48.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = stringResource(R.string.profile_edit),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            FilledTonalIconButton(
-                onClick = onNotificationsClick,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.size(48.dp)
-            ) {
-                if (unreadNotificationCount > 0) {
-                    val openLabel = stringResource(R.string.notifications_open)
-                    val countLabel = unreadCountAccessibilityLabel(unreadNotificationCount)
-                    BadgedBox(
-                        badge = {
-                            Badge {
-                                Text(formatBadgeCount(unreadNotificationCount))
-                            }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Notifications,
-                            contentDescription = "$openLabel, $countLabel",
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = stringResource(R.string.notifications_open),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-        } else {
-            if (isFollowing) {
-                FilledTonalIconButton(
-                    onClick = onFollowClick,
-                    enabled = !isFollowLoading,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isFollowing) Icons.Default.PersonRemove else Icons.Default.PersonAdd,
-                        contentDescription = if (isFollowing) stringResource(R.string.profile_following) else stringResource(
-                            R.string.profile_follow
-                        ),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            } else {
-                OutlinedIconButton(
-                    onClick = onFollowClick,
-                    enabled = !isFollowLoading,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.size(48.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-                ) {
-                    Icon(
-                        imageVector = if (isFollowing) Icons.Default.PersonRemove else Icons.Default.PersonAdd,
-                        contentDescription = if (isFollowing) stringResource(R.string.profile_following) else stringResource(R.string.profile_follow),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-            FilledTonalIconButton(
-                onClick = onMessageClick,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.size(48.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Mail,
-                    contentDescription = stringResource(R.string.profile_message),
+                    imageVector = Icons.Default.SwapHoriz,
+                    contentDescription = stringResource(R.string.account_switch),
                     modifier = Modifier.size(20.dp)
                 )
             }

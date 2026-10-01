@@ -22,26 +22,10 @@ import com.anisync.android.R
 import com.anisync.android.data.account.AccountStore
 import com.anisync.android.data.local.dao.LibraryDao
 import com.anisync.android.data.util.ApiError
-import com.anisync.android.domain.ActivityLikeNotification
-import com.anisync.android.domain.ActivityMentionNotification
-import com.anisync.android.domain.ActivityMessageNotification
-import com.anisync.android.domain.ActivityReplyLikeNotification
-import com.anisync.android.domain.ActivityReplyNotification
-import com.anisync.android.domain.ActivityReplySubscribedNotification
-import com.anisync.android.domain.AiringNotification
 import com.anisync.android.domain.AiringSchedule
-import com.anisync.android.domain.FollowingNotification
 import com.anisync.android.domain.LibraryStatus
-import com.anisync.android.domain.Notification
 import com.anisync.android.domain.NotificationRepository
 import com.anisync.android.domain.PreferencesRepository
-import com.anisync.android.domain.ThreadCommentLikeNotification
-import com.anisync.android.domain.ThreadCommentMentionNotification
-import com.anisync.android.domain.ThreadCommentReplyNotification
-import com.anisync.android.domain.ThreadCommentSubscribedNotification
-import com.anisync.android.domain.ThreadLikeNotification
-import com.anisync.android.domain.User
-import com.anisync.android.domain.ActivityKind
 import com.anisync.android.type.MediaType
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -69,28 +53,17 @@ class NotificationWorker @AssistedInject constructor(
 
     companion object {
         private const val TAG = "NotificationWorker"
-        private const val MAX_NOTIFICATION_PAGES = 3
-        private const val PAGE_SIZE = 20
-
         // Two-tier upcoming notification system
         private const val ADVANCE_NOTICE_HOURS = 12 // First notification: "Episode 1 airs tomorrow at X"
         private const val IMMINENT_NOTICE_HOURS = 2  // Second notification: "Episode 1 airs in 2 hours"
 
-        private const val GROUP_KEY_AIRING = "com.anisync.android.AIRING_GROUP"
         private const val GROUP_KEY_PLANNING = "com.anisync.android.PLANNING_GROUP"
-        private const val GROUP_KEY_SOCIAL = "com.anisync.android.SOCIAL_GROUP"
 
         // Tray slot = (tag "acct_<accountId>_<category>", id stable per target). A newer event for
         // the same target replaces its stale tray entry instead of piling up next to it.
-        private const val CATEGORY_AIRING = "airing"
         private const val CATEGORY_PLANNING = "planning"
         private const val CATEGORY_UPCOMING = "upcoming"
-        private const val CATEGORY_SOCIAL_SUMMARY = "social"
-        private const val SUMMARY_ID = 0
     }
-
-    /** The tray slot a social notification lands in; events sharing a slot collapse to one entry. */
-    private data class SocialSlot(val category: String, val id: Int)
 
     override suspend fun doWork(): androidx.work.ListenableWorker.Result =
         // Every request this run makes yields to whatever the user is doing. When the
@@ -108,18 +81,6 @@ class NotificationWorker @AssistedInject constructor(
         val activeId = accountStore.activeAccount.value?.id
         val showLabel = accounts.size > 1
 
-        val watchingEnabled = notificationPreferences.watchingEnabled.value
-        val anySocialEnabled = notificationPreferences.threadCommentReplyEnabled.value ||
-            notificationPreferences.threadSubscribedEnabled.value ||
-            notificationPreferences.threadCommentMentionEnabled.value ||
-            notificationPreferences.threadLikeEnabled.value ||
-            notificationPreferences.threadCommentLikeEnabled.value ||
-            notificationPreferences.activityReplyEnabled.value ||
-            notificationPreferences.activityMentionEnabled.value ||
-            notificationPreferences.activityLikeEnabled.value ||
-            notificationPreferences.activityMessageEnabled.value ||
-            notificationPreferences.followsEnabled.value
-
         for (account in accounts) {
             val ctx = AcctCtx(account.id, account.token, account.name, showLabel)
             val isActive = account.id == activeId
@@ -135,33 +96,6 @@ class NotificationWorker @AssistedInject constructor(
                         Log.w(TAG, "Baseline sync incomplete for ${ctx.name} — will retry next run")
                     }
                     continue
-                }
-
-                // AniList feed (airing + social) — both checks read the same feed, so fetch the
-                // pages once per account and share the result.
-                if (watchingEnabled || anySocialEnabled) {
-                    val airingWatermark = preferencesRepository.getLastNotifiedId(ctx.id)
-                    val socialWatermark = preferencesRepository.getLastSocialNotifiedId(ctx.id)
-                    val stopBelowId = minOf(
-                        if (watchingEnabled) airingWatermark else Int.MAX_VALUE,
-                        if (anySocialEnabled) socialWatermark else Int.MAX_VALUE
-                    )
-                    val recent = fetchRecentNotifications(ctx, stopBelowId)
-
-                    if (watchingEnabled) {
-                        val planningMediaIds = if (isActive && notificationPreferences.planningEnabled.value) {
-                            libraryDao.getByType(ctx.id, MediaType.ANIME)
-                                .filter { it.status == LibraryStatus.PLANNING }
-                                .map { it.mediaId }
-                                .toSet()
-                        } else {
-                            emptySet()
-                        }
-                        notifyNewAiring(ctx, recent, airingWatermark, planningMediaIds)
-                    }
-                    if (anySocialEnabled) {
-                        notifyNewSocial(ctx, recent, socialWatermark)
-                    }
                 }
 
                 // Planning / upcoming "Episode 1" alerts depend on the locally-cached library,
@@ -223,24 +157,6 @@ class NotificationWorker @AssistedInject constructor(
     private suspend fun performBaselineSync(ctx: AcctCtx, isActive: Boolean): Boolean {
         var complete = true
 
-        when (val repoResult = notificationRepository.getNotifications(1, ctx.token)) {
-            is DomainResult.Success -> {
-                val allNotifications = repoResult.data
-                val latestAiringId = allNotifications
-                    .filterIsInstance<AiringNotification>()
-                    .maxOfOrNull { it.id } ?: 0
-                if (latestAiringId > 0) preferencesRepository.setLastNotifiedId(ctx.id, latestAiringId)
-                val latestSocialId = allNotifications
-                    .filter { isSocialNotification(it) }
-                    .maxOfOrNull { it.id } ?: 0
-                if (latestSocialId > 0) preferencesRepository.setLastSocialNotifiedId(ctx.id, latestSocialId)
-            }
-            is DomainResult.Error -> {
-                repoResult.rethrowWorkerSignals()
-                complete = false
-            }
-        }
-
         if (!isActive) return complete
 
         val planningEntries = libraryDao.getByType(ctx.id, MediaType.ANIME)
@@ -272,403 +188,11 @@ class NotificationWorker @AssistedInject constructor(
         return complete
     }
 
-    /**
-     * Pulls the newest notification pages once per account. Stops as soon as a page reaches ids
-     * at/below [stopBelowId] (every consumer's watermark is covered), the feed runs short, or the
-     * page cap is hit.
-     */
-    private suspend fun fetchRecentNotifications(ctx: AcctCtx, stopBelowId: Int): List<Notification> {
-        val fetched = mutableListOf<Notification>()
-        var page = 1
-        while (page <= MAX_NOTIFICATION_PAGES) {
-            when (val result = notificationRepository.getNotifications(page, ctx.token)) {
-                is DomainResult.Success -> {
-                    fetched += result.data
-                    if (result.data.size < PAGE_SIZE || result.data.any { it.id <= stopBelowId }) {
-                        return fetched
-                    }
-                }
-                is DomainResult.Error -> {
-                    result.rethrowWorkerSignals()
-                    Log.e(TAG, "Failed to fetch notifications page $page for ${ctx.name}: ${result.message}", result.exception)
-                    return fetched
-                }
-            }
-            page++
-        }
-        return fetched
-    }
-
-    private suspend fun notifyNewAiring(
-        ctx: AcctCtx,
-        recent: List<Notification>,
-        lastNotifiedId: Int,
-        planningMediaIds: Set<Int>
-    ) {
-        val newAiring = recent
-            .filterIsInstance<AiringNotification>()
-            .filter { it.id > lastNotifiedId }
-            // Skip Episode 1 for Planning items (handled by checkPlanningFirstEpisodes)
-            .filterNot { it.episode == 1 && it.media?.id in planningMediaIds }
-            .sortedBy { it.id }
-        if (newAiring.isEmpty()) return
-
-        // Apply the user-configured streaming delay (defer episodes not yet "due").
-        val delaySeconds = notificationPreferences.streamingDelayMinutes.value * 60L
-        val nowSeconds = System.currentTimeMillis() / 1000
-        val cutoff = if (delaySeconds > 0L) {
-            newAiring.firstOrNull { (nowSeconds - it.createdAt) < delaySeconds }?.id
-                ?: Int.MAX_VALUE
-        } else {
-            Int.MAX_VALUE
-        }
-        val toEmit = newAiring.filter { it.id < cutoff }
-        if (toEmit.isEmpty()) return
-
-        for (notification in toEmit) {
-            showAiringNotification(notification, ctx)
-        }
-        if (toEmit.size >= 3) {
-            showSummaryNotification(toEmit, ctx)
-        }
-        preferencesRepository.setLastNotifiedId(ctx.id, toEmit.maxOf { it.id })
-    }
-
-    /**
-     * Surface new social/forum notifications (thread replies, mentions, likes, subscriptions,
-     * messages, follows). Each type is gated behind its own preference toggle; the watermark still
-     * advances past disabled types so re-enabling them doesn't replay history. Events aimed at the
-     * same target collapse into one tray entry per [SocialSlot].
-     */
-    private suspend fun notifyNewSocial(ctx: AcctCtx, recent: List<Notification>, lastSocialId: Int) {
-        val newSocial = recent
-            .filter { it.id > lastSocialId && isSocialNotification(it) }
-            .sortedBy { it.id }
-        if (newSocial.isEmpty()) return
-
-        val enabled = newSocial.filter { isTypeEnabled(it) }
-        val bySlot = enabled.groupBy { socialSlot(it) }
-        for ((slot, members) in bySlot) {
-            if (slot != null) showSocialNotification(slot, members, ctx)
-        }
-        if (bySlot.isNotEmpty()) maybePostSocialSummary(ctx)
-
-        preferencesRepository.setLastSocialNotifiedId(ctx.id, newSocial.maxOf { it.id })
-    }
-
-    private fun isSocialNotification(notification: Notification): Boolean {
-        return notification is ThreadCommentReplyNotification ||
-            notification is ThreadCommentSubscribedNotification ||
-            notification is ThreadCommentMentionNotification ||
-            notification is ThreadLikeNotification ||
-            notification is ThreadCommentLikeNotification ||
-            notification is ActivityReplyNotification ||
-            notification is ActivityReplySubscribedNotification ||
-            notification is ActivityMentionNotification ||
-            notification is ActivityLikeNotification ||
-            notification is ActivityReplyLikeNotification ||
-            notification is ActivityMessageNotification ||
-            notification is FollowingNotification
-    }
-
-    private fun isTypeEnabled(notification: Notification): Boolean = when (notification) {
-        is ThreadCommentReplyNotification -> notificationPreferences.threadCommentReplyEnabled.value
-        is ThreadCommentSubscribedNotification -> notificationPreferences.threadSubscribedEnabled.value
-        is ThreadCommentMentionNotification -> notificationPreferences.threadCommentMentionEnabled.value
-        is ThreadLikeNotification -> notificationPreferences.threadLikeEnabled.value
-        is ThreadCommentLikeNotification -> notificationPreferences.threadCommentLikeEnabled.value
-        is ActivityReplyNotification,
-        is ActivityReplySubscribedNotification -> notificationPreferences.activityReplyEnabled.value
-        is ActivityMentionNotification -> notificationPreferences.activityMentionEnabled.value
-        is ActivityLikeNotification,
-        is ActivityReplyLikeNotification -> notificationPreferences.activityLikeEnabled.value
-        is ActivityMessageNotification -> notificationPreferences.activityMessageEnabled.value
-        is FollowingNotification -> notificationPreferences.followsEnabled.value
-        else -> false
-    }
-
-    private fun socialSlot(notification: Notification): SocialSlot? = when (notification) {
-        is ThreadCommentReplyNotification -> SocialSlot("thread_reply", notification.threadId)
-        is ThreadCommentSubscribedNotification -> SocialSlot("thread_sub", notification.threadId)
-        is ThreadCommentMentionNotification -> SocialSlot("thread_mention", notification.threadId)
-        is ThreadLikeNotification -> SocialSlot("thread_like", notification.threadId)
-        is ThreadCommentLikeNotification -> SocialSlot("comment_like", notification.commentId ?: notification.threadId)
-        is ActivityReplyNotification -> SocialSlot("act_reply", notification.activityId ?: notification.id)
-        is ActivityReplySubscribedNotification -> SocialSlot("act_reply", notification.activityId ?: notification.id)
-        is ActivityMentionNotification -> SocialSlot("act_mention", notification.activityId ?: notification.id)
-        is ActivityLikeNotification -> SocialSlot("act_like", notification.activityId ?: notification.id)
-        is ActivityReplyLikeNotification -> SocialSlot("reply_like", notification.activityId ?: notification.id)
-        is ActivityMessageNotification -> SocialSlot("message", notification.user?.id ?: notification.id)
-        is FollowingNotification -> SocialSlot("follow", notification.user?.id ?: notification.id)
-        else -> null
-    }
-
-    private fun socialActor(notification: Notification): User? = when (notification) {
-        is ThreadCommentReplyNotification -> notification.user
-        is ThreadCommentSubscribedNotification -> notification.user
-        is ThreadCommentMentionNotification -> notification.user
-        is ThreadLikeNotification -> notification.user
-        is ThreadCommentLikeNotification -> notification.user
-        is ActivityReplyNotification -> notification.user
-        is ActivityReplySubscribedNotification -> notification.user
-        is ActivityMentionNotification -> notification.user
-        is ActivityLikeNotification -> notification.user
-        is ActivityReplyLikeNotification -> notification.user
-        is ActivityMessageNotification -> notification.user
-        is FollowingNotification -> notification.user
-        else -> null
-    }
-
-    /** "Hameru", "Hameru and Bob", "Hameru and 2 others" — newest actor first. */
-    private fun actorsLabel(actors: List<User>): String = when (actors.size) {
-        0 -> string(R.string.notification_actor_someone)
-        1 -> actors[0].name
-        2 -> string(R.string.notification_actors_two, actors[0].name, actors[1].name)
-        else -> quantityString(
-            R.plurals.notification_actors_others,
-            actors.size - 1,
-            actors[0].name,
-            actors.size - 1
-        )
-    }
-
     private fun string(resId: Int, vararg args: Any): String =
         applicationContext.getString(resId, *args)
 
     private fun quantityString(resId: Int, quantity: Int, vararg args: Any): String =
         applicationContext.resources.getQuantityString(resId, quantity, *args)
-
-    /**
-     * One forum line, picking the counted or single form and dropping to the untitled variant
-     * when AniList serves no thread title.
-     */
-    private fun threadLine(
-        threadTitle: String,
-        count: Int,
-        single: Int,
-        singleUntitled: Int,
-        counted: Int,
-        countedUntitled: Int
-    ): String {
-        val titled = threadTitle.isNotBlank()
-        return when {
-            count > 1 && titled -> quantityString(counted, count, count, threadTitle)
-            count > 1 -> quantityString(countedUntitled, count, count)
-            titled -> string(single, threadTitle)
-            else -> string(singleUntitled)
-        }
-    }
-
-    /** The activity subtype as a noun, so a line reads "Liked your status update". */
-    private fun kindNoun(kind: ActivityKind?, indefinite: Boolean = false): String = string(
-        when (kind) {
-            ActivityKind.TEXT ->
-                if (indefinite) R.string.notification_kind_status_indefinite
-                else R.string.notification_kind_status
-            ActivityKind.ANIME_LIST ->
-                if (indefinite) R.string.notification_kind_anime_list_indefinite
-                else R.string.notification_kind_anime_list
-            ActivityKind.MANGA_LIST ->
-                if (indefinite) R.string.notification_kind_manga_list_indefinite
-                else R.string.notification_kind_manga_list
-            ActivityKind.MESSAGE ->
-                if (indefinite) R.string.notification_kind_message_indefinite
-                else R.string.notification_kind_message
-            ActivityKind.UNKNOWN, null ->
-                if (indefinite) R.string.notification_kind_post_indefinite
-                else R.string.notification_kind_post
-        }
-    )
-
-    /**
-     * Display one tray entry for all [members] that landed in the same [slot]. Copy follows the
-     * messaging convention: title = who, text = what they did; multiple events for the same target
-     * combine actors and switch to a counted phrase.
-     */
-    private suspend fun showSocialNotification(slot: SocialSlot, members: List<Notification>, ctx: AcctCtx) {
-        val rep = members.last()
-        val count = members.size
-        val actors = members.asReversed().mapNotNull(::socialActor).distinctBy { it.id }
-
-        val data = when (rep) {
-            is ThreadCommentReplyNotification -> SocialNotificationData(
-                content = threadLine(
-                    rep.threadTitle,
-                    count,
-                    R.string.notification_thread_reply,
-                    R.string.notification_thread_reply_untitled,
-                    R.plurals.notification_thread_replies,
-                    R.plurals.notification_thread_replies_untitled
-                ),
-                channelId = NotificationChannels.THREAD_COMMENT_REPLY_CHANNEL_ID,
-                threadId = rep.threadId,
-                commentId = rep.commentId
-            )
-            is ThreadCommentSubscribedNotification -> SocialNotificationData(
-                content = threadLine(
-                    rep.threadTitle,
-                    count,
-                    R.string.notification_thread_comment,
-                    R.string.notification_thread_comment_untitled,
-                    R.plurals.notification_thread_comments,
-                    R.plurals.notification_thread_comments_untitled
-                ),
-                channelId = NotificationChannels.THREAD_SUBSCRIBED_CHANNEL_ID,
-                threadId = rep.threadId,
-                commentId = rep.commentId
-            )
-            is ThreadCommentMentionNotification -> SocialNotificationData(
-                content = if (rep.threadTitle.isNotBlank()) {
-                    string(R.string.notification_thread_mention, rep.threadTitle)
-                } else {
-                    string(R.string.notification_thread_mention_untitled)
-                },
-                channelId = NotificationChannels.THREAD_COMMENT_MENTION_CHANNEL_ID,
-                threadId = rep.threadId,
-                commentId = rep.commentId
-            )
-            is ThreadLikeNotification -> SocialNotificationData(
-                content = if (rep.threadTitle.isNotBlank()) {
-                    string(R.string.notification_liked_thread, rep.threadTitle)
-                } else {
-                    string(R.string.notification_liked_thread_untitled)
-                },
-                channelId = NotificationChannels.THREAD_LIKE_CHANNEL_ID,
-                threadId = rep.threadId
-            )
-            is ThreadCommentLikeNotification -> SocialNotificationData(
-                content = if (rep.threadTitle.isNotBlank()) {
-                    string(R.string.notification_liked_comment, rep.threadTitle)
-                } else {
-                    string(R.string.notification_liked_comment_untitled)
-                },
-                channelId = NotificationChannels.THREAD_COMMENT_LIKE_CHANNEL_ID,
-                threadId = rep.threadId,
-                commentId = rep.commentId
-            )
-            is ActivityReplyNotification -> SocialNotificationData(
-                content = if (count > 1) {
-                    quantityString(
-                        R.plurals.notification_activity_replies,
-                        count,
-                        count,
-                        kindNoun(rep.activity?.kind)
-                    )
-                } else {
-                    string(R.string.notification_activity_reply, kindNoun(rep.activity?.kind))
-                },
-                channelId = NotificationChannels.ACTIVITY_REPLY_CHANNEL_ID,
-                activityId = rep.activityId
-            )
-            is ActivityReplySubscribedNotification -> SocialNotificationData(
-                content = if (count > 1) {
-                    quantityString(R.plurals.notification_activity_replies_subscribed, count, count)
-                } else {
-                    string(R.string.notification_activity_reply_subscribed)
-                },
-                channelId = NotificationChannels.ACTIVITY_REPLY_CHANNEL_ID,
-                activityId = rep.activityId
-            )
-            is ActivityMentionNotification -> SocialNotificationData(
-                content = string(
-                    R.string.notification_activity_mention,
-                    kindNoun(rep.activity?.kind, indefinite = true)
-                ),
-                channelId = NotificationChannels.ACTIVITY_MENTION_CHANNEL_ID,
-                activityId = rep.activityId
-            )
-            is ActivityLikeNotification -> SocialNotificationData(
-                content = string(R.string.notification_activity_like, kindNoun(rep.activity?.kind)),
-                channelId = NotificationChannels.ACTIVITY_LIKE_CHANNEL_ID,
-                activityId = rep.activityId
-            )
-            is ActivityReplyLikeNotification -> SocialNotificationData(
-                content = string(R.string.notification_activity_reply_like),
-                channelId = NotificationChannels.ACTIVITY_LIKE_CHANNEL_ID,
-                activityId = rep.activityId
-            )
-            is ActivityMessageNotification -> SocialNotificationData(
-                content = if (count > 1) {
-                    quantityString(R.plurals.notification_activity_messages, count, count)
-                } else {
-                    string(R.string.notification_activity_message)
-                },
-                channelId = NotificationChannels.ACTIVITY_MESSAGE_CHANNEL_ID,
-                activityId = rep.activityId
-            )
-            is FollowingNotification -> SocialNotificationData(
-                content = string(R.string.notification_following),
-                channelId = NotificationChannels.FOLLOW_CHANNEL_ID,
-                userName = rep.user?.name
-            )
-            else -> return
-        }
-
-        val deepLinkUri = when {
-            data.activityId != null -> "anisync://activity/${data.activityId}"
-            data.commentId != null -> "anisync://forum/thread/${data.threadId}?commentId=${data.commentId}"
-            data.threadId != null -> "anisync://forum/thread/${data.threadId}"
-            data.userName != null -> "anisync://user/${Uri.encode(data.userName)}"
-            else -> "anisync://notifications"
-        }
-
-        val largeIcon: Bitmap? = actors.firstOrNull()?.avatarUrl?.let { loadImage(it) }
-
-        val builder = NotificationCompat.Builder(applicationContext, data.channelId)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(actorsLabel(actors))
-            .setContentText(data.content)
-            .setAutoCancel(true)
-            .setWhen(rep.createdAt.toLong() * 1000L)
-            .setShowWhen(true)
-            .setGroup(groupKey(GROUP_KEY_SOCIAL, ctx))
-            .setContentIntent(deepLinkIntent(deepLinkUri, ctx, slot.id))
-
-        if (largeIcon != null) builder.setLargeIcon(largeIcon)
-
-        post(ctx, slot.category, slot.id, builder)
-    }
-
-    private data class SocialNotificationData(
-        val content: String,
-        val channelId: String,
-        val threadId: Int? = null,
-        val commentId: Int? = null,
-        val activityId: Int? = null,
-        val userName: String? = null
-    )
-
-    /**
-     * Group summary so social notifications bundle in the tray. Only needed once two or more are
-     * actually showing; the system expands/collapses the stack and drops the summary with the
-     * last child.
-     */
-    private fun maybePostSocialSummary(ctx: AcctCtx) {
-        val nm = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val group = groupKey(GROUP_KEY_SOCIAL, ctx)
-        val activeInGroup = nm.activeNotifications.count { sbn ->
-            sbn.notification.group == group &&
-                (sbn.notification.flags and android.app.Notification.FLAG_GROUP_SUMMARY) == 0
-        }
-        if (activeInGroup < 2) return
-
-        val builder = NotificationCompat.Builder(applicationContext, NotificationChannels.ACTIVITY_REPLY_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(string(R.string.notification_social_summary_title))
-            .setContentText(
-                quantityString(
-                    R.plurals.notification_social_summary_count,
-                    activeInGroup,
-                    activeInGroup
-                )
-            )
-            .setGroup(group)
-            .setGroupSummary(true)
-            .setAutoCancel(true)
-            .setContentIntent(deepLinkIntent("anisync://notifications", ctx, SUMMARY_ID))
-
-        post(ctx, CATEGORY_SOCIAL_SUMMARY, SUMMARY_ID, builder)
-    }
 
     /**
      * Check for upcoming Episode 1 airings for Planning list items (active account only).
@@ -749,32 +273,6 @@ class NotificationWorker @AssistedInject constructor(
                 Log.e(TAG, "Failed to fetch planning first episodes: ${result.message}", result.exception)
             }
         }
-    }
-
-    private suspend fun showAiringNotification(notification: AiringNotification, ctx: AcctCtx) {
-        val notificationId = notification.id
-        val media = notification.media
-        val title = media?.title ?: string(R.string.notification_episode_title_fallback)
-        val content = string(R.string.notification_episode_aired, notification.episode)
-
-        val largeIcon: Bitmap? = media?.coverUrl?.let { loadImage(it) }
-
-        val builder = NotificationCompat.Builder(applicationContext, NotificationChannels.AIRING_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
-            .setContentText(content)
-            .setAutoCancel(true)
-            // Stamp with the airing moment (AniList createdAt) so it's consistent across devices
-            // regardless of when each device's worker polled.
-            .setWhen(notification.createdAt.toLong() * 1000L)
-            .setShowWhen(true)
-            .setGroup(groupKey(GROUP_KEY_AIRING, ctx))
-            // Body tap opens the in-app inbox so the user lands on the row that fired it.
-            .setContentIntent(deepLinkIntent("anisync://notifications", ctx, notificationId))
-
-        if (largeIcon != null) builder.setLargeIcon(largeIcon)
-
-        post(ctx, CATEGORY_AIRING, notificationId, builder)
     }
 
     private suspend fun showAdvanceEpisodeNotification(airing: AiringSchedule, ctx: AcctCtx) {
@@ -887,36 +385,6 @@ class NotificationWorker @AssistedInject constructor(
         if (largeIcon != null) builder.setLargeIcon(largeIcon)
 
         post(ctx, CATEGORY_PLANNING, notificationId, builder)
-    }
-
-    private fun showSummaryNotification(notifications: List<AiringNotification>, ctx: AcctCtx) {
-        val summaryTitle = quantityString(
-            R.plurals.notification_episodes_aired_summary,
-            notifications.size,
-            notifications.size
-        )
-        val inboxStyle = NotificationCompat.InboxStyle()
-            .setBigContentTitle(summaryTitle)
-            .setSummaryText(if (ctx.showLabel) ctx.name else "AniSync")
-
-        for (notification in notifications) {
-            val title = notification.media?.title
-                ?: string(R.string.notification_media_title_fallback)
-            inboxStyle.addLine(
-                string(R.string.notification_episode_summary_line, title, notification.episode)
-            )
-        }
-
-        val builder = NotificationCompat.Builder(applicationContext, NotificationChannels.AIRING_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(summaryTitle)
-            .setStyle(inboxStyle)
-            .setGroup(groupKey(GROUP_KEY_AIRING, ctx))
-            .setGroupSummary(true)
-            .setAutoCancel(true)
-            .setContentIntent(deepLinkIntent("anisync://notifications", ctx, SUMMARY_ID))
-
-        post(ctx, CATEGORY_AIRING, SUMMARY_ID, builder)
     }
 
     // ── Multi-account notification helpers ──────────────────────────────────────────────

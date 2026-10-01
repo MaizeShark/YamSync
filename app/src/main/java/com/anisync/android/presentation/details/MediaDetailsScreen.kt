@@ -116,13 +116,10 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.anisync.android.R
 import com.anisync.android.data.TitleLanguage
-import com.anisync.android.domain.ForumThread
 import com.anisync.android.domain.LibraryStatus
 import com.anisync.android.domain.MediaDetails
 import com.anisync.android.domain.coverageEpisodeCount
-import com.anisync.android.domain.MediaFollowingEntry
 import com.anisync.android.domain.url
-import com.anisync.android.presentation.components.AnimatedFavoriteButton
 import com.anisync.android.presentation.components.CustomPullToRefreshIndicator
 import com.anisync.android.presentation.components.bannerChromeColors
 import com.anisync.android.presentation.components.bannerChromeContainer
@@ -133,7 +130,6 @@ import com.anisync.android.presentation.components.alert.rememberRateLimitedRefr
 import com.anisync.android.presentation.components.SegmentedTabGroup
 import com.anisync.android.presentation.components.HeaderLevel
 import com.anisync.android.presentation.components.ImageViewerDialog
-import com.anisync.android.presentation.components.ReviewCard
 import com.anisync.android.presentation.components.SectionHeader
 import com.anisync.android.presentation.components.UserAvatar
 import com.anisync.android.presentation.details.components.CharacterItem
@@ -143,20 +139,14 @@ import com.anisync.android.presentation.details.components.ExpandableSynopsis
 import com.anisync.android.presentation.details.components.ExternalLinksSection
 import com.anisync.android.presentation.details.components.MediaThemesSection
 import com.anisync.android.presentation.details.components.ThemeSheet
-import com.anisync.android.presentation.details.components.FollowingListSheet
 import com.anisync.android.presentation.settings.components.SettingsPickerSheet
-import com.anisync.android.presentation.details.components.FollowingRow
 import com.anisync.android.presentation.details.components.UserNotesCard
-import com.anisync.android.presentation.details.components.RecommendMediaSheet
 import com.anisync.android.presentation.details.components.MediaInformationSection
 import com.anisync.android.presentation.details.components.NextEpisodeStrip
 import com.anisync.android.presentation.details.components.TrackingCard
 import com.anisync.android.presentation.details.components.WatchOnRow
-import com.anisync.android.presentation.details.components.RecommendationItem
 import com.anisync.android.presentation.details.components.RelationItem
-import com.anisync.android.presentation.details.components.ReviewsListSheet
 import com.anisync.android.presentation.details.components.StaffItem
-import com.anisync.android.presentation.details.components.mediaStatsTabContent
 import com.anisync.android.presentation.util.AppMotion
 import com.anisync.android.presentation.util.LocalAppSettings
 import com.anisync.android.presentation.util.LocalPaneIsRoot
@@ -176,7 +166,6 @@ import com.anisync.android.ui.theme.resolveDarkTheme
 import com.anisync.android.util.AniListUrls
 import com.anisync.android.util.getTitle
 
-
 @OptIn(
     ExperimentalSharedTransitionApi::class,
     ExperimentalMaterial3ExpressiveApi::class,
@@ -188,18 +177,8 @@ fun MediaDetailsScreen(
     sourceScreen: String = "unknown",
     onBackClick: () -> Unit,
     onRelationClick: (Int) -> Unit = {},
-    onCharacterClick: (Int) -> Unit = {},
-    onStaffClick: (Int) -> Unit = {},
-    onStudioClick: (Int) -> Unit = {},
     onRelatedSeeAllClick: (Int, String) -> Unit = { _, _ -> },
-    onRecommendationsSeeAllClick: (Int, String) -> Unit = { _, _ -> },
     onThemesSeeAllClick: (mediaId: Int, mediaTitle: String, totalEpisodes: Int?, coverUrl: String?) -> Unit = { _, _, _, _ -> },
-    onWriteReviewClick: (Int, String) -> Unit = { _, _ -> },
-    onReviewClick: (Int) -> Unit = {},
-    onDiscussionClick: (threadId: Int, threadTitle: String) -> Unit = { _, _ -> },
-    onViewAllDiscussions: (mediaId: Int, mediaTitle: String) -> Unit = { _, _ -> },
-    onStartDiscussion: (mediaId: Int, title: String, coverUrl: String?) -> Unit = { _, _, _ -> },
-    onUserClick: (String) -> Unit = {},
     navigationIcon: ImageVector = Icons.AutoMirrored.Filled.ArrowBack,
     viewModel: MediaDetailsViewModel = hiltViewModel(),
     themesViewModel: MediaThemesViewModel = hiltViewModel(),
@@ -215,14 +194,10 @@ fun MediaDetailsScreen(
     val animeAdvancedScoring by viewModel.animeAdvancedScoring.collectAsStateWithLifecycle()
     val mangaAdvancedScoring by viewModel.mangaAdvancedScoring.collectAsStateWithLifecycle()
     val mangaCustomLists by viewModel.mangaCustomLists.collectAsStateWithLifecycle()
-    val following by viewModel.following.collectAsStateWithLifecycle()
-    val hasMoreFollowing by viewModel.hasMoreFollowing.collectAsStateWithLifecycle()
-    val discussions by viewModel.discussions.collectAsStateWithLifecycle()
     val themesState by themesViewModel.state.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val cast by viewModel.cast.collectAsStateWithLifecycle()
     val staff by viewModel.staff.collectAsStateWithLifecycle()
-    val mediaStats by viewModel.stats.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
 
     // AnimeThemes only carries anime, so the lookup waits until the page says which it is.
@@ -251,21 +226,6 @@ fun MediaDetailsScreen(
         }
     }
 
-    val navigateToCharacterDetails: (Int) -> Unit = remember(onCharacterClick) {
-        { characterId ->
-            shouldKeepChromeOverlayForReturn = true
-            hasObservedDetailsReEnter = false
-            onCharacterClick(characterId)
-        }
-    }
-
-    val navigateToStaffDetails: (Int) -> Unit = remember(onStaffClick) {
-        { staffId ->
-            shouldKeepChromeOverlayForReturn = true
-            hasObservedDetailsReEnter = false
-            onStaffClick(staffId)
-        }
-    }
 
     // How far the content has scrolled under the (pinned) app bar (0 = at rest, 1 = fully
     // under), ramping over the bar height. Drives the status-bar scrim fade, the app bar
@@ -409,17 +369,7 @@ fun MediaDetailsScreen(
                                     }
                                 },
                                 actions = {
-                                    // Favourite and share live here now. They used to be the two
-                                    // loudest controls on the page — a filled 56dp button and a
-                                    // full-width pill — above a page whose job is tracking.
-                                    (state as? DetailsUiState.Success)?.details?.let { details ->
-                                        AnimatedFavoriteButton(
-                                            isFavorite = details.isFavourite,
-                                            onClick = viewModel::toggleFavourite,
-                                            inactiveColor = chromeTint,
-                                            containerColor = bannerChromeContainer(overBanner),
-                                            boxSize = 40.dp
-                                        )
+                                    (state as? DetailsUiState.Success)?.details?.let { _ ->
                                         IconButton(
                                             onClick = { showShareImageSheet = true },
                                             colors = chromeColors
@@ -497,8 +447,6 @@ fun MediaDetailsScreen(
                                     listState = listState,
                                     selectedTab = selectedTab,
                                     onTabSelected = { selectedTab = it },
-                                    following = following,
-                                    hasMoreFollowing = hasMoreFollowing,
                                     cast = cast,
                                     staff = staff,
                                     onEnsureCastLoaded = viewModel::ensureCastLoaded,
@@ -507,9 +455,6 @@ fun MediaDetailsScreen(
                                     onEnsureStaffLoaded = viewModel::ensureStaffLoaded,
                                     onLoadMoreStaff = viewModel::loadMoreStaff,
                                     onStaffSortChange = viewModel::setStaffSort,
-                                    mediaStats = mediaStats,
-                                    onEnsureStatsLoaded = viewModel::ensureStatsLoaded,
-                                    onRetryStats = viewModel::retryStats,
                                     onRankingClick = { ranking ->
                                         viewModel.openDiscoverSearch(
                                             rankingSearchFilters(
@@ -535,22 +480,10 @@ fun MediaDetailsScreen(
                                         )
                                     },
                                     onRelationClick = navigateToRelationDetails,
-                                    onCharacterClick = navigateToCharacterDetails,
-                                    onStaffClick = navigateToStaffDetails,
-                                    onVoiceActorClick = navigateToStaffDetails,
-                                    onStudioClick = onStudioClick,
                                     onRelatedSeeAllClick = {
                                         shouldKeepChromeOverlayForReturn = true
                                         hasObservedDetailsReEnter = false
                                         onRelatedSeeAllClick(
-                                            state.details.id,
-                                            state.details.getTitle(titleLanguage)
-                                        )
-                                    },
-                                    onRecommendationsSeeAllClick = {
-                                        shouldKeepChromeOverlayForReturn = true
-                                        hasObservedDetailsReEnter = false
-                                        onRecommendationsSeeAllClick(
                                             state.details.id,
                                             state.details.getTitle(titleLanguage)
                                         )
@@ -567,41 +500,7 @@ fun MediaDetailsScreen(
                                     },
                                     themesState = themesState,
                                     onRetryThemes = themesViewModel::retry,
-                                    onWriteReviewClick = {
-                                        onWriteReviewClick(
-                                            state.details.id,
-                                            state.details.getTitle(titleLanguage)
-                                        )
-                                    },
-                                    onReviewClick = { reviewId ->
-                                        shouldKeepChromeOverlayForReturn = true
-                                        hasObservedDetailsReEnter = false
-                                        onReviewClick(reviewId)
-                                    },
                                     onEditNotes = viewModel::openEditSheet,
-                                    discussions = discussions,
-                                    onDiscussionClick = { threadId, threadTitle ->
-                                        shouldKeepChromeOverlayForReturn = true
-                                        hasObservedDetailsReEnter = false
-                                        onDiscussionClick(threadId, threadTitle)
-                                    },
-                                    onViewAllDiscussions = {
-                                        shouldKeepChromeOverlayForReturn = true
-                                        hasObservedDetailsReEnter = false
-                                        onViewAllDiscussions(
-                                            state.details.id,
-                                            state.details.getTitle(titleLanguage)
-                                        )
-                                    },
-                                    onStartDiscussion = {
-                                        onStartDiscussion(
-                                            state.details.id,
-                                            state.details.getTitle(titleLanguage),
-                                            state.details.coverUrl
-                                        )
-                                    },
-                                    onRecommendMedia = viewModel::recommendMedia,
-                                    onUserClick = onUserClick,
                                     onStatusSelect = { status ->
                                         viewModel.saveMediaListEntry(
                                             status,
@@ -616,7 +515,6 @@ fun MediaDetailsScreen(
                                     },
                                     onEditEntry = viewModel::openEditSheet,
                                     onRemoveEntry = viewModel::deleteMediaListEntry,
-                                    onRateRecommendation = viewModel::rateRecommendation,
                                     sharedTransitionScope = sharedTransitionScope,
                                     animatedVisibilityScope = animatedVisibilityScope,
                                     titleLanguage = titleLanguage,
@@ -748,111 +646,16 @@ fun ErrorStateContent(message: String, onBackClick: () -> Unit) {
 }
 
 /**
- * Compact, read-only preview row for a discussion thread in the media-detail
- * Discussions section. Full thread actions live on the dedicated media-threads
- * screen (reached via "View all").
- */
-@Composable
-private fun DiscussionPreviewRow(
-    thread: ForumThread,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = thread.title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.weight(1f, fill = false)
-                ) {
-                    UserAvatar(
-                        url = thread.authorAvatarUrl,
-                        contentDescription = thread.authorName,
-                        size = 28.dp
-                    )
-                    Text(
-                        text = thread.authorName,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    DiscussionStat(
-                        icon = Icons.Outlined.ChatBubbleOutline,
-                        value = thread.replyCount
-                    )
-                    DiscussionStat(icon = Icons.Outlined.FavoriteBorder, value = thread.likeCount)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DiscussionStat(icon: ImageVector, value: Int) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(16.dp)
-        )
-        Text(
-            text = value.toString(),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-/**
  * Top-level grouping of the media-detail page. The header (cover/banner/title) and the
  * favorite/share row sit above the tab bar; everything else lives under one of these tabs so the
  * page reads as a few focused screens instead of one long scroll.
  */
 /**
- * Four sections, down from five: Characters and Staff are both "who made this", so they share the
- * Cast tab behind an inner switch. Four labels fit the width, which is what lets the strip stop
- * scrolling — Stats and Social used to sit off screen on arrival.
+ * Characters and Staff are both "who made this", so they share the Cast tab behind an inner switch.
  */
 enum class DetailsTab(@StringRes val titleRes: Int) {
     OVERVIEW(R.string.details_tab_overview),
-    CAST(R.string.details_tab_cast),
-    STATS(R.string.details_tab_stats),
-    SOCIAL(R.string.details_tab_social)
+    CAST(R.string.details_tab_cast)
 }
 
 /** The two halves of the Cast tab. */
@@ -864,8 +667,6 @@ enum class CastSection(@StringRes val titleRes: Int) {
 private fun detailsTabIcon(tab: DetailsTab): ImageVector = when (tab) {
     DetailsTab.OVERVIEW -> Icons.Outlined.Info
     DetailsTab.CAST -> Icons.Default.Group
-    DetailsTab.STATS -> Icons.Default.BarChart
-    DetailsTab.SOCIAL -> Icons.Default.Forum
 }
 
 private fun castSectionIcon(section: CastSection): ImageVector = when (section) {
@@ -899,8 +700,6 @@ fun DetailsPageContent(
     listState: LazyListState,
     selectedTab: DetailsTab,
     onTabSelected: (DetailsTab) -> Unit,
-    following: List<MediaFollowingEntry>,
-    hasMoreFollowing: Boolean,
     cast: PagedPeople<com.anisync.android.domain.CharacterInfo>,
     staff: PagedPeople<com.anisync.android.domain.StaffInfo>,
     onEnsureCastLoaded: () -> Unit,
@@ -909,36 +708,23 @@ fun DetailsPageContent(
     onEnsureStaffLoaded: () -> Unit,
     onLoadMoreStaff: () -> Unit,
     onStaffSortChange: (List<com.anisync.android.type.StaffSort>?) -> Unit,
-    mediaStats: MediaStatsState,
-    onEnsureStatsLoaded: () -> Unit,
-    onRetryStats: () -> Unit,
     onRankingClick: (com.anisync.android.domain.MediaRanking) -> Unit,
     onGenreClick: (String) -> Unit,
     onTagClick: (com.anisync.android.domain.Tag) -> Unit,
     onRelationClick: (Int) -> Unit,
-    onCharacterClick: (Int) -> Unit,
-    onStaffClick: (Int) -> Unit,
-    onVoiceActorClick: (Int) -> Unit,
-    onStudioClick: (Int) -> Unit,
+    onCharacterClick: (Int) -> Unit = {},
+    onStaffClick: (Int) -> Unit = {},
+    onVoiceActorClick: (Int) -> Unit = {},
+    onStudioClick: (Int) -> Unit = {},
     onRelatedSeeAllClick: () -> Unit,
-    onRecommendationsSeeAllClick: () -> Unit,
     onThemesSeeAllClick: () -> Unit,
     themesState: MediaThemesState,
     onRetryThemes: () -> Unit,
-    onWriteReviewClick: () -> Unit,
-    onReviewClick: (Int) -> Unit,
     onEditNotes: () -> Unit,
-    discussions: List<ForumThread>,
-    onDiscussionClick: (Int, String) -> Unit,
-    onViewAllDiscussions: () -> Unit,
-    onStartDiscussion: () -> Unit,
-    onRecommendMedia: (Int) -> Unit,
-    onUserClick: (String) -> Unit,
     onStatusSelect: (LibraryStatus) -> Unit,
     onProgressChange: (Int) -> Unit,
     onEditEntry: () -> Unit,
     onRemoveEntry: () -> Unit,
-    onRateRecommendation: (Int, com.anisync.android.type.RecommendationRating) -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
     titleLanguage: TitleLanguage,
@@ -963,14 +749,6 @@ fun DetailsPageContent(
             .map { relation -> relation.copy(titleUserPreferred = relation.getTitle(titleLanguage)) }
     }
 
-    val displayRecommendations = remember(details.recommendations) {
-        details.recommendations.filter { it.rating > 0 }.distinctBy { it.id }.take(10)
-    }
-
-    val displayReviews = remember(details.reviews) {
-        details.reviews.distinctBy { it.id }.take(5)
-    }
-
     // ImageViewerDialog state for cover/banner image; it opens on whichever was tapped.
     var showImageViewer by rememberSaveable { mutableStateOf(false) }
     var viewerIndex by rememberSaveable { mutableIntStateOf(0) }
@@ -978,24 +756,17 @@ fun DetailsPageContent(
         listOfNotNull(details.coverUrl, details.bannerUrl)
     }
 
-    var showAllReviewsSheet by remember { mutableStateOf(false) }
-    var showAllFollowingSheet by remember { mutableStateOf(false) }
     var openThemeSheet by remember { mutableStateOf<com.anisync.android.domain.MediaTheme?>(null) }
-    var showRecommendSheet by remember { mutableStateOf(false) }
 
     val displayStaff = remember(details.staff) {
         details.staff.distinctBy { it.id }.take(10)
     }
 
-    // Only surface tabs that have something to show. Overview is always present; Stats loads
-    // lazily (so its emptiness isn't knowable up front) and Social always offers the "start
-    // discussion" affordance, so none of those ever collapses.
+    // Only surface tabs that have something to show. Overview is always present.
     val availableTabs = remember(displayCharacters, displayStaff) {
         buildList {
             add(DetailsTab.OVERVIEW)
             if (displayCharacters.isNotEmpty() || displayStaff.isNotEmpty()) add(DetailsTab.CAST)
-            add(DetailsTab.STATS)
-            add(DetailsTab.SOCIAL)
         }
     }
 
@@ -1052,7 +823,6 @@ fun DetailsPageContent(
                 CastSection.CHARACTERS -> onEnsureCastLoaded()
                 CastSection.STAFF -> onEnsureStaffLoaded()
             }
-            DetailsTab.STATS -> onEnsureStatsLoaded()
             else -> {}
         }
     }
@@ -1279,66 +1049,6 @@ fun DetailsPageContent(
                         }
                     }
 
-                    // Recommendations
-                    item(key = "recommendations") {
-                        val canRecommend = details.isRecommendationBlocked != true
-                        val hasMoreRecommendations = remember(details.recommendations) {
-                            details.recommendations.distinctBy { it.id }.size > 10
-                        }
-                        if (displayRecommendations.isNotEmpty() || canRecommend) {
-                            Column {
-                                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_extra_large)))
-                                SectionHeader(
-                                    title = stringResource(R.string.section_recommendations),
-                                    level = HeaderLevel.Section,
-                                    onActionClick = if (hasMoreRecommendations) onRecommendationsSeeAllClick else null,
-                                    trailingContent = if (canRecommend) {
-                                        {
-                                            IconButton(onClick = { showRecommendSheet = true }) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Add,
-                                                    contentDescription = stringResource(R.string.cd_add_recommendation),
-                                                    tint = MaterialTheme.colorScheme.primary
-                                                )
-                                            }
-                                        }
-                                    } else null
-                                )
-                                if (displayRecommendations.isNotEmpty()) {
-                                    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_medium)))
-                                    LazyRow(
-                                        contentPadding = PaddingValues(horizontal = dimensionResource(R.dimen.spacing_large)),
-                                        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_normal)),
-                                        modifier = Modifier.height(240.dp)
-                                    ) {
-                                        items(
-                                            items = displayRecommendations,
-                                            key = { "rec_${it.id}" }
-                                        ) { recommendation ->
-                                            RecommendationItem(
-                                                recommendation = recommendation,
-                                                onClick = { onRelationClick(recommendation.id) },
-                                                onRate = { isUpvote ->
-                                                    val rating = when {
-                                                        isUpvote && recommendation.userRating == "RATE_UP" ->
-                                                            com.anisync.android.type.RecommendationRating.NO_RATING
-                                                        isUpvote ->
-                                                            com.anisync.android.type.RecommendationRating.RATE_UP
-                                                        !isUpvote && recommendation.userRating == "RATE_DOWN" ->
-                                                            com.anisync.android.type.RecommendationRating.NO_RATING
-                                                        else ->
-                                                            com.anisync.android.type.RecommendationRating.RATE_DOWN
-                                                    }
-                                                    onRateRecommendation(recommendation.id, rating)
-                                                },
-                                                modifier = Modifier.animateItem()
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
 
                 DetailsTab.CAST -> {
@@ -1406,151 +1116,6 @@ fun DetailsPageContent(
                             },
                             sharedTransitionScope = sharedTransitionScope,
                             animatedVisibilityScope = animatedVisibilityScope
-                        )
-                    }
-                }
-
-                DetailsTab.STATS -> {
-                    mediaStatsTabContent(
-                        state = mediaStats,
-                        meanScore = details.meanScore,
-                        isManga = details.type == com.anisync.android.type.MediaType.MANGA,
-                        onRetry = onRetryStats,
-                        onRankingClick = onRankingClick
-                    )
-                }
-
-                DetailsTab.SOCIAL -> {
-                    // Following — list of followed users' status for this media
-                    if (following.isNotEmpty()) {
-                        item(key = "following") {
-                            Column {
-                                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_extra_large)))
-                                SectionHeader(
-                                    title = stringResource(R.string.section_following),
-                                    level = HeaderLevel.Section,
-                                    onActionClick = if (hasMoreFollowing) { { showAllFollowingSheet = true } } else null
-                                )
-                                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_medium)))
-                                // Fixed row height so every page is identical — the strip never
-                                // changes height as it scrolls, regardless of which rows carry a note.
-                                val followingRowHeight = 104.dp
-                                LazyRow(
-                                    contentPadding = PaddingValues(horizontal = dimensionResource(R.dimen.spacing_large)),
-                                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_medium))
-                                ) {
-                                    // Two stacked rows per horizontal page — the row design carries more
-                                    // (chips + note) than the old card, and pairing them keeps the strip
-                                    // compact while the next page peeks in.
-                                    items(
-                                        items = following.chunked(2),
-                                        key = { pair -> "follow_${pair.first().userId}" }
-                                    ) { pair ->
-                                        Column(
-                                            modifier = Modifier
-                                                .fillParentMaxWidth(0.88f)
-                                                .animateItem(),
-                                            verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
-                                        ) {
-                                            pair.forEach { entry ->
-                                                FollowingRow(
-                                                    entry = entry,
-                                                    mediaType = details.type,
-                                                    onClick = { onUserClick(entry.userName) },
-                                                    modifier = Modifier.height(followingRowHeight)
-                                                )
-                                            }
-                                            // Pad a lone trailing entry so its page matches the others.
-                                            if (pair.size == 1) {
-                                                Spacer(modifier = Modifier.height(followingRowHeight))
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Reviews
-                    val canReview = details.isReviewBlocked != true
-                    if (displayReviews.isNotEmpty() || canReview) {
-                        item(key = "reviews_header") {
-                            Column {
-                                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_extra_large)))
-                                SectionHeader(
-                                    title = stringResource(R.string.section_reviews),
-                                    level = HeaderLevel.Section,
-                                    onActionClick = if (displayReviews.size >= 5) { { showAllReviewsSheet = true } } else null,
-                                    trailingContent = if (canReview) {
-                                        {
-                                            IconButton(onClick = onWriteReviewClick) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Edit,
-                                                    contentDescription = stringResource(R.string.cd_write_review),
-                                                    tint = MaterialTheme.colorScheme.primary
-                                                )
-                                            }
-                                        }
-                                    } else null
-                                )
-                                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_medium)))
-                            }
-                        }
-                        items(
-                            items = displayReviews,
-                            key = { "review_${it.id}" }
-                        ) { review ->
-                            ReviewCard(
-                                review = review,
-                                onClick = { onReviewClick(review.id) },
-                                onUserClick = onUserClick,
-                                showBanner = false,
-                                modifier = Modifier
-                                    .padding(horizontal = dimensionResource(R.dimen.spacing_large))
-                                    .padding(bottom = dimensionResource(R.dimen.spacing_normal))
-                                    .animateItem()
-                            )
-                        }
-                    }
-
-                    // Discussions — forum threads with this media as a mediaCategory
-                    item(key = "discussions_header") {
-                        Column {
-                            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_extra_large)))
-                            SectionHeader(
-                                title = stringResource(R.string.forum_discussions_title),
-                                level = HeaderLevel.Section,
-                                onActionClick = if (discussions.isNotEmpty()) onViewAllDiscussions else null,
-                                trailingContent = {
-                                    IconButton(onClick = onStartDiscussion) {
-                                        Icon(
-                                            imageVector = Icons.Default.Edit,
-                                            contentDescription = stringResource(R.string.forum_discussions_start),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
-                            )
-                            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_medium)))
-                            if (discussions.isEmpty()) {
-                                Text(
-                                    text = stringResource(R.string.forum_discussions_empty),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.spacing_large))
-                                )
-                                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_medium)))
-                            }
-                        }
-                    }
-                    items(items = discussions, key = { "discussion_${it.id}" }) { thread ->
-                        DiscussionPreviewRow(
-                            thread = thread,
-                            onClick = { onDiscussionClick(thread.id, thread.title) },
-                            modifier = Modifier
-                                .padding(horizontal = dimensionResource(R.dimen.spacing_large))
-                                .padding(bottom = dimensionResource(R.dimen.spacing_normal))
-                                .animateItem()
                         )
                     }
                 }
@@ -1628,47 +1193,12 @@ fun DetailsPageContent(
         )
     }
 
-    if (showAllReviewsSheet) {
-        ReviewsListSheet(
-            mediaId = details.id,
-            onDismiss = { showAllReviewsSheet = false },
-            onReviewClick = {
-                showAllReviewsSheet = false
-                onReviewClick(it.id)
-            },
-            onUserClick = onUserClick
-        )
-    }
-
-    if (showAllFollowingSheet) {
-        FollowingListSheet(
-            mediaId = details.id,
-            mediaType = details.type,
-            onDismiss = { showAllFollowingSheet = false },
-            onUserClick = { username ->
-                showAllFollowingSheet = false
-                onUserClick(username)
-            }
-        )
-    }
-
     if (showImageViewer) {
         ImageViewerDialog(
             imageUrls = viewerImages,
             initialIndex = viewerIndex,
             onDismiss = { showImageViewer = false }
         )
-    }
-
-    if (showRecommendSheet) {
-        details.type?.let { mediaType ->
-            RecommendMediaSheet(
-                mediaType = mediaType,
-                sourceMediaId = details.id,
-                onRecommend = onRecommendMedia,
-                onDismiss = { showRecommendSheet = false }
-            )
-        }
     }
 }
 

@@ -104,7 +104,6 @@ import com.anisync.android.presentation.discover.components.titleRes
 import com.anisync.android.presentation.discover.components.DiscoverShimmer
 import com.anisync.android.presentation.discover.components.HorizontalMediaList
 import com.anisync.android.presentation.util.TransitionKeys
-import com.anisync.android.presentation.discover.components.RecentReviewsRow
 import com.anisync.android.presentation.navigation.TwoPaneListDetailScaffold
 import com.anisync.android.presentation.util.LocalAdaptiveInfo
 import com.anisync.android.presentation.util.LocalMainNavBarInset
@@ -132,13 +131,7 @@ fun DiscoverScreen(
     // reach MediaDetails.sourceScreen so the return morph targets the exact card tapped (the
     // same media can sit in several Discover sections at once).
     onMediaClick: (mediaId: Int, sourceSection: String) -> Unit,
-    onCharacterClick: (Int) -> Unit = {},
-    onStaffClick: (Int) -> Unit = {},
-    onStudioClick: (Int) -> Unit = {},
-    onUserClick: (String) -> Unit = {},
     onSectionSeeAllClick: (title: String, sectionType: String, mediaType: MediaType) -> Unit,
-    onReviewClick: (Int) -> Unit = {},
-    onRecentReviewsSeeAllClick: (MediaType) -> Unit = {},
     onNavigateToCalendar: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
     // App nav controller, threaded only so the wide (expanded) search overlay can host its results in a
@@ -360,8 +353,6 @@ fun DiscoverScreen(
             onRefresh = onRefresh,
             onMediaClick = navigateToMediaDetails,
             onSectionSeeAllClick = onSectionSeeAllClick,
-            onReviewClick = onReviewClick,
-            onRecentReviewsSeeAllClick = onRecentReviewsSeeAllClick,
             onOpenCalendar = onNavigateToCalendar,
             onAddToPlanning = { viewModel.onAction(DiscoverAction.AddToPlanning(it)) },
             onRetrySection = { viewModel.onAction(DiscoverAction.RetrySection(it)) },
@@ -393,34 +384,12 @@ fun DiscoverScreen(
     val searchError = uiState.searchError
     val searchPaging = uiState.searchPaging
 
-    val onCharacterItemClick: (Int) -> Unit = remember(onCharacterClick, searchBarState, coroutineScope, keyboardController) {
-        { id ->
-            keyboardController?.hide()
-            coroutineScope.launch { searchBarState.animateToCollapsed() }
-            onCharacterClick(id)
-        }
-    }
-    val onStaffItemClick: (Int) -> Unit = remember(onStaffClick, searchBarState, coroutineScope, keyboardController) {
-        { id ->
-            keyboardController?.hide()
-            coroutineScope.launch { searchBarState.animateToCollapsed() }
-            onStaffClick(id)
-        }
-    }
-    val onStudioItemClick: (Int) -> Unit = remember(onStudioClick, searchBarState, coroutineScope, keyboardController) {
-        { id ->
-            keyboardController?.hide()
-            coroutineScope.launch { searchBarState.animateToCollapsed() }
-            onStudioClick(id)
-        }
-    }
-    val onUserItemClick: (String) -> Unit = remember(onUserClick, searchBarState, coroutineScope, keyboardController) {
-        { name ->
-            keyboardController?.hide()
-            coroutineScope.launch { searchBarState.animateToCollapsed() }
-            onUserClick(name)
-        }
-    }
+    // People and user results have no screen to open any more; their search goes away with the
+    // move to Yamtrack, so the taps are inert until then.
+    val onCharacterItemClick: (Int) -> Unit = {}
+    val onStaffItemClick: (Int) -> Unit = {}
+    val onStudioItemClick: (Int) -> Unit = {}
+    val onUserItemClick: (String) -> Unit = {}
 
     val taxonomy by viewModel.taxonomy.collectAsStateWithLifecycle()
     val showAdultContent by viewModel.showAdultContent.collectAsStateWithLifecycle()
@@ -647,8 +616,6 @@ private fun DiscoverContent(
     onRefresh: () -> Unit,
     onMediaClick: (mediaId: Int, sourceSection: String) -> Unit,
     onSectionSeeAllClick: (title: String, sectionType: String, mediaType: MediaType) -> Unit,
-    onReviewClick: (Int) -> Unit,
-    onRecentReviewsSeeAllClick: (MediaType) -> Unit,
     onOpenCalendar: () -> Unit,
     onAddToPlanning: (Int) -> Unit,
     onRetrySection: (DiscoverSection) -> Unit,
@@ -709,8 +676,6 @@ private fun DiscoverContent(
                     titleLanguage = titleLanguage,
                     onMediaClick = onMediaClick,
                     onSectionSeeAllClick = onSectionSeeAllClick,
-                    onReviewClick = onReviewClick,
-                    onRecentReviewsSeeAllClick = onRecentReviewsSeeAllClick,
                     onOpenCalendar = onOpenCalendar,
                     onAddToPlanning = onAddToPlanning,
                     onRetrySection = onRetrySection,
@@ -736,8 +701,6 @@ private fun LazyListScope.discoverSection(
     titleLanguage: com.anisync.android.data.TitleLanguage,
     onMediaClick: (mediaId: Int, sourceSection: String) -> Unit,
     onSectionSeeAllClick: (title: String, sectionType: String, mediaType: MediaType) -> Unit,
-    onReviewClick: (Int) -> Unit,
-    onRecentReviewsSeeAllClick: (MediaType) -> Unit,
     onOpenCalendar: () -> Unit,
     onAddToPlanning: (Int) -> Unit,
     onRetrySection: (DiscoverSection) -> Unit,
@@ -753,7 +716,6 @@ private fun LazyListScope.discoverSection(
         DiscoverSection.POPULAR -> feeds.popular.items.isNotEmpty()
         DiscoverSection.NOT_YET_RELEASED -> feeds.notYetReleased.items.isNotEmpty()
         DiscoverSection.NEWLY_ADDED -> feeds.newlyAdded.items.isNotEmpty()
-        DiscoverSection.REVIEWS -> feeds.reviews.items.isNotEmpty()
     }
     // A rail that failed keeps its header and says so; one that is simply empty says nothing,
     // because an empty schedule is not a problem to report. A rail still waiting on a retry keeps
@@ -776,7 +738,6 @@ private fun LazyListScope.discoverSection(
             onActionClick = {
                 when (section) {
                     DiscoverSection.AIRING_TODAY -> onOpenCalendar()
-                    DiscoverSection.REVIEWS -> onRecentReviewsSeeAllClick(mediaType)
                     else -> onSectionSeeAllClick(title, section.gridSectionType(), mediaType)
                 }
             }
@@ -892,15 +853,6 @@ private fun LazyListScope.discoverSection(
                 animatedVisibilityScope = animatedVisibilityScope
             )
         }
-
-        DiscoverSection.REVIEWS -> item(key = "reviews_rail", contentType = "review_row") {
-            RecentReviewsRow(
-                reviews = feeds.reviews.items.take(10),
-                onReviewClick = onReviewClick,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedVisibilityScope = animatedVisibilityScope
-            )
-        }
     }
 }
 
@@ -910,7 +862,6 @@ private fun DiscoverSection.skeletonCardWidth(): Dp = when (this) {
     DiscoverSection.AIRING_TODAY, DiscoverSection.RELEASING_NOW -> 132.dp
     DiscoverSection.POPULAR -> 171.dp
     DiscoverSection.NOT_YET_RELEASED, DiscoverSection.NEWLY_ADDED -> 148.dp
-    DiscoverSection.REVIEWS -> 310.dp
 }
 
 /** Which paginated grid a rail's See all opens. */
@@ -920,9 +871,8 @@ private fun DiscoverSection.gridSectionType(): String = when (this) {
     DiscoverSection.NOT_YET_RELEASED -> "not_yet_released"
     DiscoverSection.NEWLY_ADDED -> "newly_added"
     DiscoverSection.RELEASING_NOW -> "releasing"
-    // Neither of these reaches the grid: the timeline opens the calendar and reviews have a
-    // screen of their own.
-    DiscoverSection.AIRING_TODAY, DiscoverSection.REVIEWS -> "trending"
+    // The airing timeline opens the calendar instead of a grid.
+    DiscoverSection.AIRING_TODAY -> "trending"
 }
 
 @Composable
@@ -1154,11 +1104,10 @@ private fun SearchResultsContent(
                                 groupedResults = groupedResults,
                                 titleLanguage = titleLanguage,
                                 onShowAll = onCategoryChange,
-                                // Media/character/staff/studio open in the detail pane; users open full screen.
                                 onMediaClick = { onSelect(SearchTarget.Media(it)) },
-                                onCharacterClick = { onSelect(SearchTarget.Character(it)) },
-                                onStaffClick = { onSelect(SearchTarget.Staff(it)) },
-                                onStudioClick = { onSelect(SearchTarget.Studio(it)) },
+                                onCharacterClick = onCharacterClick,
+                                onStaffClick = onStaffClick,
+                                onStudioClick = onStudioClick,
                                 onUserClick = onUserClick,
                                 selectedTarget = selectedTarget,
                                 hasMoreResults = searchPaging.hasNextFor(activeCategory),

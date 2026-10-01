@@ -74,65 +74,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="anisync"
-                    android:host="forum" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="anisync"
-                    android:host="user" />
-                <data
-                    android:scheme="anisync"
-                    android:host="review" />
-                <data
-                    android:scheme="anisync"
-                    android:host="activity" />
-                <data
-                    android:scheme="anisync"
-                    android:host="notifications" />
-                <data
-                    android:scheme="anisync"
                     android:host="discover" />
-            </intent-filter>
-            <!-- AniList URL deep links for sharing -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="anilist.co"
-                    android:pathPrefix="/anime/" />
-                <data
-                    android:scheme="https"
-                    android:host="anilist.co"
-                    android:pathPrefix="/manga/" />
-                <data
-                    android:scheme="https"
-                    android:host="anilist.co"
-                    android:pathPrefix="/forum/thread/" />
-                <data
-                    android:scheme="https"
-                    android:host="anilist.co"
-                    android:pathPrefix="/character/" />
-                <data
-                    android:scheme="https"
-                    android:host="anilist.co"
-                    android:pathPrefix="/staff/" />
-                <data
-                    android:scheme="https"
-                    android:host="anilist.co"
-                    android:pathPrefix="/user/" />
-                <data
-                    android:scheme="https"
-                    android:host="anilist.co"
-                    android:pathPrefix="/review/" />
-                <data
-                    android:scheme="https"
-                    android:host="anilist.co"
-                    android:pathPrefix="/activity/" />
             </intent-filter>
         </activity>
 

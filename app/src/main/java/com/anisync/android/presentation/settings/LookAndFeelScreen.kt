@@ -988,7 +988,5 @@ private fun startScreenLabel(screen: StartScreen): String = stringResource(
         StartScreen.LAST_VISITED -> R.string.start_screen_last_visited
         StartScreen.LIBRARY -> R.string.nav_library
         StartScreen.DISCOVER -> R.string.nav_discover
-        StartScreen.FEED -> R.string.nav_feed
-        StartScreen.FORUM -> R.string.nav_forum
     }
 )

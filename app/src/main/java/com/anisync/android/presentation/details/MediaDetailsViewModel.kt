@@ -10,14 +10,11 @@ import com.anisync.android.data.AppSettings
 import com.anisync.android.data.local.dao.LibraryDao
 import com.anisync.android.data.local.toDomain
 import com.anisync.android.domain.DetailsRepository
-import com.anisync.android.domain.ForumRepository
-import com.anisync.android.domain.ForumThread
 import com.anisync.android.domain.GetMediaDetailsUseCase
 import com.anisync.android.domain.LibraryEntry
 import com.anisync.android.domain.LibraryRepository
 import com.anisync.android.domain.LibraryStatus
 import com.anisync.android.domain.MediaDetails
-import com.anisync.android.domain.MediaFollowingEntry
 import com.anisync.android.domain.Result
 import com.anisync.android.domain.ScoreFormat
 import com.anisync.android.util.ShareUtils
@@ -47,7 +44,6 @@ class MediaDetailsViewModel @Inject constructor(
     private val accountStore: com.anisync.android.data.account.AccountStore,
     private val appSettings: AppSettings,
     private val toastManager: com.anisync.android.presentation.components.alert.ToastManager,
-    private val forumRepository: ForumRepository,
     private val discoverSearchLauncher: com.anisync.android.domain.DiscoverSearchLauncher,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -67,19 +63,6 @@ class MediaDetailsViewModel @Inject constructor(
 
     private val _draftEntry = MutableStateFlow<LibraryEntry?>(null)
     val draftEntry: StateFlow<LibraryEntry?> = _draftEntry.asStateFlow()
-
-    private val _following = MutableStateFlow<List<MediaFollowingEntry>>(emptyList())
-    val following: StateFlow<List<MediaFollowingEntry>> = _following.asStateFlow()
-
-    private val _hasMoreFollowing = MutableStateFlow(false)
-    val hasMoreFollowing: StateFlow<Boolean> = _hasMoreFollowing.asStateFlow()
-
-    /** Forum threads that have this media as a `mediaCategory` (Discussions section). */
-    private val _discussions = MutableStateFlow<List<ForumThread>>(emptyList())
-    val discussions: StateFlow<List<ForumThread>> = _discussions.asStateFlow()
-
-    private val _hasMoreDiscussions = MutableStateFlow(false)
-    val hasMoreDiscussions: StateFlow<Boolean> = _hasMoreDiscussions.asStateFlow()
 
     // ---- Full Cast / Staff paging for the See-all grids (#83) ----
     // GetMediaDetails only carries page 1 (perPage 25) of characters/staff for the
@@ -102,12 +85,6 @@ class MediaDetailsViewModel @Inject constructor(
     private var staffApiSort: List<com.anisync.android.type.StaffSort>? =
         listOf(com.anisync.android.type.StaffSort.RELEVANCE, com.anisync.android.type.StaffSort.ID)
     private var staffGeneration = 0
-
-    // ---- Community stats (Stats tab) ----
-    // Lazily fetched the first time the tab is opened; kept for the screen's lifetime.
-    private val _stats = MutableStateFlow(MediaStatsState())
-    val stats: StateFlow<MediaStatsState> = _stats.asStateFlow()
-    private var statsLoading = false
 
     val userScoreFormat: StateFlow<ScoreFormat> = appSettings.userScoreFormat
     
@@ -173,8 +150,6 @@ class MediaDetailsViewModel @Inject constructor(
         // This is why a revisited page picks up a newly-published airing schedule, score, or cover
         // on its own — no manual pull-to-refresh required. PTR still forces [refresh].
         refreshIfStale()
-        loadFollowingPreview()
-        loadDiscussionsPreview()
     }
 
     /**
@@ -200,77 +175,10 @@ class MediaDetailsViewModel @Inject constructor(
     }
 
     /**
-     * Loads a small preview of forum threads tagged with this media. Mirrors
-     * [loadFollowingPreview]: a separate StateFlow, silent on failure so the
-     * section just stays hidden. Reuses the rate-limit-safe [ForumRepository.searchThreads].
-     */
-    private fun loadDiscussionsPreview(allowCached: Boolean = true) {
-        // Speculative: the section hides itself on failure, so it must not spend budget the
-        // details screen itself is about to need.
-        viewModelScope.launch {
-            val result = withRequestPriority(RequestPriority.Prefetch) {
-                forumRepository.searchThreads(
-                    mediaCategoryId = mediaId,
-                    sort = com.anisync.android.domain.ThreadSortOption.RECENTLY_REPLIED,
-                    page = 1,
-                    allowCached = allowCached
-                )
-            }
-            when (result) {
-                is Result.Success -> {
-                    _discussions.value = result.data.items.take(DISCUSSIONS_PREVIEW_LIMIT)
-                    _hasMoreDiscussions.value =
-                        result.data.hasNextPage || result.data.items.size > DISCUSSIONS_PREVIEW_LIMIT
-                }
-
-                is Result.Error -> {
-                    // Deliberately silent. Nobody asked for this preview, it hides itself when
-                    // empty, and an error banner for a section the user did not open would be
-                    // louder than the thing it is reporting.
-                }
-            }
-        }
-    }
-
-    private fun loadFollowingPreview(allowCached: Boolean = true) {
-        viewModelScope.launch {
-            val result = withRequestPriority(RequestPriority.Prefetch) {
-                detailsRepository.getMediaFollowing(
-                    mediaId = mediaId,
-                    page = 1,
-                    perPage = FOLLOWING_PREVIEW_LIMIT,
-                    allowCached = allowCached
-                )
-            }
-            when (result) {
-                is Result.Success -> {
-                    val (entries, hasNext) = result.data
-                    _following.value = entries
-                    _hasMoreFollowing.value = hasNext
-                }
-
-                is Result.Error -> {
-                    // Deliberately silent. Nobody asked for this preview, it hides itself when
-                    // empty, and an error banner for a section the user did not open would be
-                    // louder than the thing it is reporting.
-                }
-            }
-        }
-    }
-
-    /**
-     * Explicit user-driven refresh (pull-to-refresh) — always hits the network.
-     * Besides the details themselves, revalidates the lazily-fetched tab data the
-     * screen is already holding: community stats (kept for the screen's lifetime
-     * otherwise) and the Social previews (loaded once on entry). All of those are
-     * stale-while-revalidate — current data stays on screen until replaced.
+     * Explicit user-driven refresh (pull-to-refresh) — always hits the network. Current data stays
+     * on screen until replaced.
      */
     fun refresh() {
-        if (_stats.value.initialized && !statsLoading) loadStats()
-        // Pull-to-refresh is the user asking for current data, so the previews skip the cache
-        // here even though entering the screen accepts a cached answer.
-        loadFollowingPreview(allowCached = false)
-        loadDiscussionsPreview(allowCached = false)
         viewModelScope.launch {
             _isRefreshing.value = true
             try {
@@ -364,49 +272,6 @@ class MediaDetailsViewModel @Inject constructor(
         }
     }
 
-    // Coalesces rating taps so dragging through values sends one rate + one refresh
-    // instead of one pair per intermediate value. Ratings are absolute sets, so no
-    // baseline seeding is needed (a re-submit of the same value is a no-op).
-    private val reviewRatingCoalescer =
-        com.anisync.android.presentation.util.MutationCoalescer<Int, com.anisync.android.type.ReviewRating>(viewModelScope) { reviewId, rating ->
-            when (val result = detailsRepository.rateReview(reviewId, rating)) {
-                is Result.Success -> { refresh(); true }
-                is Result.Error -> { toastManager.showResultError(result); false }
-            }
-        }
-    private val recommendationRatingCoalescer =
-        com.anisync.android.presentation.util.MutationCoalescer<Int, com.anisync.android.type.RecommendationRating>(viewModelScope) { recId, rating ->
-            when (val result = detailsRepository.rateRecommendation(mediaId, recId, rating)) {
-                is Result.Success -> { refresh(); true }
-                is Result.Error -> { toastManager.showResultError(result); false }
-            }
-        }
-
-    /**
-     * Toggle favourite status for the current media.
-     */
-    fun toggleFavourite() {
-        // Favourite is a toggle endpoint and eventually-consistent on AniList, so
-        // stacking toggles risks flip-flopping. Drop taps while one is in flight —
-        // same in-flight guard the feed like button uses.
-        if (_isSaving.value) return
-        viewModelScope.launch {
-            val details = (uiState.value as? DetailsUiState.Success)?.details ?: return@launch
-            val mediaType = details.type ?: return@launch
-
-            _isSaving.value = true
-
-            when (val result = detailsRepository.toggleFavourite(mediaId, mediaType)) {
-                is Result.Success -> {
-                    // Cache updated via refresh, Flow emits automatically
-                }
-                is Result.Error -> toastManager.showResultError(result)
-            }
-
-            _isSaving.value = false
-        }
-    }
-
     /**
      * Share the current media via Android's share sheet.
      * Generates an AniList URL (e.g., https://anilist.co/anime/16498) for the media.
@@ -424,17 +289,7 @@ class MediaDetailsViewModel @Inject constructor(
         )
     }
 
-    /**
-     * Rate a review.
-     */
-    fun rateReview(reviewId: Int, rating: com.anisync.android.type.ReviewRating) {
-        reviewRatingCoalescer.submit(reviewId, rating)
-    }
-
     companion object {
-        private const val FOLLOWING_PREVIEW_LIMIT = 10
-        private const val DISCUSSIONS_PREVIEW_LIMIT = 5
-
         // AniList caps nested character/staff connections at 25 per page.
         private const val PEOPLE_PAGE_SIZE = 25
 
@@ -443,34 +298,6 @@ class MediaDetailsViewModel @Inject constructor(
 
         /** Asking on the exact instant the window turns over tends to land just before it. */
         private const val RETRY_GRACE_MS = 1_000L
-    }
-
-    fun rateRecommendation(recommendationId: Int, rating: com.anisync.android.type.RecommendationRating) {
-        recommendationRatingCoalescer.submit(recommendationId, rating)
-    }
-
-    /**
-     * Recommend a media as similar to the current one. Upvotes (creates) the
-     * recommendation pairing this media -> [mediaRecommendationId], then refreshes
-     * details so the new entry appears in the Recommendations section.
-     */
-    fun recommendMedia(mediaRecommendationId: Int) {
-        viewModelScope.launch {
-            when (val result = detailsRepository.rateRecommendation(
-                mediaId = mediaId,
-                recommendationId = mediaRecommendationId,
-                rating = com.anisync.android.type.RecommendationRating.RATE_UP
-            )) {
-                is Result.Success -> {
-                    refresh()
-                    toastManager.showToast(
-                        type = com.anisync.android.presentation.components.alert.ToastType.SUCCESS,
-                        message = "Recommendation added"
-                    )
-                }
-                is Result.Error -> toastManager.showResultError(result)
-            }
-        }
     }
 
     /** Kick off the first page of the full cast list when the See-all grid opens. */
@@ -534,36 +361,6 @@ class MediaDetailsViewModel @Inject constructor(
      */
     fun openDiscoverSearch(filters: com.anisync.android.domain.SearchFilters) {
         discoverSearchLauncher.launch(filters)
-    }
-
-    /** Fetch the community stats the first time the Stats tab is opened. */
-    fun ensureStatsLoaded() {
-        if (statsLoading || _stats.value.initialized) return
-        loadStats()
-    }
-
-    /** Explicit retry from the Stats tab error state. */
-    fun retryStats() {
-        if (statsLoading) return
-        loadStats()
-    }
-
-    private fun loadStats() {
-        statsLoading = true
-        _stats.update { it.copy(isLoading = true, isError = false) }
-        viewModelScope.launch {
-            when (val result = detailsRepository.getMediaStats(mediaId)) {
-                is Result.Success -> _stats.value = MediaStatsState(
-                    stats = result.data,
-                    initialized = true
-                )
-
-                is Result.Error -> _stats.update {
-                    it.copy(isLoading = false, isError = true)
-                }
-            }
-            statsLoading = false
-        }
     }
 
     /** Kick off the first page of the full staff list when the See-all grid opens. */
@@ -631,17 +428,5 @@ data class PagedPeople<T>(
     val items: List<T> = emptyList(),
     val hasNextPage: Boolean = true,
     val isLoading: Boolean = false,
-    val initialized: Boolean = false
-)
-
-/**
- * Lazy-loaded community statistics for the Stats tab. [initialized] flips true
- * once a fetch succeeds (the data is then kept for the screen's lifetime);
- * [isError] drives the tab's retry state after a failed fetch.
- */
-data class MediaStatsState(
-    val stats: com.anisync.android.domain.MediaStats? = null,
-    val isLoading: Boolean = false,
-    val isError: Boolean = false,
     val initialized: Boolean = false
 )

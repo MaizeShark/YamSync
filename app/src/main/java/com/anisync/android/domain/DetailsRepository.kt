@@ -1,6 +1,5 @@
 package com.anisync.android.domain
 
-import com.anisync.android.type.MediaType
 import kotlinx.coroutines.flow.Flow
 
 interface DetailsRepository {
@@ -40,37 +39,6 @@ interface DetailsRepository {
     suspend fun deleteMediaListEntry(entryId: Int, mediaId: Int): Result<Unit>
 
     /**
-     * Toggle favorite status for a media.
-     */
-    suspend fun toggleFavourite(mediaId: Int, mediaType: MediaType): Result<Boolean>
-
-    suspend fun toggleCharacterFavourite(characterId: Int, newState: Boolean): Result<Unit>
-
-    suspend fun toggleStaffFavourite(staffId: Int, newState: Boolean): Result<Unit>
-
-    suspend fun toggleStudioFavourite(studioId: Int, newState: Boolean): Result<Unit>
-
-    suspend fun getCharacterDetails(id: Int, page: Int = 1): Result<CharacterDetails>
-
-    suspend fun getStaffDetails(
-        id: Int,
-        page: Int = 1,
-        staffMediaPage: Int = 1
-    ): Result<StaffDetails>
-
-    /**
-     * Page 2+ of the voiced-characters grid. [getStaffDetails] re-fetches the whole Staff
-     * object including a staffMedia page the caller discards, so paging a prolific VA goes
-     * through this instead (#125).
-     */
-    suspend fun getStaffCharactersPage(id: Int, page: Int): Result<StaffVoicedCharactersPage>
-
-    /** Page 2+ of the production-roles grid. Mirror of [getStaffCharactersPage]. */
-    suspend fun getStaffProductionPage(id: Int, page: Int): Result<StaffProductionMediaPage>
-
-    suspend fun getStudioDetails(id: Int, page: Int = 1): Result<StudioDetails>
-
-    /**
      * Fetch a page of this media's full character (Cast) list. The base
      * [MediaDetails] only carries the first page (perPage 25) for the preview rail,
      * so the See-all grid pages through this to show the complete cast (#83).
@@ -100,92 +68,4 @@ interface DetailsRepository {
         perPage: Int = 25,
         sort: List<com.anisync.android.type.StaffSort>? = null
     ): Result<Pair<List<StaffInfo>, Boolean>>
-
-    /**
-     * Fetch the community statistics shown on the media Stats tab (rankings,
-     * recent activity trend, per-episode airing progression and the score/status
-     * distributions). Loaded lazily the first time the tab is opened — the base
-     * [MediaDetails] payload doesn't carry any of this.
-     */
-    suspend fun getMediaStats(mediaId: Int): Result<MediaStats>
-
-    /**
-     * Rate a media review.
-     */
-    suspend fun rateReview(
-        reviewId: Int,
-        rating: com.anisync.android.type.ReviewRating
-    ): Result<MediaReview>
-
-    /**
-     * Get paginated media reviews.
-     * Returns a pair of: List of reviews, and a boolean indicating if there is a next page.
-     */
-    suspend fun getMediaReviews(mediaId: Int, page: Int): Result<Pair<List<MediaReview>, Boolean>>
-
-    /**
-     * Get paginated list of media list entries belonging to users the viewer follows.
-     * Returns a pair of: list of entries, and a boolean indicating if there is a next page.
-     *
-     * @param allowCached lets a caller that only shows a preview accept a cached answer within its
-     * freshness window, rather than spending a request on every visit to the same page. Screens
-     * that show the full list leave it off.
-     */
-    suspend fun getMediaFollowing(
-        mediaId: Int,
-        page: Int,
-        perPage: Int,
-        allowCached: Boolean = false
-    ): Result<Pair<List<MediaFollowingEntry>, Boolean>>
-
-    /**
-     * Rate a recommendation (like/dislike/clear).
-     * @param mediaId The source media ID
-     * @param recommendationId The recommended media ID
-     * @param rating The rating to apply
-     * @return Updated rating and userRating
-     */
-    suspend fun rateRecommendation(
-        mediaId: Int,
-        recommendationId: Int,
-        rating: com.anisync.android.type.RecommendationRating
-    ): Result<Pair<Int, String?>>
-
-    /**
-     * Fetch the authenticated viewer's own review for a media, if one exists.
-     * Returns null when the viewer hasn't reviewed this media (used to decide
-     * between create vs. edit in the review editor).
-     */
-    suspend fun getViewerReview(mediaId: Int): Result<ViewerReview?>
-
-    /**
-     * Create or update a review. Pass [reviewId] to update an existing review,
-     * or null to create a new one.
-     */
-    suspend fun saveReview(
-        reviewId: Int?,
-        mediaId: Int,
-        body: String,
-        summary: String,
-        score: Int,
-        private: Boolean
-    ): Result<Int>
-
-    /**
-     * Delete the viewer's review. [mediaId] is used to refresh the cached media
-     * details so the removed review drops out of the reviews section.
-     */
-    suspend fun deleteReview(reviewId: Int, mediaId: Int): Result<Unit>
 }
-
-/**
- * The authenticated viewer's own review for a media, with the raw markdown body
- * so it can be loaded back into the editor for editing.
- */
-data class ViewerReview(
-    val id: Int,
-    val summary: String,
-    val body: String,
-    val score: Int,
-    val isPrivate: Boolean
-)

@@ -26,6 +26,7 @@ import androidx.compose.material.icons.rounded.Tv
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -51,7 +52,6 @@ import com.anisync.android.domain.ActivityMediaType
 import com.anisync.android.domain.UserActivity
 import com.anisync.android.presentation.components.AppCircularProgressIndicator
 import com.anisync.android.presentation.components.AppModalBottomSheet
-import com.anisync.android.presentation.profile.components.MediaTypeLabel
 import com.anisync.android.ui.theme.emphasis
 import java.time.Instant
 import java.time.LocalDate
@@ -338,4 +338,19 @@ internal fun statusExcerpt(body: String?): String? {
         .lineSequence()
         .map { it.replace(Regex("""\s+"""), " ").trim() }
         .firstOrNull { it.isNotEmpty() }
+}
+
+/** Anime/Manga tag for a list activity, in AniList's brand blue (anime) / orange (manga). */
+@Composable
+private fun MediaTypeLabel(type: ActivityMediaType) {
+    val (labelRes, color) = when (type) {
+        ActivityMediaType.ANIME -> R.string.media_type_anime to Color(0xFF3DB4F2)
+        ActivityMediaType.MANGA -> R.string.media_type_manga to Color(0xFFF2A33D)
+    }
+    Text(
+        text = stringResource(labelRes),
+        style = MaterialTheme.typography.labelMedium,
+        color = color,
+        fontWeight = FontWeight.Medium
+    )
 }

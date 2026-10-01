@@ -49,7 +49,6 @@ class RichTextParserTest {
             parsed.blocks.deepBlocks().filterIsInstance<RichTextBlock.AnilistLink>().first()
         assertEquals("anime", linkBlock.type)
         assertEquals(16498, linkBlock.id)
-        assertEquals(LinkPreviewKey("anime", 16498), linkBlock.previewKey)
     }
 
     @Test
@@ -211,7 +210,6 @@ class RichTextParserTest {
         assertEquals("user", link.type)
         assertEquals("Goldiizz", link.slug)
         assertEquals("Goldiizz", link.displayTitle)
-        assertEquals(LinkPreviewKey("user", 0, "Goldiizz"), link.previewKey)
     }
 
     @Test

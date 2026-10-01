@@ -6,7 +6,6 @@ import com.anisync.android.data.local.AppDatabase
 import com.anisync.android.data.local.Migrations
 import com.anisync.android.data.local.dao.LibraryDao
 import com.anisync.android.data.local.dao.MediaDetailsDao
-import com.anisync.android.data.local.dao.SavedForumThreadDao
 import com.anisync.android.data.local.dao.UserProfileDao
 import dagger.Module
 import dagger.Provides
@@ -71,10 +70,6 @@ object DatabaseModule {
         return database.trendingDao()
     }
 
-    @Provides
-    fun provideSavedForumThreadDao(database: AppDatabase): SavedForumThreadDao {
-        return database.savedForumThreadDao()
-    }
 
     @Provides
     fun provideMediaThemesDao(database: AppDatabase): com.anisync.android.data.local.dao.MediaThemesDao {

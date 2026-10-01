@@ -58,7 +58,7 @@ import com.anisync.android.data.TitleLanguage
 import com.anisync.android.domain.LibraryEntry
 import com.anisync.android.domain.url
 import com.anisync.android.presentation.components.EmptyStateWithAction
-import com.anisync.android.presentation.forum.components.SearchField
+import com.anisync.android.presentation.components.SearchField
 import com.anisync.android.presentation.profile.util.formatProfileRelativeTime
 import com.anisync.android.presentation.util.bouncyClickable
 import com.anisync.android.presentation.util.toLabel

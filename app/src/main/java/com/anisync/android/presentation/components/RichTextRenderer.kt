@@ -83,8 +83,6 @@ import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
-import com.anisync.android.domain.LinkPreview
-import com.anisync.android.domain.parser.LinkPreviewKey
 import com.anisync.android.domain.parser.ParsedRichText
 import com.anisync.android.domain.parser.ParserConfig
 import com.anisync.android.domain.parser.RichTextAlignment
@@ -93,7 +91,6 @@ import com.anisync.android.domain.parser.RichTextFloat
 import com.anisync.android.domain.parser.RichTextInline
 import com.anisync.android.domain.parser.RichTextParser
 import com.anisync.android.domain.parser.RichTextTextKind
-import com.anisync.android.presentation.util.LocalLinkPreviewProvider
 import com.anisync.android.presentation.util.rememberAniLinkRouter
 import com.anisync.android.presentation.util.shimmerEffect
 
@@ -173,7 +170,7 @@ fun rememberParsedRichText(html: String?): ParsedRichText? {
 /**
  * Everything a block needs in order to draw itself, bundled so the same rendering can be driven
  * either from a plain [Column] or from a `LazyColumn`'s items. Built by [RichTextHost], which owns
- * the parts that have to outlive any one block: the AniList link previews, the link router and the
+ * the parts that have to outlive any one block: the link router and the
  * full-screen image viewer.
  */
 @Stable
@@ -184,7 +181,6 @@ class RichTextRenderScope internal constructor(
     internal val linkColor: Color,
     internal val codeBackground: Color,
     internal val spoilerColor: Color,
-    internal val previews: Map<LinkPreviewKey, LinkPreview>,
     internal val onImageClick: (String) -> Unit,
     internal val onLinkClick: (String) -> Unit,
     internal val linkListener: LinkInteractionListener
@@ -209,16 +205,6 @@ fun RichTextHost(
     var viewerInitialIndex by remember { mutableStateOf<Int?>(null) }
     val linkRouter = rememberAniLinkRouter()
 
-    val previewProvider = LocalLinkPreviewProvider.current
-    val previews = remember { mutableStateMapOf<LinkPreviewKey, LinkPreview>() }
-    LaunchedEffect(parsedData, previewProvider) {
-        if (previewProvider == null) return@LaunchedEffect
-        val anilistLinks = collectAnilistLinks(parsedData.blocks)
-        if (anilistLinks.isEmpty()) return@LaunchedEffect
-        val fetched = previewProvider.getPreviews(anilistLinks)
-        previews.putAll(fetched)
-    }
-
     // A single, stable click listener for every inline link. Built once per router
     // identity (the router is now remembered), so the AnnotatedString link annotations
     // keep stable identity across recompositions. Previously a per-recomposition
@@ -242,7 +228,6 @@ fun RichTextHost(
             linkColor = linkColor,
             codeBackground = codeBackground,
             spoilerColor = spoilerColor,
-            previews = previews,
             onImageClick = { url ->
                 val idx = parsedData.imageUrls.indexOf(url)
                 if (idx >= 0) viewerInitialIndex = idx
@@ -287,7 +272,7 @@ fun LazyListScope.richTextItems(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     RenderBlocks(
                         blocks, scope.style, scope.color, scope.linkColor, scope.codeBackground,
-                        scope.spoilerColor, scope.previews, scope.onImageClick, scope.onLinkClick,
+                        scope.spoilerColor, scope.onImageClick, scope.onLinkClick,
                         scope.linkListener
                     )
                 }
@@ -303,7 +288,7 @@ fun LazyListScope.richTextItems(
             Column {
                 RenderSingleBlock(
                     blocks[index], scope.style, scope.color, scope.linkColor, scope.codeBackground,
-                    scope.spoilerColor, scope.previews, scope.onImageClick, scope.onLinkClick,
+                    scope.spoilerColor, scope.onImageClick, scope.onLinkClick,
                     scope.linkListener
                 )
             }
@@ -332,39 +317,11 @@ fun RichTextRenderer(
                     linkColor = scope.linkColor,
                     codeBackground = scope.codeBackground,
                     spoilerColor = scope.spoilerColor,
-                    previews = scope.previews,
                     onImageClick = scope.onImageClick,
                     onLinkClick = scope.onLinkClick,
                     linkListener = scope.linkListener
                 )
             }
-        }
-    }
-}
-
-private fun collectAnilistLinks(blocks: List<RichTextBlock>): List<RichTextBlock.AnilistLink> {
-    val result = ArrayList<RichTextBlock.AnilistLink>()
-    collectAnilistLinksInto(blocks, result)
-    return result
-}
-
-private fun collectAnilistLinksInto(
-    blocks: List<RichTextBlock>,
-    out: MutableList<RichTextBlock.AnilistLink>
-) {
-    for (block in blocks) {
-        when (block) {
-            is RichTextBlock.AnilistLink -> out.add(block)
-            is RichTextBlock.Spoiler -> collectAnilistLinksInto(block.children, out)
-            is RichTextBlock.Blockquote -> collectAnilistLinksInto(block.children, out)
-            is RichTextBlock.ListBlock -> block.items.forEach { collectAnilistLinksInto(it.children, out) }
-            is RichTextBlock.Table -> block.rows.forEach { row ->
-                row.cells.forEach { cell -> collectAnilistLinksInto(cell.children, out) }
-            }
-            is RichTextBlock.InlineGroup -> block.children.forEach {
-                if (it is RichTextBlock.AnilistLink) out.add(it)
-            }
-            else -> Unit
         }
     }
 }
@@ -378,7 +335,6 @@ private fun RenderBlocks(
     linkColor: Color,
     codeBackground: Color,
     spoilerColor: Color,
-    previews: Map<LinkPreviewKey, LinkPreview>,
     onImageClick: (String) -> Unit,
     onLinkClick: (String) -> Unit,
     linkListener: LinkInteractionListener
@@ -394,7 +350,7 @@ private fun RenderBlocks(
         for (i in 0 until floatIndex) {
             RenderSingleBlock(
                 blocks[i], style, color, linkColor, codeBackground, spoilerColor,
-                previews, onImageClick, onLinkClick, linkListener
+                onImageClick, onLinkClick, linkListener
             )
         }
         val floatImg = blocks[floatIndex] as RichTextBlock.Image
@@ -405,7 +361,7 @@ private fun RenderBlocks(
                 @Composable {
                     RenderSingleBlock(
                         child, style, color, linkColor, codeBackground, spoilerColor,
-                        previews, onImageClick, onLinkClick, linkListener
+                        onImageClick, onLinkClick, linkListener
                     )
                 }
             }
@@ -416,7 +372,7 @@ private fun RenderBlocks(
     for (block in blocks) {
         RenderSingleBlock(
             block, style, color, linkColor, codeBackground, spoilerColor,
-            previews, onImageClick, onLinkClick, linkListener
+            onImageClick, onLinkClick, linkListener
         )
     }
 }
@@ -430,7 +386,6 @@ private fun RenderSingleBlock(
     linkColor: Color,
     codeBackground: Color,
     spoilerColor: Color,
-    previews: Map<LinkPreviewKey, LinkPreview>,
     onImageClick: (String) -> Unit,
     onLinkClick: (String) -> Unit,
     linkListener: LinkInteractionListener
@@ -539,12 +494,7 @@ private fun RenderSingleBlock(
                                 }
 
                                 is RichTextBlock.AnilistLink -> {
-                                    AniListLinkCard(
-                                        block = child,
-                                        preview = previews[child.previewKey],
-                                        style = style,
-                                        onLinkClick = onLinkClick
-                                    )
+                                    AnilistLinkText(child, style, onLinkClick)
                                 }
 
                                 else -> Unit
@@ -554,12 +504,7 @@ private fun RenderSingleBlock(
                 }
 
                 is RichTextBlock.AnilistLink -> {
-                    AniListLinkCard(
-                        block = block,
-                        preview = previews[block.previewKey],
-                        style = style,
-                        onLinkClick = onLinkClick
-                    )
+                    AnilistLinkText(block, style, onLinkClick)
                 }
 
                 is RichTextBlock.ListBlock -> {
@@ -590,7 +535,6 @@ private fun RenderSingleBlock(
                                         linkColor = linkColor,
                                         codeBackground = codeBackground,
                                         spoilerColor = spoilerColor,
-                                        previews = previews,
                                         onImageClick = onImageClick,
                                         onLinkClick = onLinkClick,
                                         linkListener = linkListener
@@ -666,7 +610,6 @@ private fun RenderSingleBlock(
                                                 linkColor = linkColor,
                                                 codeBackground = codeBackground,
                                                 spoilerColor = spoilerColor,
-                                                previews = previews,
                                                 onImageClick = onImageClick,
                                                 onLinkClick = onLinkClick,
                                                 linkListener = linkListener
@@ -743,7 +686,6 @@ private fun RenderSingleBlock(
                                     linkColor = linkColor,
                                     codeBackground = codeBackground,
                                     spoilerColor = spoilerColor,
-                                    previews = previews,
                                     onImageClick = onImageClick,
                                     onLinkClick = onLinkClick,
                                     linkListener = linkListener
@@ -777,7 +719,6 @@ private fun RenderSingleBlock(
                             linkColor = linkColor,
                             codeBackground = codeBackground,
                             spoilerColor = spoilerColor,
-                            previews = previews,
                             onImageClick = onImageClick,
                             onLinkClick = onLinkClick,
                             linkListener = linkListener
@@ -1337,4 +1278,18 @@ private fun extractYouTubeVideoId(value: String): String {
     id = id.substringBefore("&").substringBefore("?")
     val clean = id.replace(Regex("[^a-zA-Z0-9_-]"), "")
     return if (clean.length >= 11) clean.takeLast(11) else clean
+}
+
+/** A bare AniList link, shown as its title and opened through the link router like any other link. */
+@Composable
+private fun AnilistLinkText(
+    block: RichTextBlock.AnilistLink,
+    style: TextStyle,
+    onLinkClick: (String) -> Unit
+) {
+    Text(
+        text = block.displayTitle,
+        style = style.copy(color = MaterialTheme.colorScheme.primary),
+        modifier = Modifier.clickable { onLinkClick(block.url) }
+    )
 }

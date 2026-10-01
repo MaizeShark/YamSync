@@ -6,7 +6,6 @@ import com.anisync.android.data.AppSettings
 import com.anisync.android.domain.LibraryEntry
 import com.anisync.android.domain.LibraryRepository
 import com.anisync.android.domain.LibraryStatus
-import com.anisync.android.domain.ProfileRepository
 import com.anisync.android.domain.Result
 import com.anisync.android.presentation.components.alert.ToastManager
 import com.anisync.android.presentation.components.alert.ToastType
@@ -41,7 +40,6 @@ import com.anisync.android.domain.observeTab
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     private val libraryRepository: LibraryRepository,
-    private val profileRepository: ProfileRepository,
     private val appSettings: AppSettings,
     private val toastManager: ToastManager,
     tabReselectBus: TabReselectBus
@@ -64,8 +62,7 @@ class LibraryViewModel @Inject constructor(
             "status:PAUSED",
             "status:COMPLETED",
             "status:PLANNING",
-            "status:DROPPED",
-            "status:FAVORITES"
+            "status:DROPPED"
         )
     }
 
@@ -100,7 +97,6 @@ class LibraryViewModel @Inject constructor(
         val grouped: Map<LibraryStatus, List<LibraryEntry>>,
         val customNames: List<String>,
         val customEntries: Map<String, List<LibraryEntry>>,
-        val favorites: List<LibraryEntry>,
         val hiddenListNames: Set<String>,
         val tabOrder: List<String>,
         val tabCounts: Map<String, Int>,
@@ -382,13 +378,10 @@ class LibraryViewModel @Inject constructor(
                     
                     combine(
                         libraryRepository.observeLibrary("", type),
-                        profileRepository.observeProfile(),
                         listOrderFlow,
                         hiddenListsFlow
-                    ) { libraryEntries, profile, listOrder, hiddenLists ->
-                        val favorites =
-                            profile?.favoriteAnime?.filter { it.type == type } ?: emptyList()
-                        Triple(libraryEntries, favorites, listOrder to hiddenLists)
+                    ) { libraryEntries, listOrder, hiddenLists ->
+                        libraryEntries to (listOrder to hiddenLists)
                     }
                 }
                 .combine(
@@ -402,7 +395,7 @@ class LibraryViewModel @Inject constructor(
                             state.filters
                         )
                     }.distinctUntilChanged()
-                ) { (entries, favorites, listPrefs), combinedState ->
+                ) { (entries, listPrefs), combinedState ->
                     val sort = combinedState[0] as LibrarySort
                     val ascending = combinedState[1] as Boolean
                     val query = combinedState[2] as String
@@ -412,7 +405,7 @@ class LibraryViewModel @Inject constructor(
                     val (listOrder, hiddenLists) = listPrefs
 
                     // No early return for an empty library: the sort/group/count logic below all
-                    // collapses to empties cleanly, and favorites/custom lists can still be non-empty.
+                    // collapses to empties cleanly, and custom lists can still be non-empty.
                     class SortableEntry(val entry: LibraryEntry, val sortTitle: String)
 
                     // Guard against any duplicate-media rows still cached locally (e.g. a stale id=0
@@ -514,15 +507,10 @@ class LibraryViewModel @Inject constructor(
                     // Extract sorted custom names from the tab order for the UI
                     val sortedCustomNames = tabOrder.filter { !it.startsWith("status:") && it in customNamesSet }
 
-                    val sortedFavorites = favorites
-                        .filter { filters.matches(it) }
-                        .sortedBy { it.getTitle(titleLang).lowercase() }
-
                     // Raw per-tab counts (independent of the query) for the tab badges.
                     val tabCounts = buildMap {
                         put(LIBRARY_ALL_TAB_ID, allEntries.size)
                         grouped.forEach { (status, list) -> put("status:${status.name}", list.size) }
-                        put(LIBRARY_FAVORITES_TAB_ID, sortedFavorites.size)
                         customEntriesMap.forEach { (name, list) -> put(name, list.size) }
                     }
 
@@ -530,7 +518,6 @@ class LibraryViewModel @Inject constructor(
                         put(LIBRARY_ALL_TAB_ID, unfilteredEntries.size)
                         unfilteredEntries.groupBy { it.status }
                             .forEach { (status, list) -> put("status:${status.name}", list.size) }
-                        put(LIBRARY_FAVORITES_TAB_ID, favorites.size)
                         unfilteredEntries
                             .flatMap { entry -> entry.customLists.map { it to entry } }
                             .groupBy({ it.first }, { it.second })
@@ -552,9 +539,6 @@ class LibraryViewModel @Inject constructor(
                         matches.groupBy { it.status }.forEach { (status, list) ->
                             byCategory["status:${status.name}"] = list
                         }
-                        sortedFavorites.filter { it.matchesQuery(lowerQuery) }
-                            .takeIf { it.isNotEmpty() }
-                            ?.let { byCategory[LIBRARY_FAVORITES_TAB_ID] = it }
                         customEntriesMap.forEach { (name, list) ->
                             list.filter { it.matchesQuery(lowerQuery) }
                                 .takeIf { it.isNotEmpty() }
@@ -569,7 +553,6 @@ class LibraryViewModel @Inject constructor(
                         grouped = grouped,
                         customNames = sortedCustomNames,
                         customEntries = customEntriesMap,
-                        favorites = sortedFavorites,
                         hiddenListNames = hiddenLists,
                         tabOrder = tabOrder,
                         tabCounts = tabCounts,
@@ -616,7 +599,6 @@ class LibraryViewModel @Inject constructor(
                             groupedEntries = computed.grouped,
                             customListNames = computed.customNames,
                             customListEntries = computed.customEntries,
-                            favoriteEntries = computed.favorites,
                             hiddenListNames = computed.hiddenListNames,
                             tabOrder = computed.tabOrder,
                             tabCounts = computed.tabCounts,
@@ -754,7 +736,9 @@ class LibraryViewModel @Inject constructor(
      */
     private fun buildTabOrder(storedOrder: List<String>, customNames: Set<String>): List<String> {
         fun isKnown(id: String) =
-            id == LIBRARY_ALL_TAB_ID || id.startsWith("status:") || id in customNames
+            id == LIBRARY_ALL_TAB_ID ||
+                (id.startsWith("status:") && id != LIBRARY_FAVORITES_TAB_ID) ||
+                id in customNames
 
         val hasStatusEntries = storedOrder.any { it.startsWith("status:") }
 

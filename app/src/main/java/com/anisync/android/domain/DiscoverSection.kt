@@ -17,8 +17,7 @@ enum class DiscoverSection(val id: String) {
     RELEASING_NOW("releasing_now"),
     POPULAR("popular"),
     NOT_YET_RELEASED("not_yet_released"),
-    NEWLY_ADDED("newly_added"),
-    REVIEWS("reviews");
+    NEWLY_ADDED("newly_added");
 
     /** Whether this rail has anything to show for [type]. */
     fun supports(type: MediaType): Boolean = when (this) {

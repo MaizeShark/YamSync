@@ -1,4 +1,4 @@
-package com.anisync.android.data.media
+package com.anisync.android.data.network
 
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -14,9 +14,7 @@ import java.util.concurrent.TimeUnit
  * `okhttp/x.y.z` / `ExoPlayerLib` User-Agent and answer `403`/`412` — surfacing as
  * "image won't load" or ExoPlayer's `ERROR_CODE_IO_BAD_HTTP_STATUS`
  * ("This video is no longer available") for a file that opens fine in a browser.
- * [com.anisync.android.di.MediaUploadModule] already learned this for catbox *uploads*;
- * the same hosts serve the `webm(...)`/`img(...)` links users paste into posts, so the
- * download path needs the same treatment. A real browser UA is accepted everywhere.
+ * A real browser UA is accepted everywhere.
  *
  * Two clients because images and video want different transports:
  * - [imageClient] keeps HTTP/2 — AniList's CDN multiplexes a whole grid of covers over

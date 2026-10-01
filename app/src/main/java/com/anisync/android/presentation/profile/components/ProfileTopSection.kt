@@ -48,19 +48,7 @@ private val ContentCardShape = RoundedCornerShape(topStart = 48.dp, topEnd = 48.
 @Composable
 fun ProfileTopSection(
     profile: UserProfile,
-    isOwnProfile: Boolean,
     onSettingsClick: () -> Unit,
-    onEditProfileClick: () -> Unit,
-    onShowBiography: () -> Unit,
-    isFollowing: Boolean = false,
-    isFollowerOfViewer: Boolean = false,
-    isFollowLoading: Boolean = false,
-    onFollowClick: () -> Unit = {},
-    onMessageClick: () -> Unit = {},
-    onNotificationsClick: () -> Unit = {},
-    unreadNotificationCount: Int = 0,
-    topActionIcon: ImageVector = Icons.Default.Settings,
-    onTopActionClick: () -> Unit = onSettingsClick,
     showAccountSwitcher: Boolean = false,
     onAccountSwitchClick: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -71,9 +59,9 @@ fun ProfileTopSection(
     Box(modifier = modifier.fillMaxWidth()) {
         ProfileBannerSurface(
             profile = profile,
-            isOwnProfile = isOwnProfile,
-            topActionIcon = topActionIcon,
-            onTopActionClick = onTopActionClick,
+            isOwnProfile = true,
+            topActionIcon = Icons.Default.Settings,
+            onTopActionClick = onSettingsClick,
             height = bannerHeight
         )
 
@@ -94,32 +82,12 @@ fun ProfileTopSection(
             ) {
                 ProfileIdentityInfo(
                     profile = profile,
-                    isOwnProfile = isOwnProfile,
-                    viewerFollows = isFollowing,
-                    followsViewer = isFollowerOfViewer,
+                    isOwnProfile = true,
+                    viewerFollows = false,
+                    followsViewer = false,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                val hasBiography = !profile.about.isNullOrBlank()
-                if (hasBiography) {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    OutlinedButton(
-                        onClick = onShowBiography,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.profile_view_biography),
-                            style = MaterialTheme.typography.labelLarge.emphasis()
-                        )
-                    }
-                }
             }
         }
 
@@ -151,14 +119,6 @@ fun ProfileTopSection(
             Spacer(modifier = Modifier.weight(1f))
 
             ProfileActionButtons(
-                isOwnProfile = isOwnProfile,
-                isFollowing = isFollowing,
-                isFollowLoading = isFollowLoading,
-                onFollowClick = onFollowClick,
-                onMessageClick = onMessageClick,
-                onEditProfileClick = onEditProfileClick,
-                onNotificationsClick = onNotificationsClick,
-                unreadNotificationCount = unreadNotificationCount,
                 showAccountSwitcher = showAccountSwitcher,
                 onAccountSwitchClick = onAccountSwitchClick,
                 modifier = Modifier.padding(bottom = 12.dp)

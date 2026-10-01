@@ -10,11 +10,7 @@ import com.anisync.android.BuildConfig
 import com.anisync.android.R
 import com.anisync.android.data.AppSettings.Companion.MAX_GRID_COLUMNS
 import com.anisync.android.data.AppSettings.Companion.MIN_GRID_COLUMNS
-import com.anisync.android.domain.FeedFilter
-import com.anisync.android.domain.FeedMediaType
-import com.anisync.android.domain.FeedScope
 import com.anisync.android.domain.ScoreFormat
-import com.anisync.android.domain.media.MediaHost
 import com.anisync.android.type.MediaType
 import com.anisync.android.ui.theme.FontAxisOverrides
 import com.anisync.android.ui.theme.TypeCategory
@@ -80,9 +76,7 @@ enum class DiscoverViewMode {
 enum class StartScreen(val tabKey: String?) {
     LAST_VISITED(null),
     LIBRARY("library"),
-    DISCOVER("discover"),
-    FEED("feed"),
-    FORUM("forum")
+    DISCOVER("discover")
 }
 
 /**
@@ -394,15 +388,6 @@ class AppSettings @Inject constructor(
      * both. Stored as ids joined on a comma; [com.anisync.android.domain.DiscoverSection] repairs
      * the list against the current build on read.
      */
-    /** The Overview's section order and which of them are switched off. */
-    private val _forumSectionOrder = MutableStateFlow(readCsv(KEY_FORUM_SECTIONS))
-    val forumSectionOrder: StateFlow<List<String>> = _forumSectionOrder.asStateFlow()
-
-    private val _hiddenForumSections = MutableStateFlow(
-        prefs.getStringSet(KEY_FORUM_HIDDEN_SECTIONS, emptySet()) ?: emptySet()
-    )
-    val hiddenForumSections: StateFlow<Set<String>> = _hiddenForumSections.asStateFlow()
-
     private val _discoverAnimeSectionOrder = MutableStateFlow(readCsv(KEY_DISCOVER_ANIME_SECTIONS))
     val discoverAnimeSectionOrder: StateFlow<List<String>> = _discoverAnimeSectionOrder.asStateFlow()
 
@@ -442,17 +427,6 @@ class AppSettings @Inject constructor(
         prefs.getString(KEY_LAST_SELECTED_MANGA_TAB, null)
     )
     val lastSelectedMangaTab: StateFlow<String?> = _lastSelectedMangaTab.asStateFlow()
-
-    // Last selected activity-feed scope (Global vs Following). Persisted so the feed
-    // opens on the tab the user actually reads instead of always resetting to Global.
-    private val _lastFeedScope = MutableStateFlow(readFeedScope())
-    val lastFeedScope: StateFlow<FeedScope> = _lastFeedScope.asStateFlow()
-
-    private fun readFeedScope(): FeedScope {
-        val name = runCatching { prefs.getString(KEY_FEED_SCOPE, null) }.getOrNull()
-        return runCatching { FeedScope.valueOf(name ?: FeedScope.GLOBAL.name) }
-            .getOrDefault(FeedScope.GLOBAL)
-    }
 
     // Library view density: grid of posters (true) vs single-column list (false). One choice for the
     // whole screen — switching layout on any list switches every list. Persisted so it survives
@@ -513,32 +487,6 @@ class AppSettings @Inject constructor(
     private val _librarySortAscending = MutableStateFlow(prefs.getBoolean(KEY_LIBRARY_SORT_ASCENDING, true))
     val librarySortAscending: StateFlow<Boolean> = _librarySortAscending.asStateFlow()
 
-    // Last selected feed content filter (All / Status / List).
-    private val _feedFilter = MutableStateFlow(readFeedFilter())
-    val feedFilter: StateFlow<FeedFilter> = _feedFilter.asStateFlow()
-
-    private fun readFeedFilter(): FeedFilter {
-        val name = runCatching { prefs.getString(KEY_FEED_FILTER, null) }.getOrNull()
-        return runCatching { FeedFilter.valueOf(name ?: FeedFilter.ALL.name) }
-            .getOrDefault(FeedFilter.ALL)
-    }
-
-    // Last selected feed media type. Kept apart from the Library and Discover ones: the feed asks
-    // the question about other people's list activity, not about your own shelf.
-    private val _feedMediaType = MutableStateFlow(
-        if (prefs.getBoolean(KEY_FEED_MEDIA_TYPE_MANGA, false)) {
-            FeedMediaType.MANGA
-        } else {
-            FeedMediaType.ANIME
-        }
-    )
-    val feedMediaType: StateFlow<FeedMediaType> = _feedMediaType.asStateFlow()
-
-    // Collapse a run of list updates from one person into a single feed card.
-    private val _groupFeedListUpdates =
-        MutableStateFlow(prefs.getBoolean(KEY_FEED_GROUP_LIST_UPDATES, true))
-    val groupFeedListUpdates: StateFlow<Boolean> = _groupFeedListUpdates.asStateFlow()
-
     // Last selected media type (Anime vs Manga), stored per surface so the Library
     // and Discover screens each keep their own preference. Encoded as a boolean
     // (true = Manga) to stay independent of the generated MediaType enum's encoding.
@@ -552,17 +500,7 @@ class AppSettings @Inject constructor(
     )
     val discoverMediaType: StateFlow<MediaType> = _discoverMediaType.asStateFlow()
 
-    // Last selected forum feed (stored by enum name) and category filter
-    // (stored as the AniList category id, or absent when browsing all categories).
-    private val _forumFeed = MutableStateFlow(prefs.getString(KEY_FORUM_FEED, null))
-    val forumFeed: StateFlow<String?> = _forumFeed.asStateFlow()
-
-    private val _forumCategoryId = MutableStateFlow(
-        prefs.getInt(KEY_FORUM_CATEGORY_ID, -1).takeIf { it >= 0 }
-    )
-    val forumCategoryId: StateFlow<Int?> = _forumCategoryId.asStateFlow()
-
-    // Last visited main bottom-nav tab key ("library" / "discover" / "feed" / "forum").
+    // Last visited main bottom-nav tab key ("library" / "discover").
     // Restored as the nav-graph start destination on cold launch so the app reopens
     // on the screen the user left. Profile and Settings are intentionally never stored.
     private val _lastMainTab = MutableStateFlow(prefs.getString(KEY_LAST_MAIN_TAB, null))
@@ -581,47 +519,6 @@ class AppSettings @Inject constructor(
     fun setStartScreen(screen: StartScreen) {
         _startScreen.value = screen
         prefs.edit().putString(KEY_START_SCREEN, screen.name).apply()
-    }
-
-    // ==========================================================================
-    // MEDIA UPLOAD SETTINGS — third-party host config for in-composer attach
-    // ==========================================================================
-
-    private val _mediaHost = MutableStateFlow(readMediaHost())
-    val mediaHost: StateFlow<MediaHost> = _mediaHost.asStateFlow()
-
-    private val _litterboxDuration = MutableStateFlow(
-        prefs.getString(KEY_LITTERBOX_DURATION, "1h").orEmpty().ifBlank { "1h" }
-    )
-    val litterboxDuration: StateFlow<String> = _litterboxDuration.asStateFlow()
-
-    private val _customHostUrl = MutableStateFlow(prefs.getString(KEY_CUSTOM_HOST_URL, "").orEmpty())
-    val customHostUrl: StateFlow<String> = _customHostUrl.asStateFlow()
-
-    private val _customHostFileField = MutableStateFlow(
-        prefs.getString(KEY_CUSTOM_HOST_FIELD, "fileToUpload").orEmpty()
-    )
-    val customHostFileField: StateFlow<String> = _customHostFileField.asStateFlow()
-
-    private val _customHostAuthHeader = MutableStateFlow(
-        prefs.getString(KEY_CUSTOM_HOST_AUTH, "").orEmpty()
-    )
-    val customHostAuthHeader: StateFlow<String> = _customHostAuthHeader.asStateFlow()
-
-    private val _customHostResponseJsonPath = MutableStateFlow(
-        prefs.getString(KEY_CUSTOM_HOST_JSON_PATH, "").orEmpty()
-    )
-    val customHostResponseJsonPath: StateFlow<String> = _customHostResponseJsonPath.asStateFlow()
-
-    // Optional Catbox account userhash. When set, uploads are bound to the user's
-    // Catbox account so they can view/manage them at catbox.moe; blank = anonymous.
-    private val _catboxUserHash = MutableStateFlow(prefs.getString(KEY_CATBOX_USERHASH, "").orEmpty())
-    val catboxUserHash: StateFlow<String> = _catboxUserHash.asStateFlow()
-
-    private fun readMediaHost(): MediaHost {
-        val name = runCatching { prefs.getString(KEY_MEDIA_HOST, null) }.getOrNull()
-        return runCatching { MediaHost.valueOf(name ?: MediaHost.CATBOX.name) }
-            .getOrDefault(MediaHost.CATBOX)
     }
 
     // ==========================================================================
@@ -999,18 +896,6 @@ class AppSettings @Inject constructor(
         }
     }
 
-    /** Persist the Overview's section order. */
-    fun setForumSectionOrder(order: List<String>) {
-        _forumSectionOrder.value = order
-        prefs.edit().putString(KEY_FORUM_SECTIONS, order.joinToString(",")).apply()
-    }
-
-    /** Persist which Overview sections are switched off. */
-    fun setHiddenForumSections(hidden: Set<String>) {
-        _hiddenForumSections.value = hidden
-        prefs.edit().putStringSet(KEY_FORUM_HIDDEN_SECTIONS, hidden).apply()
-    }
-
     /** Persist Discover's rail order for one tab. */
     fun setDiscoverSectionOrder(type: MediaType, order: List<String>) {
         val isAnime = type == MediaType.ANIME
@@ -1085,14 +970,6 @@ class AppSettings @Inject constructor(
     }
 
     /**
-     * Persist the last selected activity-feed scope so the feed reopens on it.
-     */
-    fun setLastFeedScope(scope: FeedScope) {
-        _lastFeedScope.value = scope
-        prefs.edit().putString(KEY_FEED_SCOPE, scope.name).apply()
-    }
-
-    /**
      * Persist the library view density (grid vs list).
      */
     fun setLibraryGridView(isGrid: Boolean) {
@@ -1160,30 +1037,6 @@ class AppSettings @Inject constructor(
     }
 
     /**
-     * Persist the last selected feed content filter.
-     */
-    fun setFeedFilter(filter: FeedFilter) {
-        _feedFilter.value = filter
-        prefs.edit().putString(KEY_FEED_FILTER, filter.name).apply()
-    }
-
-    /**
-     * Persist the last selected feed media type (Anime vs Manga).
-     */
-    fun setFeedMediaType(type: FeedMediaType) {
-        _feedMediaType.value = type
-        prefs.edit().putBoolean(KEY_FEED_MEDIA_TYPE_MANGA, type == FeedMediaType.MANGA).apply()
-    }
-
-    /**
-     * Persist whether a run of list updates from one person collapses into one feed card.
-     */
-    fun setGroupFeedListUpdates(enabled: Boolean) {
-        _groupFeedListUpdates.value = enabled
-        prefs.edit().putBoolean(KEY_FEED_GROUP_LIST_UPDATES, enabled).apply()
-    }
-
-    /**
      * Persist the last selected Library media type (Anime vs Manga).
      */
     fun setLibraryMediaType(type: MediaType) {
@@ -1200,74 +1053,14 @@ class AppSettings @Inject constructor(
     }
 
     /**
-     * Persist the last selected forum feed (by `ForumFeed` enum name).
-     */
-    fun setForumFeed(feedName: String) {
-        _forumFeed.value = feedName
-        prefs.edit().putString(KEY_FORUM_FEED, feedName).apply()
-    }
-
-    /**
-     * Persist the last selected forum category filter. Pass null to clear it
-     * (browsing all categories).
-     */
-    fun setForumCategoryId(categoryId: Int?) {
-        _forumCategoryId.value = categoryId
-        prefs.edit().apply {
-            if (categoryId != null) putInt(KEY_FORUM_CATEGORY_ID, categoryId)
-            else remove(KEY_FORUM_CATEGORY_ID)
-        }.apply()
-    }
-
-    /**
      * Persist the last visited main bottom-nav tab so the app reopens on it.
-     * Only Library/Discover/Feed/Forum are ever stored.
+     * Only Library/Discover are ever stored.
      */
     fun setLastMainTab(tabKey: String) {
         _lastMainTab.value = tabKey
         prefs.edit().putString(KEY_LAST_MAIN_TAB, tabKey).apply()
     }
     
-    /**
-     * Set the media upload host. The new value applies to all subsequent attach
-     * operations across every composer surface.
-     */
-    fun setMediaHost(host: MediaHost) {
-        _mediaHost.value = host
-        prefs.edit().putString(KEY_MEDIA_HOST, host.name).apply()
-    }
-
-    /** [duration] must be `"1h"`, `"24h"`, or `"72h"` to match Litterbox's API. */
-    fun setLitterboxDuration(duration: String) {
-        _litterboxDuration.value = duration
-        prefs.edit().putString(KEY_LITTERBOX_DURATION, duration).apply()
-    }
-
-    fun setCustomHostUrl(value: String) {
-        _customHostUrl.value = value
-        prefs.edit().putString(KEY_CUSTOM_HOST_URL, value).apply()
-    }
-
-    fun setCustomHostFileField(value: String) {
-        _customHostFileField.value = value
-        prefs.edit().putString(KEY_CUSTOM_HOST_FIELD, value).apply()
-    }
-
-    fun setCustomHostAuthHeader(value: String) {
-        _customHostAuthHeader.value = value
-        prefs.edit().putString(KEY_CUSTOM_HOST_AUTH, value).apply()
-    }
-
-    fun setCustomHostResponseJsonPath(value: String) {
-        _customHostResponseJsonPath.value = value
-        prefs.edit().putString(KEY_CUSTOM_HOST_JSON_PATH, value).apply()
-    }
-
-    fun setCatboxUserHash(value: String) {
-        _catboxUserHash.value = value
-        prefs.edit().putString(KEY_CATBOX_USERHASH, value).apply()
-    }
-
     /**
      * Get the preferred streaming service directly from SharedPreferences.
      * Use this for widgets to ensure the latest value is always read.
@@ -1405,10 +1198,6 @@ companion object {
         private const val KEY_DISCOVER_SEARCH_VIEW_MODE = "discover_search_view_mode"
         private const val KEY_LAST_SELECTED_ANIME_TAB = "last_selected_anime_tab"
         private const val KEY_LAST_SELECTED_MANGA_TAB = "last_selected_manga_tab"
-        private const val KEY_FEED_SCOPE = "feed_scope"
-        private const val KEY_FEED_FILTER = "feed_filter"
-        private const val KEY_FEED_GROUP_LIST_UPDATES = "feed_group_list_updates"
-        private const val KEY_FEED_MEDIA_TYPE_MANGA = "feed_media_type_manga"
         private const val KEY_LIBRARY_GRID_VIEW = "library_grid_view"
         private const val KEY_DISCOVER_ANIME_SECTIONS = "discover_anime_sections"
         private const val KEY_DISCOVER_MANGA_SECTIONS = "discover_manga_sections"
@@ -1433,19 +1222,8 @@ companion object {
         private const val DEFAULT_LIBRARY_SORT = "AIRING_SOON"
         private const val KEY_LIBRARY_MEDIA_TYPE_MANGA = "library_media_type_manga"
         private const val KEY_DISCOVER_MEDIA_TYPE_MANGA = "discover_media_type_manga"
-        private const val KEY_FORUM_FEED = "forum_feed"
-        private const val KEY_FORUM_SECTIONS = "forum_sections"
-        private const val KEY_FORUM_HIDDEN_SECTIONS = "forum_hidden_sections"
-        private const val KEY_FORUM_CATEGORY_ID = "forum_category_id"
         private const val KEY_LAST_MAIN_TAB = "last_main_tab"
         private const val KEY_START_SCREEN = "start_screen"
-        private const val KEY_MEDIA_HOST = "media_host"
-        private const val KEY_LITTERBOX_DURATION = "litterbox_duration"
-        private const val KEY_CUSTOM_HOST_URL = "custom_host_url"
-        private const val KEY_CUSTOM_HOST_FIELD = "custom_host_field"
-        private const val KEY_CUSTOM_HOST_AUTH = "custom_host_auth"
-        private const val KEY_CUSTOM_HOST_JSON_PATH = "custom_host_json_path"
-        private const val KEY_CATBOX_USERHASH = "catbox_userhash"
     }
 }
 

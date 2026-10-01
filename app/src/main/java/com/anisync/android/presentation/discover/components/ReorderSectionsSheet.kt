@@ -213,5 +213,4 @@ fun DiscoverSection.titleRes(): Int = when (this) {
     DiscoverSection.POPULAR -> R.string.discover_section_popular
     DiscoverSection.NOT_YET_RELEASED -> R.string.discover_section_not_yet_released
     DiscoverSection.NEWLY_ADDED -> R.string.discover_section_newly_added
-    DiscoverSection.REVIEWS -> R.string.discover_section_reviews
 }

@@ -24,7 +24,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -82,10 +81,8 @@ import com.anisync.android.presentation.profile.components.ProfileIdentityDetail
 import com.anisync.android.presentation.util.LocalAppSettings
 import com.anisync.android.presentation.util.LocalMainNavBarInset
 import com.anisync.android.presentation.util.PaneDragHandle
-import com.anisync.android.presentation.util.profileGridColumns
 import com.anisync.android.presentation.util.TwoPaneDefaults
 import com.anisync.android.presentation.util.TwoPaneRow
-import com.anisync.android.util.ShareUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -265,23 +262,11 @@ private fun Modifier.trimBottom(amountPx: () -> Float) = layout { measurable, co
 fun ProfileWideLayout(
     profile: UserProfile,
     uiState: ProfileUiState,
-    isOwnProfile: Boolean,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     onAction: (ProfileAction) -> Unit,
     onSettingsClick: () -> Unit,
-    onNotificationsClick: () -> Unit,
-    unreadNotificationCount: Int,
     onMediaClick: (Int) -> Unit,
-    onCharacterClick: (Int) -> Unit,
-    onStaffClick: (Int) -> Unit,
-    onVoiceActorClick: (Int) -> Unit,
-    onStudioClick: (Int) -> Unit,
-    onUserClick: (String) -> Unit,
-    onThreadClick: (threadId: Int, threadTitle: String) -> Unit,
-    onCommentClick: (threadId: Int, commentId: Int, threadTitle: String) -> Unit,
-    onActivityClick: (Int) -> Unit,
-    onLastReplyClick: (activityId: Int, replyId: Int) -> Unit,
     showAccountSwitcher: Boolean,
     onAccountSwitchClick: () -> Unit,
     statsColumns: Int,
@@ -307,18 +292,9 @@ fun ProfileWideLayout(
         Column(modifier = Modifier.fillMaxSize()) {
             ProfileBannerSurface(
                 profile = profile,
-                isOwnProfile = isOwnProfile,
-                topActionIcon = if (isOwnProfile) Icons.Default.Settings else Icons.Default.Share,
-                onTopActionClick = {
-                    if (isOwnProfile) {
-                        onSettingsClick()
-                    } else {
-                        ShareUtils.shareText(
-                            context = context,
-                            text = "${profile.name}\nhttps://anilist.co/user/${profile.name}"
-                        )
-                    }
-                },
+                isOwnProfile = true,
+                topActionIcon = Icons.Default.Settings,
+                onTopActionClick = onSettingsClick,
                 height = WideBannerHeight,
                 modifier = Modifier
                     .padding(
@@ -336,22 +312,10 @@ fun ProfileWideLayout(
             ProfileTwoPane(
                 profile = profile,
                 uiState = uiState,
-                isOwnProfile = isOwnProfile,
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
                 onAction = onAction,
-                onNotificationsClick = onNotificationsClick,
-                unreadNotificationCount = unreadNotificationCount,
                 onMediaClick = onMediaClick,
-                onCharacterClick = onCharacterClick,
-                onStaffClick = onStaffClick,
-                onVoiceActorClick = onVoiceActorClick,
-                onStudioClick = onStudioClick,
-                onUserClick = onUserClick,
-                onThreadClick = onThreadClick,
-                onCommentClick = onCommentClick,
-                onActivityClick = onActivityClick,
-                onLastReplyClick = onLastReplyClick,
                 showAccountSwitcher = showAccountSwitcher,
                 onAccountSwitchClick = onAccountSwitchClick,
                 statsColumns = statsColumns,
@@ -464,22 +428,10 @@ private fun BannerOverlayName(name: String, modifier: Modifier = Modifier) {
 private fun ProfileTwoPane(
     profile: UserProfile,
     uiState: ProfileUiState,
-    isOwnProfile: Boolean,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     onAction: (ProfileAction) -> Unit,
-    onNotificationsClick: () -> Unit,
-    unreadNotificationCount: Int,
     onMediaClick: (Int) -> Unit,
-    onCharacterClick: (Int) -> Unit,
-    onStaffClick: (Int) -> Unit,
-    onVoiceActorClick: (Int) -> Unit,
-    onStudioClick: (Int) -> Unit,
-    onUserClick: (String) -> Unit,
-    onThreadClick: (threadId: Int, threadTitle: String) -> Unit,
-    onCommentClick: (threadId: Int, commentId: Int, threadTitle: String) -> Unit,
-    onActivityClick: (Int) -> Unit,
-    onLastReplyClick: (activityId: Int, replyId: Int) -> Unit,
     showAccountSwitcher: Boolean,
     onAccountSwitchClick: () -> Unit,
     statsColumns: Int,
@@ -529,15 +481,6 @@ private fun ProfileTwoPane(
         leading = {
             ProfileIdentityPane(
                 profile = profile,
-                isOwnProfile = isOwnProfile,
-                isFollowing = uiState.isFollowingUser,
-                isFollowerOfViewer = uiState.isFollowerOfViewer,
-                isFollowLoading = uiState.isFollowLoading,
-                onFollowClick = { onAction(ProfileAction.ToggleFollow) },
-                onMessageClick = { onAction(ProfileAction.ShowMessageComposer) },
-                onEditProfileClick = { onAction(ProfileAction.SetEditProfileDialogVisible(true)) },
-                onNotificationsClick = onNotificationsClick,
-                unreadNotificationCount = unreadNotificationCount,
                 showAccountSwitcher = showAccountSwitcher,
                 onAccountSwitchClick = onAccountSwitchClick,
                 collapse = collapse
@@ -551,15 +494,6 @@ private fun ProfileTwoPane(
                 animatedVisibilityScope = animatedVisibilityScope,
                 onAction = onAction,
                 onMediaClick = onMediaClick,
-                onCharacterClick = onCharacterClick,
-                onStaffClick = onStaffClick,
-                onVoiceActorClick = onVoiceActorClick,
-                onStudioClick = onStudioClick,
-                onUserClick = onUserClick,
-                onThreadClick = onThreadClick,
-                onCommentClick = onCommentClick,
-                onActivityClick = onActivityClick,
-                onLastReplyClick = onLastReplyClick,
                 statsColumns = statsColumns
             )
         }
@@ -577,15 +511,6 @@ private fun ProfileTwoPane(
 @Composable
 private fun ProfileIdentityPane(
     profile: UserProfile,
-    isOwnProfile: Boolean,
-    isFollowing: Boolean,
-    isFollowerOfViewer: Boolean,
-    isFollowLoading: Boolean,
-    onFollowClick: () -> Unit,
-    onMessageClick: () -> Unit,
-    onEditProfileClick: () -> Unit,
-    onNotificationsClick: () -> Unit,
-    unreadNotificationCount: Int,
     showAccountSwitcher: Boolean,
     onAccountSwitchClick: () -> Unit,
     collapse: BioCollapseState,
@@ -639,9 +564,8 @@ private fun ProfileIdentityPane(
         ) {
             ProfileIdentityDetails(
                 profile = profile,
-                isOwnProfile = isOwnProfile,
-                viewerFollows = isFollowing,
-                followsViewer = isFollowerOfViewer,
+                viewerFollows = false,
+                followsViewer = false,
                 // Measured inside the collapsing wrapper, where the block still lays out at its
                 // natural height — the wrapper only changes what it reports to the Column.
                 modifier = Modifier
@@ -654,14 +578,6 @@ private fun ProfileIdentityPane(
         Spacer(modifier = Modifier.height(16.dp))
 
         ProfileActionButtons(
-            isOwnProfile = isOwnProfile,
-            isFollowing = isFollowing,
-            isFollowLoading = isFollowLoading,
-            onFollowClick = onFollowClick,
-            onMessageClick = onMessageClick,
-            onEditProfileClick = onEditProfileClick,
-            onNotificationsClick = onNotificationsClick,
-            unreadNotificationCount = unreadNotificationCount,
             showAccountSwitcher = showAccountSwitcher,
             onAccountSwitchClick = onAccountSwitchClick,
             modifier = Modifier.padding(horizontal = IdentityPanePadding)
@@ -762,28 +678,10 @@ private fun ProfileTabPane(
     animatedVisibilityScope: AnimatedVisibilityScope?,
     onAction: (ProfileAction) -> Unit,
     onMediaClick: (Int) -> Unit,
-    onCharacterClick: (Int) -> Unit,
-    onStaffClick: (Int) -> Unit,
-    onVoiceActorClick: (Int) -> Unit,
-    onStudioClick: (Int) -> Unit,
-    onUserClick: (String) -> Unit,
-    onThreadClick: (threadId: Int, threadTitle: String) -> Unit,
-    onCommentClick: (threadId: Int, commentId: Int, threadTitle: String) -> Unit,
-    onActivityClick: (Int) -> Unit,
-    onLastReplyClick: (activityId: Int, replyId: Int) -> Unit,
     statsColumns: Int,
     modifier: Modifier = Modifier
 ) {
-    // Column counts come from the pane, not the window: this pane is a fraction of the window wide,
-    // and a window-derived count budgets for space it does not have, squeezing every cell.
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        val portraitColumns = profileGridColumns(baseMinSize = 150.dp, availableWidth = maxWidth)
-        val studioColumns = profileGridColumns(
-            baseMinSize = 240.dp,
-            compactColumns = 2,
-            availableWidth = maxWidth
-        )
-
         Column(modifier = Modifier.fillMaxSize()) {
             ProfileTabsButtonGroup(
                 selectedTab = uiState.selectedTab,
@@ -818,17 +716,6 @@ private fun ProfileTabPane(
                         animatedVisibilityScope = animatedVisibilityScope,
                         onAction = onAction,
                         onMediaClick = onMediaClick,
-                        onCharacterClick = onCharacterClick,
-                        onStaffClick = onStaffClick,
-                        onVoiceActorClick = onVoiceActorClick,
-                        onStudioClick = onStudioClick,
-                        onUserClick = onUserClick,
-                        onThreadClick = onThreadClick,
-                        onCommentClick = onCommentClick,
-                        onActivityClick = onActivityClick,
-                        onLastReplyClick = onLastReplyClick,
-                        portraitColumns = portraitColumns,
-                        studioColumns = studioColumns,
                         statsColumns = statsColumns
                     )
                 }

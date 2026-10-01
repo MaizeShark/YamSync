@@ -377,30 +377,3 @@ fun SectionGridScreen(
         }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Composable
-fun FavoritesGridScreen(
-    sectionTitle: String, // Likely "Favorites"
-    onBackClick: () -> Unit,
-    onMediaClick: (Int) -> Unit,
-    viewModel: com.anisync.android.presentation.profile.ProfileViewModel = hiltViewModel(),
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope
-) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val titleLanguage by viewModel.titleLanguage.collectAsStateWithLifecycle(initialValue = TitleLanguage.ROMAJI)
-
-    val items = uiState.profile?.favoriteAnime.orEmpty()
-
-    MediaGridContent(
-        title = sectionTitle,
-        items = items,
-        isLoading = uiState.isLoading,
-        titleLanguage = titleLanguage,
-        errorMessage = uiState.errorMessage,
-        onBackClick = onBackClick,
-        onMediaClick = onMediaClick,
-        sharedTransitionScope = sharedTransitionScope,
-        animatedVisibilityScope = animatedVisibilityScope
-    )
-}

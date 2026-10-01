@@ -188,7 +188,7 @@ fun SearchOverviewPanels(
                                 imageUrl = character.imageUrl,
                                 imageShape = avatarShape,
                                 fallbackIcon = Icons.Outlined.Person,
-                                selected = selectedTarget is SearchTarget.Character && selectedTarget.id == character.id,
+                                selected = false,
                                 onClick = { onCharacterClick(character.id) },
                             )
                         }
@@ -209,7 +209,7 @@ fun SearchOverviewPanels(
                                 imageUrl = staff.imageUrl,
                                 imageShape = avatarShape,
                                 fallbackIcon = Icons.Outlined.Person,
-                                selected = selectedTarget is SearchTarget.Staff && selectedTarget.id == staff.id,
+                                selected = false,
                                 onClick = { onStaffClick(staff.id) },
                             )
                         }
@@ -230,7 +230,7 @@ fun SearchOverviewPanels(
                                 imageUrl = null,
                                 imageShape = RoundedCornerShape(10.dp),
                                 fallbackIcon = Icons.Outlined.Apartment,
-                                selected = selectedTarget is SearchTarget.Studio && selectedTarget.id == studio.id,
+                                selected = false,
                                 onClick = { onStudioClick(studio.id) },
                             )
                         }
@@ -315,21 +315,21 @@ fun SearchCategoryResults(
                 }
                 ResultCategory.CHARACTERS -> items(groupedResults.characters, key = { "c_${it.id}" }) { c ->
                     PanelCardRow {
-                        SearchResultRow(c.displayName, c.nativeName, c.imageUrl, avatarShape, Icons.Outlined.Person, selected = selectedTarget is SearchTarget.Character && selectedTarget.id == c.id) {
+                        SearchResultRow(c.displayName, c.nativeName, c.imageUrl, avatarShape, Icons.Outlined.Person, selected = false) {
                             onCharacterClick(c.id)
                         }
                     }
                 }
                 ResultCategory.STAFF -> items(groupedResults.staff, key = { "s_${it.id}" }) { s ->
                     PanelCardRow {
-                        SearchResultRow(s.displayName, s.primaryOccupations.firstOrNull() ?: s.nativeName, s.imageUrl, avatarShape, Icons.Outlined.Person, selected = selectedTarget is SearchTarget.Staff && selectedTarget.id == s.id) {
+                        SearchResultRow(s.displayName, s.primaryOccupations.firstOrNull() ?: s.nativeName, s.imageUrl, avatarShape, Icons.Outlined.Person, selected = false) {
                             onStaffClick(s.id)
                         }
                     }
                 }
                 ResultCategory.STUDIOS -> items(groupedResults.studios, key = { "st_${it.id}" }) { st ->
                     PanelCardRow {
-                        SearchResultRow(st.displayName, st.favourites?.let { stringResource(R.string.search_favourites_count, it) }, null, RoundedCornerShape(10.dp), Icons.Outlined.Apartment, selected = selectedTarget is SearchTarget.Studio && selectedTarget.id == st.id) {
+                        SearchResultRow(st.displayName, st.favourites?.let { stringResource(R.string.search_favourites_count, it) }, null, RoundedCornerShape(10.dp), Icons.Outlined.Apartment, selected = false) {
                             onStudioClick(st.id)
                         }
                     }
@@ -413,7 +413,7 @@ fun SearchCategoryGrid(
                     imageUrl = c.imageUrl,
                     fallbackIcon = Icons.Outlined.Person,
                     imageAspect = 0.75f,
-                    selected = selectedTarget is SearchTarget.Character && selectedTarget.id == c.id,
+                    selected = false,
                     onClick = { onCharacterClick(c.id) },
                 )
             }
@@ -424,7 +424,7 @@ fun SearchCategoryGrid(
                     imageUrl = s.imageUrl,
                     fallbackIcon = Icons.Outlined.Person,
                     imageAspect = 0.75f,
-                    selected = selectedTarget is SearchTarget.Staff && selectedTarget.id == s.id,
+                    selected = false,
                     onClick = { onStaffClick(s.id) },
                 )
             }
@@ -443,7 +443,7 @@ fun SearchCategoryGrid(
                 StudioGridCard(
                     name = st.displayName,
                     subtitle = st.favourites?.let { stringResource(R.string.search_favourites_count, it) },
-                    selected = selectedTarget is SearchTarget.Studio && selectedTarget.id == st.id,
+                    selected = false,
                     onClick = { onStudioClick(st.id) },
                 )
             }

@@ -43,18 +43,6 @@ sealed interface SettingsAction {
     data class SetWatchingNotificationsEnabled(val enabled: Boolean) : SettingsAction
     data class SetPlanningNotificationsEnabled(val enabled: Boolean) : SettingsAction
     data class SetUpcomingNotificationsEnabled(val enabled: Boolean) : SettingsAction
-    data class SetThreadCommentReplyEnabled(val enabled: Boolean) : SettingsAction
-    data class SetThreadSubscribedEnabled(val enabled: Boolean) : SettingsAction
-    data class SetThreadCommentMentionEnabled(val enabled: Boolean) : SettingsAction
-    data class SetThreadLikeEnabled(val enabled: Boolean) : SettingsAction
-    data class SetThreadCommentLikeEnabled(val enabled: Boolean) : SettingsAction
-    data class SetActivityReplyEnabled(val enabled: Boolean) : SettingsAction
-    data class SetActivityMentionEnabled(val enabled: Boolean) : SettingsAction
-    data class SetActivityLikeEnabled(val enabled: Boolean) : SettingsAction
-    data class SetActivityMessageEnabled(val enabled: Boolean) : SettingsAction
-    data class SetFollowsEnabled(val enabled: Boolean) : SettingsAction
-    data class SetInboxReadTrackingEnabled(val enabled: Boolean) : SettingsAction
-    data class SetInboxMarkReadOnOpen(val enabled: Boolean) : SettingsAction
     data class SetStreamingDelayMinutes(val minutes: Int) : SettingsAction
 
     data class SetAutoUpdateEnabled(val enabled: Boolean) : SettingsAction
@@ -75,7 +63,6 @@ sealed interface SettingsAction {
     data object SendTestPlanningNotification : SettingsAction
     data object SendTestAdvanceNotification : SettingsAction
     data object SendTestImminentNotification : SettingsAction
-    data object BumpInboxBadge : SettingsAction
     data object ClearAllNotifications : SettingsAction
 
     data class ShowTestToast(val type: com.anisync.android.presentation.components.alert.ToastType) : SettingsAction
@@ -150,19 +137,7 @@ data class SettingsUiState(
     val watchingNotificationsEnabled: Boolean = true,
     val planningNotificationsEnabled: Boolean = false,
     val upcomingNotificationsEnabled: Boolean = true,
-    val threadCommentReplyEnabled: Boolean = true,
-    val threadSubscribedEnabled: Boolean = true,
-    val threadCommentMentionEnabled: Boolean = true,
-    val threadLikeEnabled: Boolean = true,
-    val threadCommentLikeEnabled: Boolean = true,
-    val activityReplyEnabled: Boolean = true,
-    val activityMentionEnabled: Boolean = true,
-    val activityLikeEnabled: Boolean = true,
-    val activityMessageEnabled: Boolean = true,
-    val followsEnabled: Boolean = true,
     val streamingDelayMinutes: Int = 0,
-    val inboxReadTrackingEnabled: Boolean = true,
-    val inboxMarkReadOnOpen: Boolean = false,
 
     // Storage
     val cacheSize: String = "0 B",

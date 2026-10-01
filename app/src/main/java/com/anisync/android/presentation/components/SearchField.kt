@@ -1,4 +1,4 @@
-package com.anisync.android.presentation.forum.components
+package com.anisync.android.presentation.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn

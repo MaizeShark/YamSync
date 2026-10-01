@@ -37,9 +37,6 @@ class AniSyncApplication : Application(), Configuration.Provider, ImageLoaderFac
     lateinit var imageLoader: ImageLoader
 
     @Inject
-    lateinit var userOptionsSyncManager: com.anisync.android.data.UserOptionsSyncManager
-
-    @Inject
     lateinit var appLockManager: com.anisync.android.data.security.AppLockManager
 
     @Inject
@@ -102,10 +99,6 @@ class AniSyncApplication : Application(), Configuration.Provider, ImageLoaderFac
             // and the app is not restarted in between. Anything still here is dead weight.
             updateManager.cleanUpDownloads()
         }
-
-        // Keep AniList account options (adult-content, languages, score format, …) in sync with the
-        // web so the app respects them. Off the cold-start critical path.
-        userOptionsSyncManager.start(applicationScope)
     }
 
     private fun currentProcessName(): String = try {

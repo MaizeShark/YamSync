@@ -58,7 +58,6 @@ import com.anisync.android.data.AuthRepository
 import com.anisync.android.data.account.AccountManager
 import com.anisync.android.data.update.UpdateManager
 import com.anisync.android.data.update.UpdateState
-import com.anisync.android.domain.LinkPreviewProvider
 import com.anisync.android.presentation.MainScreen
 import com.anisync.android.presentation.login.LoginScreen
 import com.anisync.android.presentation.onboarding.OnboardingScreen
@@ -67,7 +66,6 @@ import com.anisync.android.presentation.util.LocalAdaptiveInfo
 import com.anisync.android.presentation.util.LocalAppSettings
 import com.anisync.android.presentation.util.LocalGridColumnCount
 import com.anisync.android.presentation.util.LocalGridColumnsAuto
-import com.anisync.android.presentation.util.LocalLinkPreviewProvider
 import com.anisync.android.presentation.util.rememberAdaptiveInfo
 import com.anisync.android.type.MediaType
 import com.anisync.android.ui.theme.AppTheme
@@ -112,13 +110,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var updateManager: UpdateManager
 
     @Inject
-    lateinit var linkPreviewProvider: LinkPreviewProvider
-
-    @Inject
     lateinit var libraryRepository: com.anisync.android.domain.LibraryRepository
-
-    @Inject
-    lateinit var userOptionsRepository: com.anisync.android.domain.UserOptionsRepository
 
     @Inject
     lateinit var appLockManager: com.anisync.android.data.security.AppLockManager
@@ -294,7 +286,6 @@ class MainActivity : AppCompatActivity() {
                     LocalGridColumnsAuto provides gridColumnsAuto,
                     LocalGridColumnCount provides gridColumnCount,
                     LocalAppSettings provides appSettings,
-                    LocalLinkPreviewProvider provides linkPreviewProvider,
                     com.anisync.android.domain.LocalCoverQuality provides coverQuality,
                     com.anisync.android.presentation.util.LocalLibraryStatuses provides libraryStatuses,
                     com.anisync.android.ui.theme.LocalAvatarShape provides avatarShape.toComposeShape(),
@@ -388,14 +379,6 @@ class MainActivity : AppCompatActivity() {
                             }
 
                             AppUpdateHandler(updateManager = updateManager)
-
-                            // App-wide options sync-conflict prompt (surfaces right after launch,
-                            // not only on the AniList Settings screen).
-                            if (isLoggedIn) {
-                                com.anisync.android.presentation.settings.UserOptionsConflictHandler(
-                                    repository = userOptionsRepository,
-                                )
-                            }
 
                             // Blocking loader while an account add/switch/remove is in flight.
                             val isAccountBusy by accountManager.isBusy.collectAsStateWithLifecycle()

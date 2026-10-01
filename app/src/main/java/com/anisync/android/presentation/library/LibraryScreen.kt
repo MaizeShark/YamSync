@@ -91,13 +91,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anisync.android.R
 import com.anisync.android.domain.LibraryEntry
-import com.anisync.android.domain.LibraryPriority
 import com.anisync.android.domain.LibraryStatus
 import com.anisync.android.presentation.components.CustomPullToRefreshIndicator
 import com.anisync.android.presentation.components.ErrorState
 import com.anisync.android.presentation.components.alert.rememberRateLimitedRefresh
-import com.anisync.android.presentation.library.components.BulkAddToListSheet
-import com.anisync.android.presentation.library.components.BulkPrioritySheet
 import com.anisync.android.presentation.library.components.BulkProgressDialog
 import com.anisync.android.presentation.library.components.BulkScoreSheet
 import com.anisync.android.presentation.library.components.BulkStatusSheet
@@ -120,14 +117,13 @@ import com.anisync.android.presentation.library.components.SkeletonList
 import com.anisync.android.presentation.library.components.SortIcon
 import com.anisync.android.presentation.library.components.airedCount
 import com.anisync.android.presentation.util.LIBRARY_ALL_TAB_ID
-import com.anisync.android.presentation.util.LIBRARY_FAVORITES_TAB_ID
 import com.anisync.android.presentation.util.LocalAppSettings
 import com.anisync.android.presentation.util.LocalGridColumnCount
 import com.anisync.android.presentation.util.LocalGridColumnsAuto
 import com.anisync.android.presentation.util.LocalMainNavBarInset
 import com.anisync.android.presentation.util.posterGridColumns
 import com.anisync.android.presentation.util.toLabel
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -138,15 +134,11 @@ sealed class LibraryTab {
     /** Browse-all tab showing every status list merged (#91). Lives in the tab order like the rest. */
     object All : LibraryTab()
     data class Standard(val status: LibraryStatus) : LibraryTab()
-    object Favorites : LibraryTab()
-    data class Custom(val name: String) : LibraryTab()
 
     /** Canonical identifier matching the format used in tabOrder / AppSettings. */
     fun toId(): String = when (this) {
         is All -> LIBRARY_ALL_TAB_ID
         is Standard -> "status:${status.name}"
-        is Favorites -> LIBRARY_FAVORITES_TAB_ID
-        is Custom -> name
     }
 
     @Composable
@@ -154,16 +146,8 @@ sealed class LibraryTab {
         return when (this) {
             is All -> stringResource(R.string.all)
             is Standard -> status.toLabel(mediaType)
-            is Favorites -> "Favorites"
-            is Custom -> name
         }
     }
-
-    /**
-     * Favorites come from the profile rather than the media list, so those rows carry no list entry
-     * id and no bulk mutation can address them.
-     */
-    val supportsSelection: Boolean get() = this !is Favorites
 }
 
 @OptIn(
@@ -198,22 +182,19 @@ fun LibraryScreen(
     var showListManagement by remember { mutableStateOf(false) }
     var showBulkStatus by rememberSaveable { mutableStateOf(false) }
     var showBulkScore by rememberSaveable { mutableStateOf(false) }
-    var showBulkAddToList by rememberSaveable { mutableStateOf(false) }
-    var showBulkPriority by rememberSaveable { mutableStateOf(false) }
     var editingEntry by remember { mutableStateOf<LibraryEntry?>(null) }
 
-    val tabs = remember(uiState.tabOrder, uiState.hiddenListNames, uiState.customListNames) {
+    val tabs = remember(uiState.tabOrder, uiState.hiddenListNames) {
         uiState.tabOrder.mapNotNull { id ->
             if (id in uiState.hiddenListNames) return@mapNotNull null
             when {
                 id == LIBRARY_ALL_TAB_ID -> LibraryTab.All
-                id == LIBRARY_FAVORITES_TAB_ID -> LibraryTab.Favorites
                 id.startsWith("status:") -> {
                     val statusName = id.removePrefix("status:")
                     LibraryStatus.entries.find { it.name == statusName }?.let { LibraryTab.Standard(it) }
                 }
 
-                else -> if (id in uiState.customListNames) LibraryTab.Custom(id) else null
+                else -> null
             }
         }
     }
@@ -311,8 +292,7 @@ fun LibraryScreen(
             textFieldState = textFieldState,
             isSearchQueryEmpty = isSearchQueryEmpty,
             isGridView = isGridView,
-            isNonDefaultSort = sortOption != LibrarySort.AIRING_SOON || !isAscending ||
-                !uiState.filters.isEmpty,
+            isNonDefaultSort = sortOption != LibrarySort.AIRING_SOON || !isAscending,
             isAscending = isAscending,
             showListManagement = showListManagement,
             onSearch = { keyboardController?.hide() },
@@ -330,11 +310,9 @@ fun LibraryScreen(
             overflowMenu = {
                 LibraryOverflowMenu(
                     expanded = showOverflow,
-                    showPrivateEntries = uiState.showPrivateEntries,
                     onDismiss = { showOverflow = false },
                     onOpenCalendar = onNavigateToCalendar,
                     onOpenNotes = onNavigateToNotes,
-                    onTogglePrivate = { viewModel.onAction(LibraryAction.TogglePrivateVisibility(it)) },
                     onManageLists = { showListManagement = true },
                     onCardOptions = { showViewOptions = true },
                     onRefresh = { viewModel.onAction(LibraryAction.Refresh) }
@@ -425,7 +403,7 @@ fun LibraryScreen(
                                 mediaType = mediaType,
                                 onClose = { viewModel.onAction(LibraryAction.ClearSelection) },
                                 onSelectAll = {
-                                    val ids = entriesForTab(uiState, currentTab).map { it.id }
+                                    val ids = entriesForTab(uiState, currentTab).map { it.mediaId }
                                     viewModel.onAction(LibraryAction.SelectAll(ids))
                                 }
                             )
@@ -519,11 +497,11 @@ fun LibraryScreen(
                             // crossfade, and a LazyGridState attached to two grids at once
                             // scrambles the scroll position.
                             val gridState = rememberSaveable(
-                                tabLabel, sortOption, isAscending, uiState.filters,
+                                tabLabel, sortOption, isAscending, mediaType,
                                 saver = LazyGridState.Saver
                             ) { LazyGridState() }
                             val rowState = rememberSaveable(
-                                tabLabel, sortOption, isAscending, uiState.filters,
+                                tabLabel, sortOption, isAscending, mediaType,
                                 saver = LazyGridState.Saver
                             ) { LazyGridState() }
 
@@ -537,8 +515,8 @@ fun LibraryScreen(
                                 )
                             }
 
-                            val hasQuickProgress = tab is LibraryTab.Standard &&
-                                (tab.status == LibraryStatus.CURRENT || tab.status == LibraryStatus.REPEATING)
+                            val hasQuickProgress = mediaType.hasEditableProgress &&
+                                tab is LibraryTab.Standard && tab.status == LibraryStatus.CURRENT
 
                             AnimatedContent(
                                 targetState = isGridView,
@@ -561,17 +539,17 @@ fun LibraryScreen(
                                     titleLanguage = titleLanguage,
                                     onEntryClick = { entry ->
                                         if (uiState.isSelectionMode) {
-                                            viewModel.onAction(LibraryAction.ToggleSelection(entry.id))
+                                            viewModel.onAction(LibraryAction.ToggleSelection(entry.mediaId))
                                         } else {
                                             navigateToMediaDetails(entry.mediaId)
                                         }
                                     },
                                     onEntryLongPress = { entry ->
                                         if (uiState.isSelectionMode) {
-                                            viewModel.onAction(LibraryAction.ToggleSelection(entry.id))
+                                            viewModel.onAction(LibraryAction.ToggleSelection(entry.mediaId))
                                         } else {
                                             viewModel.onAction(
-                                                LibraryAction.EnterSelection(entry.id, tabId)
+                                                LibraryAction.EnterSelection(entry.mediaId, tabId)
                                             )
                                         }
                                     },
@@ -584,7 +562,6 @@ fun LibraryScreen(
                                             coroutineScope.launch { pagerState.animateScrollToPage(index) }
                                         }
                                     },
-                                    onClearFilters = { viewModel.onAction(LibraryAction.ClearFilters) },
                                     sharedTransitionScope = sharedTransitionScope,
                                     animatedVisibilityScope = animatedVisibilityScope
                                 )
@@ -601,7 +578,6 @@ fun LibraryScreen(
                         LibraryBulkActionBar(
                             onStatus = { showBulkStatus = true },
                             onScore = { showBulkScore = true },
-                            onAddToList = { showBulkAddToList = true },
                             moreMenu = { expanded, dismiss ->
                                 LibraryBulkMoreMenu(
                                     expanded = expanded,
@@ -609,14 +585,10 @@ fun LibraryScreen(
                                     canEditSingle = uiState.selectedEntryIds.size == 1,
                                     onEditSingle = {
                                         val id = uiState.selectedEntryIds.firstOrNull()
-                                        uiState.entries.find { it.id == id }?.let { entry ->
+                                        uiState.entries.find { it.mediaId == id }?.let { entry ->
                                             viewModel.onAction(LibraryAction.ClearSelection)
                                             editingEntry = entry
                                         }
-                                    },
-                                    onSetPriority = { showBulkPriority = true },
-                                    onSetPrivate = {
-                                        viewModel.onAction(LibraryAction.BulkSetPrivate(it))
                                     },
                                     onRemove = { viewModel.onAction(LibraryAction.BulkRemove) }
                                 )
@@ -646,15 +618,9 @@ fun LibraryScreen(
         visible = showFilterSheet,
         sort = sortOption,
         isAscending = isAscending,
-        filters = uiState.filters,
-        availableGenres = uiState.availableGenres,
-        availableFormats = uiState.availableFormats,
-        availableAiringStatuses = uiState.availableAiringStatuses,
-        resultCount = entriesForTab(uiState, currentTab).size,
         onSortChange = { sort, ascending ->
             viewModel.onAction(LibraryAction.OnSortOptionChange(sort, ascending))
         },
-        onFiltersChange = { viewModel.onAction(LibraryAction.SetFilters(it)) },
         onDismiss = { showFilterSheet = false }
     )
 
@@ -678,26 +644,6 @@ fun LibraryScreen(
             viewModel.onAction(LibraryAction.BulkSetScore(score))
         },
         onDismiss = { showBulkScore = false }
-    )
-
-    BulkPrioritySheet(
-        visible = showBulkPriority,
-        count = uiState.selectedEntryIds.size,
-        onPick = { level ->
-            showBulkPriority = false
-            viewModel.onAction(LibraryAction.BulkSetPriority(level))
-        },
-        onDismiss = { showBulkPriority = false }
-    )
-
-    BulkAddToListSheet(
-        visible = showBulkAddToList,
-        lists = uiState.customListNames,
-        onPick = { name ->
-            showBulkAddToList = false
-            viewModel.onAction(LibraryAction.BulkAddToCustomList(name))
-        },
-        onDismiss = { showBulkAddToList = false }
     )
 
     uiState.bulkOperation?.let { operation ->
@@ -725,18 +671,13 @@ fun LibraryScreen(
         visible = showListManagement,
         onDismiss = { showListManagement = false },
         tabOrder = uiState.tabOrder,
-        customLists = uiState.customListNames,
         hiddenLists = uiState.hiddenListNames,
         counts = uiState.tabCounts,
         mediaType = mediaType,
         onVisibilityChanged = { name, hidden ->
             viewModel.onAction(LibraryAction.ToggleListVisibility(name, hidden))
         },
-        onReorder = { viewModel.onAction(LibraryAction.ReorderTabs(it)) },
-        onDeleteList = { viewModel.onAction(LibraryAction.DeleteCustomList(it)) },
-        onCreateList = { listName, type ->
-            viewModel.onAction(LibraryAction.CreateCustomList(listName, type))
-        }
+        onReorder = { viewModel.onAction(LibraryAction.ReorderTabs(it)) }
     )
 
     editingEntry?.let { entry ->
@@ -748,30 +689,24 @@ fun LibraryScreen(
 
         EditLibraryEntrySheet(
             entry = entry,
-            titleLanguage = titleLanguage,
-            scoreFormat = uiState.userScoreFormat,
-            availableCustomLists = uiState.customListNames,
-            advancedScoringCategories = uiState.advancedScoringCategories,
             onDismiss = { editingEntry = null },
             onSave = { updatedEntry ->
                 viewModel.onAction(LibraryAction.UpdateEntry(updatedEntry))
                 editingEntry = null
             },
             onDelete = {
-                viewModel.onAction(LibraryAction.DeleteEntry(entry.id, entry.mediaId))
+                viewModel.onAction(LibraryAction.DeleteEntry(entry))
                 editingEntry = null
             }
         )
     }
 }
 
-/** The entries a tab shows, already sorted and filtered by the ViewModel. */
+/** The entries a tab shows, already sorted by the ViewModel. */
 private fun entriesForTab(state: LibraryUiState, tab: LibraryTab?): List<LibraryEntry> = when (tab) {
     null -> emptyList()
     is LibraryTab.All -> state.entries
     is LibraryTab.Standard -> state.groupedEntries[tab.status] ?: emptyList()
-    is LibraryTab.Favorites -> state.favoriteEntries
-    is LibraryTab.Custom -> state.customListEntries[tab.name] ?: emptyList()
 }
 
 /**
@@ -797,7 +732,6 @@ private fun LibraryTabContent(
     onEdit: (LibraryEntry) -> Unit,
     onBrowseDiscover: () -> Unit,
     onGoToTab: (String) -> Unit,
-    onClearFilters: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope
 ) {
@@ -810,15 +744,8 @@ private fun LibraryTabContent(
                     LibraryEmptyState(
                         tab = tab,
                         mediaType = mediaType,
-                        // Only report filtering when the list would otherwise have something in it.
-                        filterCount = if ((uiState.unfilteredTabCounts[tab.toId()] ?: 0) > 0) {
-                            uiState.filters.activeCount
-                        } else {
-                            0
-                        },
                         onBrowseDiscover = onBrowseDiscover,
-                        onGoToTab = onGoToTab,
-                        onClearFilters = onClearFilters
+                        onGoToTab = onGoToTab
                     )
                 }
             }
@@ -826,13 +753,10 @@ private fun LibraryTabContent(
         return
     }
 
-    val groups = remember(entries, uiState.sortOption, hasQuickProgress, mediaType) {
-        buildQueueGroups(entries, uiState.sortOption, hasQuickProgress, mediaType)
+    val groups = remember(entries, uiState.sortOption, hasQuickProgress) {
+        buildQueueGroups(entries, uiState.sortOption, hasQuickProgress)
     }
     val selectionMode = uiState.isSelectionMode
-    val selectable = tab.supportsSelection
-    // Redundant under the Priority sort: the group headers already name the level.
-    val showPriority = uiState.sortOption != LibrarySort.PRIORITY
 
     LazyVerticalGrid(
         columns = if (isGrid) {
@@ -867,7 +791,7 @@ private fun LibraryTabContent(
                 key = { "${if (isGrid) "grid" else "row"}_${tab.toId()}_${it.mediaId}" },
                 contentType = { "LibraryEntry" }
             ) { entry ->
-                val selected = entry.id in uiState.selectedEntryIds
+                val selected = entry.mediaId in uiState.selectedEntryIds
                 if (isGrid) {
                     LibraryPosterCard(
                         entry = entry,
@@ -875,8 +799,7 @@ private fun LibraryTabContent(
                         titleLanguage = titleLanguage,
                         showScore = uiState.showScoreOnCards,
                         scoreFormat = uiState.userScoreFormat,
-                        showListIndicator = tab is LibraryTab.All || tab is LibraryTab.Custom,
-                        showPriority = showPriority,
+                        showListIndicator = tab is LibraryTab.All,
                         onClick = { onEntryClick(entry) },
                         onIncrement = if (hasQuickProgress) {
                             { onIncrement(entry.mediaId) }
@@ -884,11 +807,7 @@ private fun LibraryTabContent(
                             null
                         },
                         onEdit = { onEdit(entry) },
-                        onLongPress = if (selectable) {
-                            { onEntryLongPress(entry) }
-                        } else {
-                            null
-                        },
+                        onLongPress = { onEntryLongPress(entry) },
                         selectionMode = selectionMode,
                         selected = selected,
                         sharedTransitionScope = sharedTransitionScope,
@@ -900,7 +819,6 @@ private fun LibraryTabContent(
                         entry = entry,
                         mediaType = mediaType,
                         titleLanguage = titleLanguage,
-                        showPriority = showPriority,
                         onClick = { onEntryClick(entry) },
                         onIncrement = if (hasQuickProgress) {
                             { onIncrement(entry.mediaId) }
@@ -908,11 +826,7 @@ private fun LibraryTabContent(
                             null
                         },
                         onEdit = { onEdit(entry) },
-                        onLongPress = if (selectable) {
-                            { onEntryLongPress(entry) }
-                        } else {
-                            null
-                        },
+                        onLongPress = { onEntryLongPress(entry) },
                         selectionMode = selectionMode,
                         selected = selected,
                         sharedTransitionScope = sharedTransitionScope,
@@ -950,28 +864,22 @@ private fun QueueGroupHeader(title: Int, count: Int) {
 private data class QueueGroup(val title: Int?, val entries: List<LibraryEntry>)
 
 /**
- * Headers for the two sorts whose order means something you can name.
- *
- * Priority splits into its three levels, which is what makes the sort legible: without the headers
- * the list is just a re-order nothing on screen explains. Airing splits a watching list into what
- * you can watch now and what you are waiting for. Every other order gets one unheaded run, because
- * a header there would fight the order the user chose.
+ * Splits a list in progress sorted by next release into what you can catch up on now and what you
+ * are waiting for. Every other order gets one unheaded run, because a header there would fight the
+ * order the user chose.
  */
 private fun buildQueueGroups(
     entries: List<LibraryEntry>,
     sort: LibrarySort,
-    hasQuickProgress: Boolean,
-    mediaType: MediaType
+    hasQuickProgress: Boolean
 ): List<QueueGroup> {
-    if (sort == LibrarySort.PRIORITY) return buildPriorityGroups(entries)
     if (sort != LibrarySort.AIRING_SOON || !hasQuickProgress) {
         return listOf(QueueGroup(null, entries))
     }
     val ready = ArrayList<LibraryEntry>()
     val waiting = ArrayList<LibraryEntry>()
     for (entry in entries) {
-        val total = if (mediaType == MediaType.MANGA) entry.totalChapters else entry.totalEpisodes
-        val aired = airedCount(entry, total)
+        val aired = airedCount(entry, entry.maxProgress)
         if (aired != null && entry.progress < aired) ready.add(entry) else waiting.add(entry)
     }
     if (ready.isEmpty() || waiting.isEmpty()) return listOf(QueueGroup(null, entries))
@@ -979,28 +887,6 @@ private fun buildQueueGroups(
         QueueGroup(R.string.library_group_ready, ready),
         QueueGroup(R.string.library_group_waiting, waiting)
     )
-}
-
-/**
- * One run per priority level, in the order the entries already arrived in.
- *
- * The sort put them in level order, so a single pass keeps each level's own ordering (title, or
- * whatever the direction toggle asked for) intact. Empty levels emit no header, and a list that
- * lands in one level emits none at all — a lone "Low" over every row says nothing.
- */
-private fun buildPriorityGroups(entries: List<LibraryEntry>): List<QueueGroup> {
-    val byLevel = entries.groupBy { it.priorityLevel }
-    if (byLevel.size <= 1) return listOf(QueueGroup(null, entries))
-    return entries
-        .map { it.priorityLevel }
-        .distinct()
-        .map { level -> QueueGroup(level.titleRes(), byLevel.getValue(level)) }
-}
-
-private fun LibraryPriority.titleRes(): Int = when (this) {
-    LibraryPriority.HIGH -> R.string.priority_high
-    LibraryPriority.MEDIUM -> R.string.priority_medium
-    LibraryPriority.LOW -> R.string.priority_low
 }
 
 @Composable

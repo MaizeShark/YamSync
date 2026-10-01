@@ -39,6 +39,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,10 +60,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anisync.android.R
-import com.anisync.android.domain.ExternalLink
-import com.anisync.android.domain.ExternalLinkType
 import com.anisync.android.domain.LibraryStatus
-import com.anisync.android.domain.MediaDetails
+import com.anisync.android.domain.LibraryEntry
+import com.anisync.android.domain.model.ProgressUnit
+import com.anisync.android.presentation.util.progressText
 import com.anisync.android.presentation.components.iconRes
 import com.anisync.android.presentation.components.toIndicatorKind
 import com.anisync.android.presentation.util.bouncyClickable
@@ -69,7 +71,7 @@ import com.anisync.android.presentation.util.formatCountdownAdaptive
 import com.anisync.android.presentation.util.rememberHapticFeedback
 import com.anisync.android.presentation.util.toIcon
 import com.anisync.android.presentation.util.toLabel
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
 import com.anisync.android.ui.theme.listIndicatorColor
 
 /** The statuses the quick menu offers, in the order the library tabs use. */
@@ -93,19 +95,18 @@ private val QUICK_STATUSES = listOf(
  */
 @Composable
 fun TrackingCard(
-    details: MediaDetails,
+    entry: LibraryEntry?,
+    mediaType: MediaType,
+    maxProgress: Int?,
     onStatusSelect: (LibraryStatus) -> Unit,
     onProgressChange: (Int) -> Unit,
     onEditClick: () -> Unit,
     onRemoveClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isManga = details.type == MediaType.MANGA
-    val total = if (isManga) details.chapters else details.episodes
-
-    if (details.listEntryId == null) {
+    if (entry == null) {
         NotTrackedActions(
-            mediaType = details.type,
+            mediaType = mediaType,
             onStatusSelect = onStatusSelect,
             modifier = modifier
         )
@@ -113,8 +114,12 @@ fun TrackingCard(
     }
 
     val haptic = rememberHapticFeedback()
-    val progress = details.listProgress ?: 0
-    val status = details.listStatus ?: LibraryStatus.CURRENT
+    val progress = entry.progress
+    val status = entry.status
+    val total = maxProgress ?: entry.maxProgress
+    val showsProgress = mediaType.hasEditableProgress
+    // Games count minutes; a stepper moves half an hour, the same as Yamtrack's own buttons.
+    val step = if (mediaType.progressUnit == ProgressUnit.MINUTES) 30 else 1
 
     Surface(
         shape = RoundedCornerShape(dimensionResource(R.dimen.corner_radius_extra_large)),
@@ -128,32 +133,26 @@ fun TrackingCard(
             ) {
                 StatusPill(
                     status = status,
-                    mediaType = details.type,
+                    mediaType = mediaType,
                     onSelect = onStatusSelect,
                     onRemove = onRemoveClick
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = if (total != null) {
-                        stringResource(R.string.details_progress_of, progress, total)
-                    } else {
-                        stringResource(
-                            if (isManga) R.string.details_progress_read
-                            else R.string.details_progress_watched,
-                            progress
-                        )
-                    },
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                progressText(mediaType, progress, total)?.let { text ->
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_normal)))
 
-            // A determinate bar needs a denominator. Long-running series (One Piece and friends)
-            // carry no episode count on AniList, so say so rather than draw a bar against a guess.
-            if (total != null && total > 0) {
+            // A determinate bar needs a denominator. Long-running series carry no total, so they
+            // get no bar rather than one drawn against a guess.
+            if (showsProgress && total != null && total > 0 && step == 1) {
                 val animated by animateFloatAsState(
                     targetValue = (progress.toFloat() / total).coerceIn(0f, 1f),
                     label = "TrackingProgress"
@@ -167,21 +166,11 @@ fun TrackingCard(
                     color = MaterialTheme.colorScheme.primary,
                     trackColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
                 )
-            } else {
-                Text(
-                    text = stringResource(
-                        if (isManga) R.string.details_no_chapter_total
-                        else R.string.details_no_episode_total
-                    ),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_normal)))
             }
 
-            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_normal)))
-
             Row(horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))) {
-                StepperButton(
+                if (showsProgress) StepperButton(
                     icon = Icons.Default.Remove,
                     label = stringResource(R.string.a11y_action_decrement_progress),
                     container = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -189,18 +178,18 @@ fun TrackingCard(
                     enabled = progress > 0,
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        onProgressChange(progress - 1)
+                        onProgressChange((progress - step).coerceAtLeast(0))
                     }
                 )
-                StepperButton(
+                if (showsProgress) StepperButton(
                     icon = Icons.Default.Add,
                     label = stringResource(R.string.a11y_action_increment_progress),
                     container = MaterialTheme.colorScheme.primary,
                     content = MaterialTheme.colorScheme.onPrimary,
-                    enabled = total == null || progress < total,
+                    enabled = total == null || step != 1 || progress < total,
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        onProgressChange(progress + 1)
+                        onProgressChange(progress + step)
                     }
                 )
                 Surface(
@@ -502,11 +491,11 @@ private fun StepperButton(
  */
 @Composable
 fun NextEpisodeStrip(
-    details: MediaDetails,
+    episode: Int,
+    airingAtEpochSeconds: Long,
     modifier: Modifier = Modifier
 ) {
-    val airing = details.nextAiringEpisode ?: return
-    val remaining = rememberLiveCountdownSeconds(airing.airingAt, airing.timeUntilAiring)
+    val remaining = rememberLiveCountdownSeconds(airingAtEpochSeconds, 0)
     if (remaining <= 0) return
 
     Surface(
@@ -535,7 +524,7 @@ fun NextEpisodeStrip(
             Text(
                 text = stringResource(
                     R.string.details_next_episode_in,
-                    airing.episode,
+                    episode,
                     formatCountdownAdaptive(remaining)
                 ),
                 style = MaterialTheme.typography.labelLarge,
@@ -548,42 +537,23 @@ fun NextEpisodeStrip(
 }
 
 /**
- * Streaming links, above the fold. They used to be the last block of the Overview tab, which put
- * "where do I watch this" behind the whole page.
+ * Live ticker that returns seconds remaining until [airingAt] (unix seconds, absolute).
+ * Uses absolute time so the value stays accurate across cache reads and backgrounding.
+ * [fallbackSeconds] is used only if airingAt is in the past relative to device clock.
  */
 @Composable
-fun WatchOnRow(
-    externalLinks: List<ExternalLink>,
-    mediaType: MediaType?,
-    modifier: Modifier = Modifier
-) {
-    val streaming = remember(externalLinks) {
-        externalLinks.filter { it.type == ExternalLinkType.STREAMING }
+internal fun rememberLiveCountdownSeconds(airingAt: Long, fallbackSeconds: Int): Int {
+    var secs by remember(airingAt) {
+        val now = System.currentTimeMillis() / 1000
+        val initial = (airingAt - now).toInt()
+        mutableIntStateOf(if (initial > 0) initial else fallbackSeconds.coerceAtLeast(0))
     }
-    if (streaming.isEmpty()) return
-
-    Column(modifier = modifier) {
-        Text(
-            text = stringResource(
-                if (mediaType == MediaType.MANGA) R.string.subsection_reading
-                else R.string.subsection_streaming
-            ),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 0.8.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.spacing_large))
-        )
-        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_small)))
-        LazyRow(
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                horizontal = dimensionResource(R.dimen.spacing_large)
-            ),
-            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
-        ) {
-            items(streaming.size, key = { streaming[it].id }) { index ->
-                ExternalLinkChip(streaming[index])
-            }
+    LaunchedEffect(airingAt) {
+        while (secs > 0) {
+            kotlinx.coroutines.delay(1_000)
+            val now = System.currentTimeMillis() / 1000
+            secs = ((airingAt - now).coerceAtLeast(0)).toInt()
         }
     }
+    return secs
 }

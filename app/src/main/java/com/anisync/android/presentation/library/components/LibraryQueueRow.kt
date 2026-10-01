@@ -57,7 +57,6 @@ import coil.request.ImageRequest
 import com.anisync.android.R
 import com.anisync.android.data.TitleLanguage
 import com.anisync.android.domain.LibraryEntry
-import com.anisync.android.domain.LibraryPriority
 import com.anisync.android.domain.url
 import com.anisync.android.presentation.components.CoverBadgeRibbon
 import com.anisync.android.presentation.components.coverBadges
@@ -67,7 +66,7 @@ import com.anisync.android.presentation.util.bouncyClickable
 import com.anisync.android.presentation.util.bouncyCombinedClickable
 import com.anisync.android.presentation.util.formatTimeUntilAiring
 import com.anisync.android.presentation.util.rememberHapticFeedback
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
 import com.anisync.android.ui.theme.ListIndicatorKind
 import com.anisync.android.ui.theme.listIndicatorColor
 import com.anisync.android.util.getTitle
@@ -100,8 +99,6 @@ fun LibraryQueueRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     titleLanguage: TitleLanguage = TitleLanguage.ROMAJI,
-    /** Off wherever the view already states the priority, which is the Priority sort's headers. */
-    showPriority: Boolean = false,
     onIncrement: (() -> Unit)? = null,
     onEdit: (() -> Unit)? = null,
     onLongPress: (() -> Unit)? = null,
@@ -115,7 +112,7 @@ fun LibraryQueueRow(
     val haptic = rememberHapticFeedback()
 
     val title = entry.getTitle(titleLanguage)
-    val total = if (mediaType == MediaType.MANGA) entry.totalChapters else entry.totalEpisodes
+    val total = entry.maxProgress
     val aired = airedCount(entry, total)
     val animatedProgress by animateFloatAsState(
         targetValue = if ((total ?: 0) > 0) entry.progress.toFloat() / total!! else 0f,
@@ -188,7 +185,6 @@ fun LibraryQueueRow(
                 entry = entry,
                 title = title,
                 dimmed = selected,
-                priority = entry.priorityLevel.takeIf { showPriority },
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope
             )
@@ -264,7 +260,6 @@ private fun QueueCover(
     entry: LibraryEntry,
     title: String,
     dimmed: Boolean,
-    priority: LibraryPriority?,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?
 ) {
@@ -274,7 +269,7 @@ private fun QueueCover(
     val shape = RoundedCornerShape(12.dp)
     val cacheKey = TransitionKeys.imageCacheKey(TransitionKeys.LIBRARY, entry.mediaId) +
         "-" + com.anisync.android.domain.LocalCoverQuality.current.name +
-        TransitionKeys.coverVersion(entry.cover.url() ?: entry.coverUrl)
+        TransitionKeys.coverVersion(entry.coverUrl)
 
     val coverModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
         with(sharedTransitionScope) {
@@ -300,7 +295,7 @@ private fun QueueCover(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(entry.cover.url() ?: entry.coverUrl)
+                .data(entry.coverUrl)
                 .crossfade(true)
                 .placeholderMemoryCacheKey(cacheKey)
                 .memoryCacheKey(cacheKey)
@@ -312,13 +307,9 @@ private fun QueueCover(
                 .graphicsLayer { alpha = if (dimmed) 0.72f else 1f }
         )
 
-        // Spot an annotated or prioritised entry while scanning, without opening anything
-        // (#75, #131). Both marks share this corner, so they stack rather than fight for it.
+        // Spot an annotated entry while scanning, without opening anything (#75).
         CoverBadgeRibbon(
-            badges = coverBadges(
-                hasNotes = !entry.notes.isNullOrBlank(),
-                priority = priority
-            ),
+            badges = coverBadges(hasNotes = !entry.notes.isNullOrBlank()),
             modifier = Modifier.align(Alignment.TopStart)
         )
     }
@@ -340,7 +331,7 @@ private fun QueueStateLine(
 ) {
     val behind = if (aired != null && entry.progress < aired) aired - entry.progress else 0
     val ready = behind > 0
-    val countdown = entry.dynamicTimeUntilAiring
+    val countdown = entry.timeUntilNextRelease
     val nextEpisode = entry.nextAiringEpisode
 
     // "EP 13 out now" reads as a release announcement, which is wrong for anything that finished

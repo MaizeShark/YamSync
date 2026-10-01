@@ -26,11 +26,9 @@ import androidx.navigation.toRoute
 import com.anisync.android.presentation.calendar.CalendarScreen
 import com.anisync.android.presentation.notes.NotesJournalScreen
 import com.anisync.android.presentation.details.MediaDetailsScreen
-import com.anisync.android.presentation.details.MediaRelationsGridScreen
 import com.anisync.android.presentation.details.MediaThemesScreen
-import com.anisync.android.presentation.discover.DiscoverListDetail
-import com.anisync.android.presentation.discover.DiscoverScreen
-import com.anisync.android.presentation.discover.SectionGridScreen
+import com.anisync.android.presentation.home.HomeScreen
+import com.anisync.android.presentation.search.SearchScreen
 import com.anisync.android.presentation.library.LibraryListDetail
 import com.anisync.android.presentation.library.LibraryScreen
 import com.anisync.android.presentation.login.LoginScreen
@@ -61,7 +59,7 @@ import com.anisync.android.presentation.util.LocalAniLinkCallbacks
 
 private val tabOrder = mapOf(
     Library::class.qualifiedName to 0,
-    Discover::class.qualifiedName to 1,
+    Home::class.qualifiedName to 1,
     Profile::class.qualifiedName to 2
 )
 
@@ -235,7 +233,7 @@ fun AniSyncNavHost(
                     // An empty list is a dead end without this: same options the bottom bar uses,
                     // so the tab switch saves and restores state rather than stacking a screen.
                     onBrowseDiscover = {
-                        navController.navigate(Discover) {
+                        navController.navigate(Home) {
                             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
@@ -246,20 +244,20 @@ fun AniSyncNavHost(
                 )
             }
 
-            composable<Discover>(
+            composable<Home>(
                 deepLinks = listOf(
-                    navDeepLink { uriPattern = "anisync://discover" }
+                    navDeepLink { uriPattern = "anisync://home" }
                 ),
                 enterTransition = {
                     val forward = isForwardNavigation(
                         fromRoute = initialState.destination.route,
-                        toRoute = Discover::class.qualifiedName
+                        toRoute = Home::class.qualifiedName
                     )
                     sharedAxisXEnter(forward = forward)
                 },
                 exitTransition = {
                     val forward = isForwardNavigation(
-                        fromRoute = Discover::class.qualifiedName,
+                        fromRoute = Home::class.qualifiedName,
                         toRoute = targetState.destination.route
                     )
                     sharedAxisXExit(forward = forward)
@@ -267,13 +265,23 @@ fun AniSyncNavHost(
                 popEnterTransition = { sharedAxisXEnter(forward = false) },
                 popExitTransition = { sharedAxisXExit(forward = false) }
             ) {
-                DiscoverListDetail(
-                    navController = navController,
-                    // The section prefix rides through as MediaDetails.sourceScreen so the
-                    // return morph targets the exact card tapped (per-section shared keys).
-                    onMediaClickFullScreen = onMediaClick,
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
+                HomeScreen(
+                    onMediaClick = { onMediaClick(it, "home") },
+                    onSearchClick = { navController.navigate(Search) },
+                    onCalendarClick = { navController.navigate(Calendar) },
+                    onSettingsClick = { navController.navigate(Settings) }
+                )
+            }
+
+            composable<Search>(
+                enterTransition = { sharedAxisZEnter() },
+                exitTransition = { sharedAxisZExit() },
+                popEnterTransition = { sharedAxisZPopEnter() },
+                popExitTransition = { sharedAxisZPopExit() }
+            ) {
+                SearchScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onMediaClick = { navController.navigate(MediaDetails(it, "search")) }
                 )
             }
 
@@ -295,15 +303,9 @@ fun AniSyncNavHost(
                 popEnterTransition = { sharedAxisXEnter(forward = false) },
                 popExitTransition = { sharedAxisXExit(forward = false) }
             ) {
-                val onProfileMediaClick = remember(onMediaClick) {
-                    { mediaId: Int -> onMediaClick(mediaId, "profile") }
-                }
-
                 ProfileScreen(
-                    onMediaClick = onProfileMediaClick,
                     onNavigateToSettings = { navController.navigate(Settings) },
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
+                    onAddAccount = { navController.navigate(Login) }
                 )
             }
 
@@ -313,16 +315,8 @@ fun AniSyncNavHost(
             // Navigating to detail view uses scale+fade for depth perception
             composable<MediaDetails>(
                 deepLinks = listOf(
-                    // Custom app scheme (for widgets, internal links)
-                    navDeepLink<MediaDetails>(basePath = "anisync://details"),
-                    // AniList anime URLs (e.g., https://anilist.co/anime/16498)
-                    navDeepLink { uriPattern = "https://anilist.co/anime/{mediaId}" },
-                    // AniList anime URLs with slug (e.g., https://anilist.co/anime/16498/attack-on-titan)
-                    navDeepLink { uriPattern = "https://anilist.co/anime/{mediaId}/{slug}" },
-                    // AniList manga URLs (e.g., https://anilist.co/manga/30002)
-                    navDeepLink { uriPattern = "https://anilist.co/manga/{mediaId}" },
-                    // AniList manga URLs with slug (e.g., https://anilist.co/manga/30002/berserk)
-                    navDeepLink { uriPattern = "https://anilist.co/manga/{mediaId}/{slug}" }
+                    // Custom app scheme (for widgets, notifications, internal links)
+                    navDeepLink<MediaDetails>(basePath = "anisync://details")
                 ),
                 // Fade only: the shared cover/title/container morph (card → page) carries the
                 // spatial motion. A horizontal slide here competed with that morph — the page
@@ -338,60 +332,11 @@ fun AniSyncNavHost(
                     mediaId = details.mediaId,
                     sourceScreen = details.sourceScreen,
                     onBackClick = { navController.popBackStack() },
-                    onRelationClick = { relationMediaId ->
-                        navController.navigate(MediaDetails(relationMediaId, "media_details"))
-                    },
-                    onRelatedSeeAllClick = { mediaId, mediaTitle ->
-                        navController.navigate(MediaRelationsGrid(mediaId, mediaTitle))
+                    onMediaClick = { relatedId ->
+                        navController.navigate(MediaDetails(relatedId, "media_details"))
                     },
                     onThemesSeeAllClick = { mediaId, mediaTitle, totalEpisodes, coverUrl ->
                         navController.navigate(MediaThemes(mediaId, mediaTitle, totalEpisodes, coverUrl))
-                    },
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
-                )
-            }
-
-            // =================================================================
-            // SECTION GRID SCREEN - Shared Axis Z (Depth)
-            // =================================================================
-            // Grid view for "See All" uses same depth pattern as Details
-            composable<SectionGrid>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) { backStackEntry ->
-                val sectionGrid: SectionGrid = backStackEntry.toRoute()
-
-                SectionGridScreen(
-                    sectionTitle = sectionGrid.sectionTitle,
-                    sectionType = sectionGrid.sectionType,
-                    onBackClick = { navController.popBackStack() },
-                    onMediaClick = { mediaId ->
-                        navController.navigate(MediaDetails(mediaId, "sectiongrid"))
-                    },
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this
-                )
-            }
-
-            // =================================================================
-            // MEDIA RELATIONS GRID - Shared Axis Z (Depth)
-            // =================================================================
-            composable<MediaRelationsGrid>(
-                enterTransition = { sharedAxisZEnter() },
-                exitTransition = { sharedAxisZExit() },
-                popEnterTransition = { sharedAxisZPopEnter() },
-                popExitTransition = { sharedAxisZPopExit() }
-            ) { backStackEntry ->
-                val grid: MediaRelationsGrid = backStackEntry.toRoute()
-                MediaRelationsGridScreen(
-                    mediaId = grid.mediaId,
-                    mediaTitle = grid.mediaTitle,
-                    onBackClick = { navController.popBackStack() },
-                    onRelationClick = { relationMediaId ->
-                        navController.navigate(MediaDetails(relationMediaId, "relations_grid"))
                     },
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedVisibilityScope = this
@@ -521,7 +466,8 @@ fun AniSyncNavHost(
                             popUpTo(0) { inclusive = true }
                         }
                     },
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { navController.popBackStack() },
+                    onAddAccount = { navController.navigate(Login) }
                 )
             }
 

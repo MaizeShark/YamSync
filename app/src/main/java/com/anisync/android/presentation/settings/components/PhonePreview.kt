@@ -59,8 +59,8 @@ import com.anisync.android.presentation.components.CompletedCardConfig
 import com.anisync.android.presentation.components.LibraryMediaCard
 import com.anisync.android.presentation.components.WatchingCardConfig
 import com.anisync.android.presentation.util.LocalAppSettings
-import com.anisync.android.type.MediaFormat
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaKey
+import com.anisync.android.domain.model.MediaType
 import com.anisync.android.ui.theme.PreviewTheme
 import com.anisync.android.ui.theme.toAmoled
 import com.materialkolor.PaletteStyle
@@ -73,9 +73,9 @@ private val Statuses = listOf(
 )
 
 private val Formats = listOf(
-    Triple(MediaFormat.TV, "TV", Icons.Default.Tv),
-    Triple(MediaFormat.MOVIE, "Movie", Icons.Default.Movie),
-    Triple(MediaFormat.OVA, "OVA", Icons.Default.Book)
+    Triple(MediaType.TV, "TV", Icons.Default.Tv),
+    Triple(MediaType.MOVIE, "Movie", Icons.Default.Movie),
+    Triple(MediaType.BOOK, "Book", Icons.Default.Book)
 )
 
 /**
@@ -217,7 +217,7 @@ private fun ComponentPreviewContent() {
             ) { entry ->
                 LibraryMediaCard(
                     entry = entry,
-                    mediaType = entry.type ?: MediaType.ANIME,
+                    mediaType = entry.type,
                     titleLanguage = TitleLanguage.ROMAJI,
                     onClick = { },
                     modifier = Modifier.width(150.dp),
@@ -362,15 +362,15 @@ private fun PreviewFormatsCard() {
                     icon = icon,
                     label = label,
                     count = when (format) {
-                        MediaFormat.TV -> 142
-                        MediaFormat.MOVIE -> 28
-                        MediaFormat.OVA -> 15
+                        MediaType.TV -> 142
+                        MediaType.MOVIE -> 28
+                        MediaType.BOOK -> 15
                         else -> 0
                     },
                     score = when (format) {
-                        MediaFormat.TV -> "8.4"
-                        MediaFormat.MOVIE -> "7.8"
-                        MediaFormat.OVA -> "8.1"
+                        MediaType.TV -> "8.4"
+                        MediaType.MOVIE -> "7.8"
+                        MediaType.BOOK -> "8.1"
                         else -> "0.0"
                     }
                 )
@@ -452,61 +452,24 @@ private fun PreviewFormatRow(
 // MOCK DATA
 // =============================================================================
 
-private val mockLibraryEntries = listOf(
+private fun mockEntry(id: Int, title: String, seed: String, progress: Int, total: Int?, status: LibraryStatus, next: Int?, inSeconds: Long?) =
     LibraryEntry(
-        id = 1,
-        mediaId = 1,
-        titleRomaji = "Frieren: Beyond Journey's End",
-        titleEnglish = "Frieren: Beyond Journey's End",
-        titleNative = "葬送のフリーレン",
-        titleUserPreferred = "Frieren: Beyond Journey's End",
-        coverUrl = "https://api.dicebear.com/9.x/thumbs/svg?seed=frieren&backgroundColor=b6e3f4",
-        progress = 12,
-        totalEpisodes = 28,
-        totalChapters = null,
-        totalVolumes = null,
-        type = MediaType.ANIME,
-        format = MediaFormat.TV,
-        status = LibraryStatus.CURRENT,
-        nextAiringEpisode = 13,
-        timeUntilAiring = 86400
-    ),
-    LibraryEntry(
-        id = 2,
-        mediaId = 2,
-        titleRomaji = "One Piece",
-        titleEnglish = "One Piece",
-        titleNative = "ワンピース",
-        titleUserPreferred = "One Piece",
-        coverUrl = "https://api.dicebear.com/9.x/thumbs/svg?seed=onepiece&backgroundColor=ffdfbf",
-        progress = 1075,
-        totalEpisodes = null,
-        totalChapters = null,
-        totalVolumes = null,
-        type = MediaType.ANIME,
-        format = MediaFormat.TV,
-        status = LibraryStatus.CURRENT,
-        nextAiringEpisode = 1076,
-        timeUntilAiring = 172800
-    ),
-    LibraryEntry(
-        id = 3,
-        mediaId = 3,
-        titleRomaji = "Attack on Titan",
-        titleEnglish = "Attack on Titan",
-        titleNative = "進撃の巨人",
-        titleUserPreferred = "Attack on Titan",
-        coverUrl = "https://api.dicebear.com/9.x/thumbs/svg?seed=attackontitan&backgroundColor=ffdfbf",
-        progress = 88,
-        totalEpisodes = 88,
-        totalChapters = null,
-        totalVolumes = null,
-        type = MediaType.ANIME,
-        format = MediaFormat.TV,
-        status = LibraryStatus.COMPLETED,
-        nextAiringEpisode = null,
-        timeUntilAiring = null
+        id = id,
+        mediaId = id,
+        key = MediaKey("mal", MediaType.ANIME, id.toString()),
+        title = title,
+        coverUrl = "https://api.dicebear.com/9.x/thumbs/svg?seed=$seed&backgroundColor=b6e3f4",
+        progress = progress,
+        maxProgress = total,
+        status = status,
+        nextAiringEpisode = next,
+        nextAiringEpisodeTime = inSeconds?.let { System.currentTimeMillis() / 1000 + it }
     )
+
+private val mockLibraryEntries = listOf(
+    mockEntry(1, "Frieren: Beyond Journey's End", "frieren", 12, 28, LibraryStatus.CURRENT, 13, 86400),
+    mockEntry(2, "One Piece", "onepiece", 1075, null, LibraryStatus.CURRENT, 1076, 172800),
+    mockEntry(3, "Attack on Titan", "attackontitan", 88, 88, LibraryStatus.COMPLETED, null, null)
 )
 
 // =============================================================================

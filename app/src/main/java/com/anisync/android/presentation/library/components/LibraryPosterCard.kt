@@ -46,6 +46,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.anisync.android.presentation.util.formatPlayTime
+import com.anisync.android.presentation.util.label
+import com.anisync.android.presentation.util.progressText
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.anisync.android.R
@@ -66,13 +69,12 @@ import com.anisync.android.presentation.util.bouncyClickable
 import com.anisync.android.presentation.util.formatTimeUntilAiring
 import com.anisync.android.presentation.util.bouncyCombinedClickable
 import com.anisync.android.presentation.util.rememberHapticFeedback
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
 import com.anisync.android.ui.theme.ExpressiveShapes
 import com.anisync.android.ui.theme.ListIndicatorKind
 import com.anisync.android.ui.theme.StarGold
 import com.anisync.android.ui.theme.listIndicatorColor
 import com.anisync.android.util.getTitle
-import com.anisync.android.presentation.util.toLabel
 
 private const val PosterAspect = 171f / 243f
 private val ActionSize = 48.dp
@@ -96,8 +98,6 @@ fun LibraryPosterCard(
     showScore: Boolean = false,
     scoreFormat: ScoreFormat = ScoreFormat.POINT_10_DECIMAL,
     showListIndicator: Boolean = false,
-    /** Off wherever the view already states the priority, which is the Priority sort's headers. */
-    showPriority: Boolean = false,
     onIncrement: (() -> Unit)? = null,
     onEdit: (() -> Unit)? = null,
     onLongPress: (() -> Unit)? = null,
@@ -109,7 +109,7 @@ fun LibraryPosterCard(
     val spatialSpec = AppMotion.rememberSpatialSpec()
     val haptic = rememberHapticFeedback()
     val title = entry.getTitle(titleLanguage)
-    val total = if (mediaType == MediaType.MANGA) entry.totalChapters else entry.totalEpisodes
+    val total = entry.maxProgress
     val aired = airedCount(entry, total)
     // An open-ended run has progress worth drawing too; only a finished or unstarted one
     // falls back to the browsing facts.
@@ -183,7 +183,6 @@ fun LibraryPosterCard(
                 showScore = showScore,
                 scoreFormat = scoreFormat,
                 showListIndicator = showListIndicator,
-                showPriority = showPriority,
                 onIncrement = onIncrement,
                 onEdit = onEdit,
                 selectionMode = selectionMode,
@@ -228,7 +227,6 @@ private fun PosterArt(
     showScore: Boolean,
     scoreFormat: ScoreFormat,
     showListIndicator: Boolean,
-    showPriority: Boolean,
     onIncrement: (() -> Unit)?,
     onEdit: (() -> Unit)?,
     selectionMode: Boolean,
@@ -240,7 +238,7 @@ private fun PosterArt(
     val shape = ExpressiveShapes.mediaCover
     val cacheKey = TransitionKeys.imageCacheKey(TransitionKeys.LIBRARY, entry.mediaId) +
         "-" + com.anisync.android.domain.LocalCoverQuality.current.name +
-        TransitionKeys.coverVersion(entry.cover.url() ?: entry.coverUrl)
+        TransitionKeys.coverVersion(entry.coverUrl)
 
     val coverModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
         with(sharedTransitionScope) {
@@ -268,7 +266,7 @@ private fun PosterArt(
         val chipMaxWidth = (maxWidth - ActionSize - 28.dp).coerceAtLeast(0.dp)
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(entry.cover.url() ?: entry.coverUrl)
+                .data(entry.coverUrl)
                 .crossfade(true)
                 .placeholderMemoryCacheKey(cacheKey)
                 .memoryCacheKey(cacheKey)
@@ -292,10 +290,7 @@ private fun PosterArt(
             // Same corner as the tab, so only one of the two ever draws. The list tabs that show
             // the corner tab are answering "which list is this on", not "how soon".
             CoverBadgeRibbon(
-                badges = coverBadges(
-                    hasNotes = !entry.notes.isNullOrBlank(),
-                    priority = entry.priorityLevel.takeIf { showPriority }
-                ),
+                badges = coverBadges(hasNotes = !entry.notes.isNullOrBlank()),
                 iconSize = 16.dp,
                 cellPadding = 5.dp,
                 modifier = Modifier.align(Alignment.TopStart)
@@ -378,7 +373,11 @@ private fun PosterMetaRow(
                 allowTicks = false
             )
             Text(
-                text = progressLabel(entry.progress, aired, total, compact = true),
+                text = if (mediaType == MediaType.GAME) {
+                    formatPlayTime(entry.progress)
+                } else {
+                    progressLabel(entry.progress, aired, total, compact = true)
+                },
                 fontSize = 13.sp,
                 lineHeight = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -387,55 +386,19 @@ private fun PosterMetaRow(
                 maxLines = 1
             )
         } else {
-            entry.format?.let { format ->
-                Text(
-                    text = format.toLabel(),
-                    fontSize = 13.sp,
-                    lineHeight = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
-                )
-                Text(
-                    text = "·",
-                    fontSize = 13.sp,
-                    lineHeight = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            // The score is the cover badge's job. Printing it here as well drew the rating twice
-            // on any title long enough to have no progress bar.
-            run {
-                Text(
-                    // A run with no length still reports where you are in it, rather than a bare
-                    // question mark.
-                    text = if (total != null) {
-                        stringResource(
-                            if (mediaType == MediaType.MANGA) {
-                                R.string.library_chapter_count
-                            } else {
-                                R.string.library_episode_count
-                            },
-                            total
-                        )
-                    } else {
-                        stringResource(
-                            R.string.progress_format,
-                            entry.progress,
-                            stringResource(R.string.progress_unknown)
-                        )
-                    },
-                    fontSize = 13.sp,
-                    lineHeight = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1
-                )
-            }
+            Text(
+                text = listOfNotNull(
+                    mediaType.label(),
+                    progressText(mediaType, entry.progress, total)
+                ).joinToString(" · "),
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
@@ -608,7 +571,7 @@ private fun PosterStateChip(
     modifier: Modifier = Modifier
 ) {
     val behind = if (aired != null && entry.progress < aired) aired - entry.progress else 0
-    val countdown = entry.dynamicTimeUntilAiring
+    val countdown = entry.timeUntilNextRelease
     val nextEpisode = entry.nextAiringEpisode
     val label = when {
         behind > 0 -> stringResource(R.string.library_episodes_behind_short, behind)

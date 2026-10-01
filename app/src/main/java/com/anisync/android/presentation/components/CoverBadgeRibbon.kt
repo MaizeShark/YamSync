@@ -18,9 +18,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.anisync.android.R
-import com.anisync.android.domain.LibraryPriority
-import com.anisync.android.presentation.util.toIconRes
-import com.anisync.android.presentation.util.toLabel
 
 /** One cell of a [CoverBadgeRibbon]. */
 @Immutable
@@ -79,36 +76,9 @@ fun notesBadge(): CoverBadge = CoverBadge(
     contentDescription = stringResource(R.string.a11y_has_notes)
 )
 
-/**
- * The priority mark, or null for [LibraryPriority.LOW].
- *
- * Low is also what an entry that has never carried a priority reads as, so marking it would tag a
- * whole library and say nothing.
- */
-@Composable
-fun priorityBadge(priority: LibraryPriority): CoverBadge? {
-    if (priority == LibraryPriority.LOW) return null
-    val high = priority == LibraryPriority.HIGH
-    return CoverBadge(
-        icon = priority.toIconRes(),
-        container = if (high) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.secondaryContainer
-        },
-        content = if (high) {
-            MaterialTheme.colorScheme.onPrimary
-        } else {
-            MaterialTheme.colorScheme.onSecondaryContainer
-        },
-        contentDescription = stringResource(R.string.a11y_priority, priority.toLabel())
-    )
-}
-
 /** The ribbon a library cover carries, in fixed order. Empty when there is nothing to say. */
 @Composable
-fun coverBadges(hasNotes: Boolean, priority: LibraryPriority? = null): List<CoverBadge> =
+fun coverBadges(hasNotes: Boolean): List<CoverBadge> =
     buildList {
         if (hasNotes) add(notesBadge())
-        priority?.let { level -> priorityBadge(level)?.let(::add) }
     }

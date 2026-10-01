@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.anisync.android.domain.LibraryStatus
 import com.anisync.android.presentation.util.LIBRARY_ALL_TAB_ID
-import com.anisync.android.presentation.util.LIBRARY_FAVORITES_TAB_ID
 import com.anisync.android.presentation.util.toListIcon
 import com.anisync.android.ui.theme.ListIndicatorKind
 import com.anisync.android.ui.theme.listIndicatorColor
@@ -63,16 +62,14 @@ fun ListIndicatorKind.badgeShape(): Shape = when (this) {
 
 fun LibraryStatus.toIndicatorKind(): ListIndicatorKind = when (this) {
     LibraryStatus.CURRENT -> ListIndicatorKind.WATCHING
-    LibraryStatus.REPEATING -> ListIndicatorKind.REPEATING
     LibraryStatus.PLANNING -> ListIndicatorKind.PLANNING
     LibraryStatus.PAUSED -> ListIndicatorKind.PAUSED
     LibraryStatus.COMPLETED -> ListIndicatorKind.COMPLETED
     LibraryStatus.DROPPED -> ListIndicatorKind.DROPPED
-    LibraryStatus.UNKNOWN -> ListIndicatorKind.CUSTOM
 }
 
 private fun String.toIndicatorKind(): ListIndicatorKind = when {
-    this == LIBRARY_ALL_TAB_ID || this == LIBRARY_FAVORITES_TAB_ID -> ListIndicatorKind.CUSTOM
+    this == LIBRARY_ALL_TAB_ID -> ListIndicatorKind.CUSTOM
     startsWith("status:") -> LibraryStatus.entries
         .find { it.name == removePrefix("status:") }
         ?.toIndicatorKind()
@@ -84,7 +81,6 @@ private fun String.toIndicatorKind(): ListIndicatorKind = when {
 @Composable
 private fun String.badgeIcon(): ImageVector = when {
     this == LIBRARY_ALL_TAB_ID -> Icons.Default.AllInclusive
-    this == LIBRARY_FAVORITES_TAB_ID -> Icons.Default.Favorite
     startsWith("status:") -> LibraryStatus.entries
         .find { it.name == removePrefix("status:") }
         ?.toListIcon()

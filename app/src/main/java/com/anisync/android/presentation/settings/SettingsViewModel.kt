@@ -16,8 +16,6 @@ import com.anisync.android.data.NotificationPreferences
 import com.anisync.android.data.account.AccountManager
 import com.anisync.android.data.update.UpdateCheckResult
 import com.anisync.android.data.update.UpdateManager
-import com.anisync.android.domain.GetProfileUseCase
-import com.anisync.android.domain.UserProfile
 import android.os.SystemClock
 import com.anisync.android.presentation.components.alert.ToastAction
 import com.anisync.android.presentation.components.alert.ToastManager
@@ -65,25 +63,9 @@ class SettingsViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val updateManager: UpdateManager,
     private val cacheInventory: CacheInventory,
-    getProfileUseCase: GetProfileUseCase,
     private val toastManager: ToastManager,
-    private val rateLimitGate: com.anisync.android.data.network.RateLimitGate,
-    rateLimitMonitor: com.anisync.android.data.network.RateLimitMonitor,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
-
-    /** Live request budget readout for the developer screen. */
-    val rateLimitStats = rateLimitMonitor.stats
-
-    /**
-     * The pinned budget, or null when the gate is using AniList's real one.
-     *
-     * Seeded from the gate, which owns it for the life of the process. Starting at null meant
-     * leaving the developer screen and coming back showed the pin as off while the whole app was
-     * still throttled to it.
-     */
-    private val _simulatedRateLimit = MutableStateFlow(rateLimitGate.simulatedLimit)
-    val simulatedRateLimit: StateFlow<Int?> = _simulatedRateLimit.asStateFlow()
 
     private val _cacheSize = MutableStateFlow("0 B")
     private val _isCacheCleared = MutableStateFlow(false)
@@ -163,13 +145,12 @@ class SettingsViewModel @Inject constructor(
             _cacheSize,
             _isCacheCleared,
             _isCacheLoading,
-            _isCacheClearing,
-            getProfileUseCase()
-        ) { size, cleared, loading, clearing, profile ->
-            listOf(size, cleared, loading, clearing, profile)
+            _isCacheClearing
+        ) { size, cleared, loading, clearing ->
+            listOf(size, cleared, loading, clearing)
         }
     ) { lookAndFeel, themePalette, notifications, updatesAndNav, storageAndProfile ->
-        val (cacheSize, isCleared, isLoading, isClearing, profile) = storageAndProfile
+        val (cacheSize, isCleared, isLoading, isClearing) = storageAndProfile
 
         lookAndFeel.copy(
             selectedPaletteId = themePalette.paletteId,
@@ -192,7 +173,6 @@ class SettingsViewModel @Inject constructor(
             isCacheCleared = isCleared as Boolean,
             isCacheLoading = isLoading as Boolean,
             isCacheClearing = isClearing as Boolean,
-            userProfile = profile as UserProfile?,
             isLoaded = true
         )
     }
@@ -292,11 +272,6 @@ class SettingsViewModel @Inject constructor(
             SettingsAction.SendTestImminentNotification -> notificationDebugService.sendTestImminentNotification()
             SettingsAction.ClearAllNotifications -> notificationDebugService.clearAllNotifications()
             is SettingsAction.ShowTestToast -> showSampleToast(action.type)
-            is SettingsAction.SetSimulatedRateLimit -> {
-                rateLimitGate.simulatedLimit = action.limit
-                _simulatedRateLimit.value = action.limit
-            }
-
             SettingsAction.FetchLatestRelease -> fetchLatestRelease()
 
             is SettingsAction.SetFontAxis -> appSettings.updateTypographyCategory(action.category) {

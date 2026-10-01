@@ -158,19 +158,6 @@ class AniSyncApplication : Application(), Configuration.Provider, ImageLoaderFac
 
         com.anisync.android.worker.AiringScheduleWorker.enqueueImmediate(this@AniSyncApplication)
 
-        // Schedule Trending Worker
-        val trendingRequest = PeriodicWorkRequestBuilder<com.anisync.android.worker.TrendingWorker>(
-            12, TimeUnit.HOURS
-        )
-            .setConstraints(networkConstraints)
-            .build()
-
-        workManager.enqueueUniquePeriodicWork(
-            "TrendingWorker",
-            ExistingPeriodicWorkPolicy.KEEP,
-            trendingRequest
-        )
-
         // Schedule Widget Refresh
         com.anisync.android.worker.WidgetRefreshWorker.schedule(this@AniSyncApplication)
 
@@ -189,9 +176,6 @@ class AniSyncApplication : Application(), Configuration.Provider, ImageLoaderFac
             ExistingPeriodicWorkPolicy.KEEP,
             updateCheckRequest
         )
-
-        // Nothing evicts the normalized cache on its own.
-        com.anisync.android.worker.CacheMaintenanceWorker.schedule(this@AniSyncApplication)
     }
 
     /**

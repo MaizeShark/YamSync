@@ -27,16 +27,11 @@ class CalendarGroupingTest {
             episode = 1,
             airingAt = airingAt,
             mediaId = id,
-            titleRomaji = null,
-            titleEnglish = null,
-            titleNative = null,
-            titleUserPreferred = "Show $id",
+            title = "Show $id",
             coverImageUrl = null,
-            format = "TV",
-            averageScore = null,
+            format = "tv",
             isOnList = isOnList,
-            listStatus = null,
-            isAdult = false
+            listStatus = null
         )
     }
 

@@ -72,7 +72,8 @@ import com.anisync.android.presentation.util.bouncyCombinedClickable
 import com.anisync.android.presentation.util.formatEpisodesBehind
 import com.anisync.android.presentation.util.formatTimeUntilAiring
 import com.anisync.android.presentation.util.rememberHapticFeedback
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaKey
+import com.anisync.android.domain.model.MediaType
 import com.anisync.android.util.getTitle
 
 /** One line of the badge/countdown row, and the gap between two of them. */
@@ -140,9 +141,9 @@ fun LibraryMediaCard(
     val containerKey = TransitionKeys.container(TransitionKeys.LIBRARY, entry.mediaId)
     val coverKey = TransitionKeys.cover(TransitionKeys.LIBRARY, entry.mediaId)
     val titleKey = TransitionKeys.title(TransitionKeys.LIBRARY, entry.mediaId)
-    val cacheKey = (TransitionKeys.imageCacheKey(TransitionKeys.LIBRARY, entry.mediaId) + "-" + com.anisync.android.domain.LocalCoverQuality.current.name + TransitionKeys.coverVersion(entry.cover.url() ?: entry.coverUrl))
+    val cacheKey = (TransitionKeys.imageCacheKey(TransitionKeys.LIBRARY, entry.mediaId) + "-" + com.anisync.android.domain.LocalCoverQuality.current.name + TransitionKeys.coverVersion(entry.coverUrl))
 
-    val total: Int? = if (mediaType == MediaType.MANGA) entry.totalChapters else entry.totalEpisodes
+    val total: Int? = entry.maxProgress
     val progressPercent = if ((total ?: 0) > 0) entry.progress.toFloat() / total!! else 0f
     val title = entry.getTitle(titleLanguage)
 
@@ -251,7 +252,7 @@ fun LibraryMediaCard(
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(entry.cover.url() ?: entry.coverUrl)
+                        .data(entry.coverUrl)
                         .crossfade(true)
                         .placeholderMemoryCacheKey(cacheKey)
                         .memoryCacheKey(cacheKey)
@@ -311,11 +312,11 @@ fun LibraryMediaCard(
                     } else null
 
                     val airingText: String? =
-                        if (config.showAiringInfo && entry.dynamicTimeUntilAiring != null && entry.nextAiringEpisode != null) {
+                        if (config.showAiringInfo && entry.timeUntilNextRelease != null && entry.nextAiringEpisode != null) {
                             stringResource(
                                 R.string.airing_episode_in,
                                 entry.nextAiringEpisode ?: 0, // safe fallback for preview
-                                formatTimeUntilAiring(entry.dynamicTimeUntilAiring ?: 0)
+                                formatTimeUntilAiring(entry.timeUntilNextRelease ?: 0)
                             )
                         } else null
 
@@ -561,20 +562,14 @@ private fun mockEntry(
     return LibraryEntry(
         id = id,
         mediaId = id,
-        titleRomaji = title,
-        titleEnglish = title,
-        titleNative = title,
-        titleUserPreferred = title,
+        key = MediaKey("mal", MediaType.ANIME, id.toString()),
+        title = title,
         coverUrl = "", // Empty for preview
         progress = progress,
-        totalEpisodes = total, // Assuming anime for default
-        totalChapters = null,
-        totalVolumes = null,
-        type = MediaType.ANIME,
+        maxProgress = total,
         status = status,
         nextAiringEpisode = nextAiring,
-        timeUntilAiring = timeUntil,
-        // Add other required fields with dummy values if your model has them
+        nextAiringEpisodeTime = timeUntil?.let { System.currentTimeMillis() / 1000 + it }
     )
 }
 
@@ -682,7 +677,7 @@ private fun PreviewLibraryCardCompleted() {
         status = LibraryStatus.COMPLETED,
         nextAiring = null,
         timeUntil = null
-    ).copy(totalChapters = 364, totalEpisodes = null, type = MediaType.MANGA)
+    ).copy(key = MediaKey("mal", MediaType.MANGA, "2"))
 
     PreviewMediaCardTheme {
         Box(modifier = Modifier

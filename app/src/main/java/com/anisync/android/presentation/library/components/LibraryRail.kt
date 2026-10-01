@@ -19,10 +19,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AllInclusive
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -54,12 +55,13 @@ import androidx.compose.ui.unit.dp
 import com.anisync.android.R
 import com.anisync.android.domain.LibraryStatus
 import com.anisync.android.presentation.library.LibraryTab
-import com.anisync.android.presentation.components.MediaTypeToggle
 import com.anisync.android.presentation.components.MediaTypeToggleHeight
+import com.anisync.android.presentation.util.icon
+import com.anisync.android.presentation.util.pluralLabel
 import com.anisync.android.presentation.util.bouncyClickable
 import com.anisync.android.presentation.util.rememberHapticFeedback
 import com.anisync.android.presentation.util.toListIcon
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
 import com.anisync.android.ui.theme.ListIndicatorColor
 import com.anisync.android.ui.theme.ListIndicatorKind
 import com.anisync.android.ui.theme.listIndicatorColor
@@ -140,7 +142,7 @@ fun LibraryRail(
                     .padding(start = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                MediaTypeToggle(selected = mediaType, onSelect = onMediaTypeChange)
+                MediaTypePicker(selected = mediaType, onSelect = onMediaTypeChange)
             }
             Box(
                 modifier = Modifier
@@ -245,28 +247,74 @@ private fun LibraryRailChip(
 @Composable
 private fun LibraryTab.railColors(): ListIndicatorColor = when (this) {
     is LibraryTab.Standard -> listIndicatorColor(status.toIndicatorKindForRail())
-    is LibraryTab.Favorites -> ListIndicatorColor(
-        container = MaterialTheme.colorScheme.errorContainer,
-        content = MaterialTheme.colorScheme.onErrorContainer
-    )
-
-    else -> listIndicatorColor(ListIndicatorKind.CUSTOM)
+    is LibraryTab.All -> listIndicatorColor(ListIndicatorKind.CUSTOM)
 }
 
 @Composable
 private fun LibraryTab.railIcon(): ImageVector = when (this) {
     is LibraryTab.All -> Icons.Default.AllInclusive
     is LibraryTab.Standard -> status.toListIcon()
-    is LibraryTab.Favorites -> Icons.Default.Favorite
-    is LibraryTab.Custom -> Icons.AutoMirrored.Filled.List
+}
+
+/**
+ * Which library is open: a chip naming the media type, opening a menu of every type Yamtrack
+ * tracks. Nine types do not fit a segmented toggle the way anime and manga did.
+ */
+@Composable
+private fun MediaTypePicker(selected: MediaType, onSelect: (MediaType) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        Surface(
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            shape = CircleShape,
+            modifier = Modifier
+                .height(RailHeight)
+                .bouncyClickable(onClick = { expanded = true }, role = Role.DropdownList, clipShape = CircleShape)
+        ) {
+            Row(
+                modifier = Modifier.padding(start = 12.dp, end = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    imageVector = selected.icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = selected.pluralLabel(),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    maxLines = 1
+                )
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            MediaType.entries.filter { it.isTopLevel }.forEach { type ->
+                DropdownMenuItem(
+                    text = { Text(type.pluralLabel()) },
+                    leadingIcon = { Icon(type.icon, contentDescription = null) },
+                    onClick = {
+                        expanded = false
+                        if (type != selected) onSelect(type)
+                    }
+                )
+            }
+        }
+    }
 }
 
 private fun LibraryStatus.toIndicatorKindForRail(): ListIndicatorKind = when (this) {
     LibraryStatus.CURRENT -> ListIndicatorKind.WATCHING
-    LibraryStatus.REPEATING -> ListIndicatorKind.REPEATING
     LibraryStatus.PLANNING -> ListIndicatorKind.PLANNING
     LibraryStatus.PAUSED -> ListIndicatorKind.PAUSED
     LibraryStatus.COMPLETED -> ListIndicatorKind.COMPLETED
     LibraryStatus.DROPPED -> ListIndicatorKind.DROPPED
-    LibraryStatus.UNKNOWN -> ListIndicatorKind.CUSTOM
 }

@@ -8,7 +8,9 @@ import android.widget.RemoteViews
 import androidx.core.util.SizeFCompat
 import com.anisync.android.R
 import com.anisync.android.data.local.entity.LibraryEntryEntity
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.LibraryStatus
+import com.anisync.android.domain.model.MediaType
+import com.anisync.android.domain.model.ProgressUnit
 import com.anisync.android.widget.core.AniSyncWidgetProvider
 import com.anisync.android.widget.core.WidgetChips
 import com.anisync.android.widget.core.WidgetColors
@@ -25,6 +27,9 @@ import com.anisync.android.worker.LibrarySyncWorker
 
 /**
  * Watch Progress: whatever is closest to finishing, fewest episodes or chapters left first.
+ *
+ * The toggle splits the library in two: things you watch or play, and things you read (manga,
+ * books, comics). It still stores "ANIME"/"MANGA" so placed widgets keep their choice.
  *
  * Entries with no known total go last. Still worth showing, an ongoing series you are halfway
  * through is exactly what this widget is for, but you cannot rank "unknown" against a real count.
@@ -52,11 +57,16 @@ class WatchProgressWidgetProvider :
         } else {
             MediaType.ANIME
         }
-        val entries = deps.libraryDao().getInProgress(deps.activeOwnerId(), type)
+        val reading = type == MediaType.MANGA
+        val entries = deps.libraryDao().getAll(deps.activeOwnerId()).filter { entry ->
+            val entryType = MediaType.fromSlug(entry.mediaType)
+            entry.status == LibraryStatus.CURRENT && entryType != null &&
+                entryType.progressUnit != ProgressUnit.NONE && entryType.isReading == reading
+        }
 
         val rows = entries
             .map { entry ->
-                val total = if (type == MediaType.MANGA) entry.totalChapters else entry.totalEpisodes
+                val total = entry.maxProgress
                 val remaining = total?.let { (it - entry.progress).coerceAtLeast(0) }
                 Row(entry, total, remaining)
             }
@@ -67,12 +77,12 @@ class WatchProgressWidgetProvider :
                     .thenByDescending { it.entry.lastUpdated }
             )
 
-        // Nothing cached for this type usually means the tab was never opened, not that there is
-        // nothing in progress. So ask for a sync and say so instead of claiming it is empty. Deduped
-        // per type, so re-rendering does not restart the fetch.
-        val syncing = rows.isEmpty()
+        // An empty cache usually means the library was never synced, not that nothing is in
+        // progress. So ask for a sync and say so instead of claiming it is empty. Deduped, so
+        // re-rendering does not restart the fetch.
+        val syncing = deps.libraryDao().getAll(deps.activeOwnerId()).isEmpty()
         if (syncing) {
-            runCatching { LibrarySyncWorker.enqueue(context, type) }
+            runCatching { LibrarySyncWorker.enqueue(context) }
         }
 
         return Snapshot(rows, type, syncing)
@@ -224,7 +234,7 @@ class WatchProgressWidgetProvider :
             WidgetTheme.text(this, R.id.item_meta, colors.onSurfaceVariant, colors)
             WidgetTheme.text(this, R.id.item_airing, colors.onSurfaceVariant, colors)
             WidgetTheme.badge(this, R.id.item_remaining, colors.primaryContainer, colors.onPrimaryContainer, colors)
-            setTextViewText(R.id.item_title, entry.titleUserPreferred)
+            setTextViewText(R.id.item_title, entry.title)
             setTextViewText(R.id.item_remaining, remainingLabel)
             setTextViewText(R.id.item_meta, meta)
             setTextViewText(R.id.item_airing, airingLine.orEmpty())
@@ -303,7 +313,7 @@ class WatchProgressWidgetProvider :
         return if (total != null && remaining != null) {
             context.getString(
                 if (isManga) R.string.a11y_wp_card_manga else R.string.a11y_wp_card_anime,
-                entry.titleUserPreferred,
+                entry.title,
                 entry.progress,
                 total,
                 remaining
@@ -311,7 +321,7 @@ class WatchProgressWidgetProvider :
         } else {
             context.getString(
                 if (isManga) R.string.a11y_wp_card_unknown_manga else R.string.a11y_wp_card_unknown,
-                entry.titleUserPreferred,
+                entry.title,
                 entry.progress
             )
         }
@@ -327,3 +337,8 @@ class WatchProgressWidgetProvider :
         const val BAR_MAX = 1000
     }
 }
+
+/** Manga, books and comics: the widget's "read" side. */
+private val MediaType.isReading: Boolean
+    get() = progressUnit == ProgressUnit.CHAPTER || progressUnit == ProgressUnit.PAGE ||
+        progressUnit == ProgressUnit.ISSUE

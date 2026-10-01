@@ -325,83 +325,6 @@ fun DeveloperToolsScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Request budget. The live numbers are the only way to tell on a device whether the gate
-        // is pacing or merely appearing to, and the pinned limit is the only practical way to reach
-        // the refusal and 429 paths without hammering AniList to get there.
-        SettingsGroup {
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        stringResource(R.string.debug_rate_limit_section),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.tertiary
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    val stats by viewModel.rateLimitStats.collectAsStateWithLifecycle()
-                    val simulated by viewModel.simulatedRateLimit.collectAsStateWithLifecycle()
-
-                    RateLimitReadout(stats.remaining.toString() + " / " + stats.limit, R.string.debug_rate_limit_remaining)
-                    RateLimitReadout(stats.inFlight.toString(), R.string.debug_rate_limit_in_flight)
-                    RateLimitReadout(
-                        (stats.windowResetsInMs / 1000).toString() + "s",
-                        R.string.debug_rate_limit_window,
-                    )
-                    RateLimitReadout(
-                        (stats.blockedForMs / 1000).toString() + "s",
-                        R.string.debug_rate_limit_blocked,
-                    )
-                    RateLimitReadout(stats.admitted.toString(), R.string.debug_rate_limit_admitted)
-                    RateLimitReadout(stats.paced.toString(), R.string.debug_rate_limit_paced)
-                    RateLimitReadout(stats.deferred.toString(), R.string.debug_rate_limit_deferred)
-                    RateLimitReadout(stats.refused.toString(), R.string.debug_rate_limit_refused)
-                    RateLimitReadout(stats.retried.toString(), R.string.debug_rate_limit_retried)
-                    RateLimitReadout(stats.rateLimited.toString(), R.string.debug_rate_limit_429s)
-
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        stringResource(R.string.debug_rate_limit_pin),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        listOf<Int?>(null, 5, 1).forEach { limit ->
-                            val selected = simulated == limit
-                            FilledTonalButton(
-                                onClick = {
-                                    viewModel.onAction(SettingsAction.SetSimulatedRateLimit(limit))
-                                },
-                                modifier = Modifier.weight(1f),
-                                colors = if (selected) {
-                                    ButtonDefaults.filledTonalButtonColors(
-                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                                    )
-                                } else {
-                                    ButtonDefaults.filledTonalButtonColors()
-                                }
-                            ) {
-                                Text(
-                                    limit?.toString()
-                                        ?: stringResource(R.string.debug_rate_limit_pin_off)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         // Toast Debug
         SettingsGroup {
             Surface(
@@ -508,18 +431,3 @@ private fun BuildInfoRow(label: String, value: String) {
     }
 }
 
-/** One label-and-value line in the request budget readout. */
-@Composable
-private fun RateLimitReadout(value: String, @StringRes label: Int) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            stringResource(label),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(value, style = MaterialTheme.typography.bodyMedium)
-    }
-}

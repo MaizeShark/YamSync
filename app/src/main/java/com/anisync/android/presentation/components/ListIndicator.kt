@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.anisync.android.R
 import com.anisync.android.domain.LibraryStatus
 import com.anisync.android.presentation.util.toLabel
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
 import com.anisync.android.ui.theme.AppTheme
 import com.anisync.android.ui.theme.ListIndicatorKind
 import com.anisync.android.ui.theme.listIndicatorArtColor
@@ -194,12 +194,10 @@ private fun Modifier.dashedOutline(color: androidx.compose.ui.graphics.Color, sh
 /** Custom lists are the fallback: an entry with no standard status still belongs somewhere. */
 fun LibraryStatus.toIndicatorKind(): ListIndicatorKind = when (this) {
     LibraryStatus.CURRENT -> ListIndicatorKind.WATCHING
-    LibraryStatus.REPEATING -> ListIndicatorKind.REPEATING
     LibraryStatus.PLANNING -> ListIndicatorKind.PLANNING
     LibraryStatus.PAUSED -> ListIndicatorKind.PAUSED
     LibraryStatus.COMPLETED -> ListIndicatorKind.COMPLETED
     LibraryStatus.DROPPED -> ListIndicatorKind.DROPPED
-    LibraryStatus.UNKNOWN -> ListIndicatorKind.CUSTOM
 }
 
 /** The list's own glyph, shared with any surface that names a list (the details status menu). */
@@ -243,7 +241,6 @@ private fun ListIndicatorPreview() {
             ListIndicator(LibraryStatus.CURRENT, MediaType.ANIME, ListIndicatorStyle.Corner)
             ListIndicator(LibraryStatus.COMPLETED, MediaType.ANIME, ListIndicatorStyle.Overlay)
             ListIndicator(LibraryStatus.PLANNING, MediaType.ANIME, ListIndicatorStyle.Chip)
-            ListIndicator(LibraryStatus.UNKNOWN, MediaType.ANIME, ListIndicatorStyle.Chip)
         }
     }
 }

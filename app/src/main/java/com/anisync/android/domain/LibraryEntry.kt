@@ -1,128 +1,64 @@
 package com.anisync.android.domain
 
 import androidx.compose.runtime.Immutable
-import com.anisync.android.type.MediaFormat
-import com.anisync.android.type.MediaSeason
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaKey
+import com.anisync.android.domain.model.MediaType
 import kotlinx.serialization.Serializable
 
-/**
- * The three levels AniList's `MediaList.priority` is shown as.
- *
- * The API documents the field only as "Priority of planning (Min: 0, Max: 255)" — no enum, no
- * named levels, and anilist.co never renders it. 255 is the storage ceiling, not a scale, so the
- * meaning belongs to the client: 0/1/2 matches AniHyou, which is the only other client that writes
- * the field, and interop is the whole reason to agree on numbers at all.
- *
- * Reading is deliberately wider than writing. [of] folds anything at or above 2 into [HIGH] so a
- * value set elsewhere still renders, and a save only sends `priority` when the control was
- * actually touched, so a foreign 3..255 survives a round trip through this app.
- */
-enum class LibraryPriority {
-    /** Raw 0 — which is also "never set", so this level renders as nothing. */
-    LOW,
-    MEDIUM,
-    HIGH;
-
-    val raw: Int get() = ordinal
-
-    companion object {
-        fun of(raw: Int): LibraryPriority = when {
-            raw <= 0 -> LOW
-            raw == 1 -> MEDIUM
-            else -> HIGH
-        }
-    }
-}
-
+/** Yamtrack's five statuses. A rewatch is its own entry in [CURRENT], not a status of its own. */
 enum class LibraryStatus {
     CURRENT,
     PLANNING,
     COMPLETED,
     DROPPED,
-    PAUSED,
-    REPEATING,
-    UNKNOWN
+    PAUSED
 }
 
+/**
+ * One entry in the user's Yamtrack library: the newest tracking row for an item.
+ *
+ * Yamtrack keeps a rewatch as another row for the same item; the library shows the newest and counts
+ * the earlier ones in [rewatches].
+ */
 @Immutable
 @Serializable
 data class LibraryEntry(
+    /** Yamtrack's id for this row, needed to edit it. 0 until the server has confirmed the entry. */
     val id: Int,
+    /** The item's local id (see [com.anisync.android.domain.MediaKeyRegistry]); stable per item. */
     val mediaId: Int,
-    val titleRomaji: String?,
-    val titleEnglish: String?,
-    val titleNative: String?,
-    val titleUserPreferred: String,
+    val key: MediaKey,
+    val title: String,
     val coverUrl: String?,
-    val cover: CoverImage? = null,
+    /** In the type's unit: episodes, chapters, pages, plays, or minutes for games. */
     val progress: Int,
-    val totalEpisodes: Int?,
-    val totalChapters: Int?,
-    val totalVolumes: Int?,
-    val type: MediaType?,
-    val format: MediaFormat? = null,
+    /** The total in the same unit, when Yamtrack knows it. */
+    val maxProgress: Int? = null,
     val status: LibraryStatus,
-    val nextAiringEpisode: Int? = null,
-    val timeUntilAiring: Int? = null,
-    val nextAiringEpisodeTime: Long? = null, // Absolute timestamp (seconds since epoch)
-    val mediaStatus: String? = null,
-    val averageScore: Int? = null,
-    val score: Double? = 0.0,
+    /** 0–10 with one decimal place; null when unscored. */
+    val score: Double? = null,
     val startedAt: Long? = null,
     val completedAt: Long? = null,
-    val rewatches: Int = 0,
-    /** Raw AniList `MediaList.priority`. Read it through [priorityLevel] rather than directly. */
-    val priority: Int = 0,
     val notes: String? = null,
-    /**
-     * The owning user's score display format. Carried in-memory for read-only views of another
-     * user's list (profile media list, #78) so their score renders in their own format; null for
-     * the local library, where score isn't shown on cards.
-     */
-    val scoreFormat: ScoreFormat? = null,
-    val updatedAt: Long? = null,
+    /** Earlier rows for the same item: how many times it was finished before this one. */
+    val rewatches: Int = 0,
     val createdAt: Long? = null,
-    val mediaStartDate: Long? = null,
+    /** When progress last changed. */
+    val updatedAt: Long? = null,
+    /** Names of the Yamtrack lists this item is on. */
     val customLists: List<String> = emptyList(),
-    /** Media genres, used by the library filter sheet. Empty until the next library refresh. */
-    val genres: List<String> = emptyList(),
-    /**
-     * Wide banner art. Only Discover's spotlight asks for it, and AniList leaves it null for a
-     * good share of titles, so every caller has to be able to fall back to the cover.
-     */
-    val bannerUrl: String? = null,
-    /**
-     * The year the media started. An anime carries it as `seasonYear`; manga usually does not,
-     * which is why nothing may render it as required.
-     */
-    val seasonYear: Int? = null,
-    /**
-     * Release season. Anime only in practice: AniList leaves it null on almost every manga, which
-     * is what collapses Discover's upcoming/TBA split on the Manga tab.
-     */
-    val season: MediaSeason? = null,
-    val isPrivate: Boolean = false,
-    val hiddenFromStatusLists: Boolean = false,
-    /** Volumes read. Manga only, and null when the entry has never recorded one. */
-    val progressVolumes: Int? = null,
-    /**
-     * Per-category scores, keyed by the category names in the viewer's AniList advanced scoring
-     * settings. Empty when the viewer has advanced scoring off, which is the default.
-     */
-    val advancedScores: Map<String, Double> = emptyMap()
+    /** The next release from the calendar, when there is one. */
+    val nextAiringEpisode: Int? = null,
+    /** Seconds since the epoch of [nextAiringEpisode]. */
+    val nextAiringEpisodeTime: Long? = null
 ) {
-    val priorityLevel: LibraryPriority get() = LibraryPriority.of(priority)
+    val type: MediaType get() = key.type
 
-    /**
-     * Computes the dynamic time until airing based on the absolute timestamp.
-     * Returns null if no airing scheduled or already aired.
-     */
-    val dynamicTimeUntilAiring: Int?
+    /** Seconds until the next release, or null when none is scheduled or it has passed. */
+    val timeUntilNextRelease: Int?
         get() {
-            val airingTime = nextAiringEpisodeTime ?: return timeUntilAiring
-            val now = System.currentTimeMillis() / 1000
-            val remaining = (airingTime - now).toInt()
+            val airingTime = nextAiringEpisodeTime ?: return null
+            val remaining = (airingTime - System.currentTimeMillis() / 1000).toInt()
             return if (remaining > 0) remaining else null
         }
 }

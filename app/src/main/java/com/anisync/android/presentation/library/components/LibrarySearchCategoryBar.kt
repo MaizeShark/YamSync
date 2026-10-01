@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.anisync.android.presentation.util.libraryTabLabel
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
 
 /**
  * Discover-style category strip shown above library search results: a horizontally scrollable row of

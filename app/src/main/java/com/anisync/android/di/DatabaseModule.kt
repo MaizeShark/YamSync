@@ -3,10 +3,10 @@ package com.anisync.android.di
 import android.content.Context
 import androidx.room.Room
 import com.anisync.android.data.local.AppDatabase
-import com.anisync.android.data.local.Migrations
+import com.anisync.android.data.local.dao.AiringScheduleDao
 import com.anisync.android.data.local.dao.LibraryDao
-import com.anisync.android.data.local.dao.MediaDetailsDao
-import com.anisync.android.data.local.dao.UserProfileDao
+import com.anisync.android.data.local.dao.MediaItemDao
+import com.anisync.android.data.local.dao.MediaThemesDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -29,50 +29,21 @@ object DatabaseModule {
             AppDatabase::class.java,
             "anisync.db"
         )
-            .addMigrations(*Migrations.ALL_MIGRATIONS)
-            // ┌─────────────────────────────────────────────────────────────────┐
-            // │  ⚠️  DEVELOPMENT ONLY - REMOVE BEFORE PRODUCTION RELEASE  ⚠️   │
-            // ├─────────────────────────────────────────────────────────────────┤
-            // │  This allows destructive recreation when migrations are missing │
-            // │                                                                 │
-            // │  Before publishing to Play Store:                               │
-            // │  1. Remove the .fallbackToDestructiveMigration() call below     │
-            // │  2. Ensure all migrations are defined in Migrations.kt          │
-            // │  3. Test upgrade paths from version 1 to current                │
-            // │  4. Run MigrationTest.kt to verify all migrations               │
-            // └─────────────────────────────────────────────────────────────────┘
+            // Every table is a cache the next sync refills, so a schema change rebuilds the
+            // database instead of carrying migrations (see AppDatabase).
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
 
     @Provides
-    fun provideLibraryDao(database: AppDatabase): LibraryDao {
-        return database.libraryDao()
-    }
+    fun provideLibraryDao(database: AppDatabase): LibraryDao = database.libraryDao()
 
     @Provides
-    fun provideMediaDetailsDao(database: AppDatabase): MediaDetailsDao {
-        return database.mediaDetailsDao()
-    }
+    fun provideMediaItemDao(database: AppDatabase): MediaItemDao = database.mediaItemDao()
 
     @Provides
-    fun provideUserProfileDao(database: AppDatabase): UserProfileDao {
-        return database.userProfileDao()
-    }
+    fun provideAiringScheduleDao(database: AppDatabase): AiringScheduleDao = database.airingScheduleDao()
 
     @Provides
-    fun provideAiringScheduleDao(database: AppDatabase): com.anisync.android.data.local.dao.AiringScheduleDao {
-        return database.airingScheduleDao()
-    }
-
-    @Provides
-    fun provideTrendingDao(database: AppDatabase): com.anisync.android.data.local.dao.TrendingDao {
-        return database.trendingDao()
-    }
-
-
-    @Provides
-    fun provideMediaThemesDao(database: AppDatabase): com.anisync.android.data.local.dao.MediaThemesDao {
-        return database.mediaThemesDao()
-    }
+    fun provideMediaThemesDao(database: AppDatabase): MediaThemesDao = database.mediaThemesDao()
 }

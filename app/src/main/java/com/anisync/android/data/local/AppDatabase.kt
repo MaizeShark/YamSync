@@ -3,164 +3,37 @@ package com.anisync.android.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.anisync.android.data.local.dao.AiringScheduleDao
 import com.anisync.android.data.local.dao.LibraryDao
-import com.anisync.android.data.local.dao.MediaDetailsDao
-import com.anisync.android.data.local.dao.UserProfileDao
+import com.anisync.android.data.local.dao.MediaItemDao
+import com.anisync.android.data.local.dao.MediaThemesDao
 import com.anisync.android.data.local.entity.AiringScheduleEntity
 import com.anisync.android.data.local.entity.LibraryEntryEntity
-import com.anisync.android.data.local.entity.MediaDetailsEntity
+import com.anisync.android.data.local.entity.MediaItemEntity
 import com.anisync.android.data.local.entity.MediaThemesEntity
-import com.anisync.android.data.local.entity.TrendingEntity
-import com.anisync.android.data.local.entity.UserProfileEntity
 
 /**
- * Room database for offline caching.
+ * Room database for offline caching. Every table is a cache of something on the Yamtrack server
+ * (or AnimeThemes), so a schema change may rebuild the database rather than migrate it: the next
+ * sync fills it again.
  *
- * Version History:
- * ─────────────────────────────────────────────────────────────────────────────
- * v29 (Oct 2026):
- *   - Dropped saved_forum_threads and the social/favourite columns of user_profile along with
- *     those features. No migration: every table is a refetchable cache, so the destructive
- *     fallback rebuilds them.
- *
- * v28 (Sep 2026):
- *   - Added field to library_entries:
- *     • priority - raw AniList MediaList.priority, shown as Low/Medium/High and
- *       sortable. Defaults to 0, which is both "Low" and "never set" on the wire,
- *       so existing rows read correctly without a backfill. Auto-migration.
- *
- * v25 (Aug 2026):
- *   - Added fields to library_entries:
- *     • progressVolumes - volumes read, manga only, null until one is recorded
- *     • advancedScores - per-category scores as a JSON object keyed by the
- *       viewer's advanced scoring category names, '{}' when the feature is off
- *     Auto-migration, both columns default so existing rows are untouched.
- *
- * v24 (Aug 2026):
- *   - Added media_themes table for the AnimeThemes openings and endings lookup:
- *     • mediaId, themes (JSON blob), fetchedAt
- *     An empty themes list is stored deliberately, recording that AnimeThemes does
- *     not list the title so the page stops asking. Auto-migration, new table only.
- *
- * v23 (Aug 2026):
- *   - airing_schedule is now account scoped:
- *     • ownerId joined the primary key, matching library_entries since v18, so a
- *       switch no longer has to wipe the table and isWatching stops meaning
- *       whichever account was last active. Manual migration. Existing rows are
- *       carried over under ownerId -1 and claimed by the signed-in account in
- *       AccountManager.reconcileActiveAccount, so upgrading users do not stare at
- *       empty widgets while a network refresh runs.
- *
- * v19 (Jun 2026):
- *   - Added field to user_profile:
- *     • aboutMarkdown - raw markdown bio (about asHtml:false), cached next to the
- *       rendered HTML so the bio editor loads clean source instead of falling back
- *       to the asHtml-wrapped HTML (which saved corrupted markup back to AniList).
- *
- * v18 (Jun 2026):
- *   - Added field to library_entries:
- *     • ownerId - AniList user id the entry belongs to, so multiple accounts'
- *       libraries persist side by side (instant switch from cache, no bleed).
- *       Existing rows default to 0 and are re-tagged to the real id on first
- *       account reconcile.
- *
- * v17 (Jun 2026):
- *   - Added fields to media_details:
- *     • isRecommendationBlocked - hides the "add recommendation" action when true
- *     • isReviewBlocked - hides the "write review" action when true
- *
- * v16 (May 2026):
- *   - Added field to media_details:
- *     • coverColor - average cover hex color, used to tint rich-text link cards
- *       (previously only fetched on the network path, so cached media link cards
- *        rendered with no accent tint)
- *
- * v15 (May 2026):
- *   - Added fields to media_details:
- *     • popularity, favourites - AniList community stats
- *     • nextAiringTimeUntil - seconds-snapshot fallback for next episode airing
- *     • staff - lightweight staff list for media details page
- *
- * v4 (Mar 2026):
- *   - Added saved_forum_threads table for local thread bookmarks
- *     • threadId, title, authorName, authorAvatarUrl
- *     • replyCount, viewCount, likeCount
- *     • isLiked, isLocked
- *     • repliedAt, replyUserName, replyUserAvatarUrl
- *     • categories, mediaTitle, mediaCoverUrl, savedAt
- *
- * v3 (Feb 2026):
- *   - Added fields to media_details:
- *     • source - Source material (Manga, Light Novel, Original, etc.)
- *     • Tag description field for tooltip support
- *
- * v2 (Feb 2026):
- *   - Added fields to media_details:
- *     • endDate - Formatted end date string
- *     • duration - Episode duration in minutes
- *     • tags - List of content tags (themes, warnings)
- *     • trailer - Trailer info (id, site, thumbnail)
- *
- * v1 (Fresh Start - June 2025):
- *   - Initial production schema (reset from development iterations)
- *   - Tables:
- *     • library_entries - User's anime/manga library with 9 indices for sorting/filtering
- *     • media_details - Cached media details with characters, relations, external links
- *     • user_profile - User profile with stats, favorites, and activity
- *     • airing_schedule - Airing schedule items with watching status
- *     • trending_media - Trending media for home screen
- *   - TypeConverters: JSON-based serialization for complex types (Converters.kt)
- *
- * Migration Guidelines:
- *   - Auto-migrations: Use for simple changes (add columns, tables, indices)
- *   - Manual migrations: Use for complex changes (see Migrations.kt)
- *   - Always test migrations before release (see MigrationTest.kt)
- * ─────────────────────────────────────────────────────────────────────────────
+ * Version history starts over at 30 with the move from AniList to Yamtrack; versions up to 29 were
+ * the AniList client's and are dropped on upgrade.
  */
 @Database(
     entities = [
         LibraryEntryEntity::class,
-        MediaDetailsEntity::class,
-        UserProfileEntity::class,
+        MediaItemEntity::class,
         AiringScheduleEntity::class,
-        TrendingEntity::class,
         MediaThemesEntity::class
     ],
-    version = 29,
-    exportSchema = true,
-    autoMigrations = [
-        androidx.room.AutoMigration(from = 2, to = 3),
-        androidx.room.AutoMigration(from = 3, to = 4),
-        androidx.room.AutoMigration(from = 4, to = 5),
-        androidx.room.AutoMigration(from = 5, to = 7),
-        androidx.room.AutoMigration(from = 7, to = 8),
-        androidx.room.AutoMigration(from = 8, to = 9),
-        androidx.room.AutoMigration(from = 9, to = 10),
-        androidx.room.AutoMigration(from = 10, to = 11),
-        androidx.room.AutoMigration(from = 11, to = 12),
-        androidx.room.AutoMigration(from = 12, to = 13),
-        androidx.room.AutoMigration(from = 13, to = 14),
-        androidx.room.AutoMigration(from = 14, to = 15),
-        androidx.room.AutoMigration(from = 15, to = 16),
-        androidx.room.AutoMigration(from = 16, to = 17),
-        androidx.room.AutoMigration(from = 17, to = 18),
-        androidx.room.AutoMigration(from = 18, to = 19),
-        androidx.room.AutoMigration(from = 19, to = 20),
-        androidx.room.AutoMigration(from = 20, to = 21),
-        androidx.room.AutoMigration(from = 21, to = 22),
-        androidx.room.AutoMigration(from = 23, to = 24),
-        androidx.room.AutoMigration(from = 24, to = 25),
-        androidx.room.AutoMigration(from = 25, to = 26),
-        androidx.room.AutoMigration(from = 26, to = 27),
-        androidx.room.AutoMigration(from = 27, to = 28)
-    ]
+    version = 30,
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun libraryDao(): LibraryDao
-    abstract fun mediaDetailsDao(): MediaDetailsDao
-    abstract fun userProfileDao(): UserProfileDao
-    abstract fun airingScheduleDao(): com.anisync.android.data.local.dao.AiringScheduleDao
-    abstract fun trendingDao(): com.anisync.android.data.local.dao.TrendingDao
-    abstract fun mediaThemesDao(): com.anisync.android.data.local.dao.MediaThemesDao
+    abstract fun mediaItemDao(): MediaItemDao
+    abstract fun airingScheduleDao(): AiringScheduleDao
+    abstract fun mediaThemesDao(): MediaThemesDao
 }

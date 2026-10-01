@@ -1,83 +1,96 @@
 package com.anisync.android.data
 
-import com.anisync.android.AiringScheduleQuery
-import com.anisync.android.data.mapper.toDomainStatus
-import com.anisync.android.data.util.safeApiCall
+import com.anisync.android.data.local.dao.AiringScheduleDao
+import com.anisync.android.data.local.dao.LibraryDao
+import com.anisync.android.data.local.entity.AiringScheduleEntity
+import com.anisync.android.data.yamtrack.YamtrackGateway
 import com.anisync.android.domain.AiringEpisode
 import com.anisync.android.domain.CalendarRepository
+import com.anisync.android.domain.LibraryStatus
+import com.anisync.android.domain.MediaKeyRegistry
 import com.anisync.android.domain.Result
-import com.apollographql.apollo.ApolloClient
-import com.apollographql.apollo.api.Optional
-import com.apollographql.cache.normalized.FetchPolicy
-import com.apollographql.cache.normalized.fetchPolicy
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
+import javax.inject.Singleton
 
+/**
+ * Releases from the Yamtrack calendar, for every tracked type rather than only anime.
+ *
+ * A sync stores the feed (30 days back to 90 ahead) in `airing_schedule`, which the home-screen
+ * widgets read; the calendar screen reads the same rows, so it works offline between syncs.
+ */
+@Singleton
 class CalendarRepositoryImpl @Inject constructor(
-    private val apolloClient: ApolloClient,
-    private val appSettings: AppSettings
+    private val gateway: YamtrackGateway,
+    private val airingScheduleDao: AiringScheduleDao,
+    private val libraryDao: LibraryDao,
+    private val registry: MediaKeyRegistry,
 ) : CalendarRepository {
 
-    override suspend fun getWeekSchedule(
-        weekStartEpochSec: Long,
-        weekEndEpochSec: Long
-    ): Result<List<AiringEpisode>> = safeApiCall {
-        val showAdult = appSettings.showAdultContent.value
-        val episodes = mutableListOf<AiringEpisode>()
-        var page = 1
-        var hasNextPage = true
+    private val syncMutex = Mutex()
+    private var lastSyncAt = 0L
+    private var lastSyncOwner = -1
 
-        // A single week rarely exceeds a couple hundred entries; cap pages as a safety net.
-        while (hasNextPage && page <= MAX_PAGES) {
-            val response = apolloClient.query(
-                AiringScheduleQuery(
-                    page = Optional.present(page),
-                    perPage = Optional.present(PER_PAGE),
-                    airingAtGreater = Optional.present(weekStartEpochSec.toInt()),
-                    airingAtLesser = Optional.present(weekEndEpochSec.toInt())
-                )
-            )
-                .fetchPolicy(FetchPolicy.NetworkFirst)
-                .execute()
-
-            val pageData = response.data?.Page
-            val schedules = pageData?.airingSchedules?.filterNotNull().orEmpty()
-
-            schedules.forEach { schedule ->
-                val media = schedule.media ?: return@forEach
-                val scheduleId = schedule.id ?: return@forEach
-                val mediaId = media.id ?: return@forEach
-                val isAdult = media.isAdult == true
-                if (isAdult && !showAdult) return@forEach
-
-                episodes += AiringEpisode(
-                    id = scheduleId,
-                    episode = schedule.episode ?: 0,
-                    airingAt = (schedule.airingAt ?: 0).toLong(),
-                    mediaId = mediaId,
-                    titleRomaji = media.title?.romaji,
-                    titleEnglish = media.title?.english,
-                    titleNative = media.title?.native,
-                    titleUserPreferred = media.title?.userPreferred ?: "Unknown",
-                    coverImageUrl = media.coverImage?.extraLarge
-                        ?: media.coverImage?.large
-                        ?: media.coverImage?.medium,
-                    format = media.format?.rawValue,
-                    averageScore = media.averageScore,
-                    isOnList = media.mediaListEntry != null,
-                    listStatus = media.mediaListEntry?.status?.toDomainStatus(),
-                    isAdult = isAdult
-                )
+    override suspend fun sync(): Result<Unit> = syncMutex.withLock {
+        val owner = gateway.ownerId
+        if (owner < 0) return@withLock Result.Error("Not signed in")
+        when (val result = gateway.call { calendar() }) {
+            is Result.Error -> result
+            is Result.Success -> {
+                val statuses = libraryDao.getAll(owner).associate { it.mediaKey to it.status }
+                val rows = result.data.map { event ->
+                    val mediaId = event.key?.let { registry.idFor(it, event.title, event.imageUrl) } ?: 0
+                    AiringScheduleEntity(
+                        id = event.uid.ifBlank { event.summary + event.startsAt }.hashCode(),
+                        ownerId = owner,
+                        mediaId = mediaId,
+                        airingAt = event.startsAt / 1000,
+                        episode = event.contentNumber ?: 0,
+                        titleUserPreferred = event.title ?: event.summary,
+                        coverUrl = event.imageUrl,
+                        format = event.key?.type?.slug,
+                        isWatching = event.key?.let { statuses[it.asString()] } == LibraryStatus.CURRENT
+                    )
+                }
+                airingScheduleDao.clearAll(owner)
+                airingScheduleDao.insertAll(rows)
+                lastSyncAt = System.currentTimeMillis()
+                lastSyncOwner = owner
+                Result.Success(Unit)
             }
-
-            hasNextPage = pageData?.pageInfo?.hasNextPage == true
-            page++
         }
+    }
 
-        episodes.sortedBy { it.airingAt }
+    override suspend fun getWeekSchedule(weekStartEpochSec: Long, weekEndEpochSec: Long): Result<List<AiringEpisode>> {
+        val owner = gateway.ownerId
+        val stale = owner != lastSyncOwner || System.currentTimeMillis() - lastSyncAt > SYNC_INTERVAL_MS
+        if (stale) {
+            val synced = sync()
+            // Cached rows are still worth showing when the server cannot be reached.
+            if (synced is Result.Error && airingScheduleDao.getAiringBetween(owner, weekStartEpochSec, weekEndEpochSec - 1).isEmpty()) {
+                return synced
+            }
+        }
+        val statuses = libraryDao.getAll(owner).associate { it.mediaId to it.status }
+        val episodes = airingScheduleDao.getAiringBetween(owner, weekStartEpochSec, weekEndEpochSec - 1).map { row ->
+            val status = statuses[row.mediaId]
+            AiringEpisode(
+                id = row.id,
+                episode = row.episode,
+                airingAt = row.airingAt,
+                mediaId = row.mediaId,
+                title = row.titleUserPreferred,
+                coverImageUrl = row.coverUrl,
+                format = row.format,
+                isOnList = status != null,
+                listStatus = status
+            )
+        }
+        return Result.Success(episodes)
     }
 
     private companion object {
-        const val PER_PAGE = 50
-        const val MAX_PAGES = 10
+        const val SYNC_INTERVAL_MS = 30 * 60 * 1000L
     }
 }

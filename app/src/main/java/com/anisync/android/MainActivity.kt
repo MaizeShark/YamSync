@@ -67,7 +67,7 @@ import com.anisync.android.presentation.util.LocalAppSettings
 import com.anisync.android.presentation.util.LocalGridColumnCount
 import com.anisync.android.presentation.util.LocalGridColumnsAuto
 import com.anisync.android.presentation.util.rememberAdaptiveInfo
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
 import com.anisync.android.ui.theme.AppTheme
 import com.anisync.android.ui.theme.applySystemBarAppearance
 import com.anisync.android.ui.theme.PresetPalettes
@@ -178,7 +178,6 @@ class MainActivity : AppCompatActivity() {
                 )
             }
 
-            handleAuthRedirect(intent)
             routeAccountDeepLink(intent)
 
             // Upgraders already have an account, so the first-run flow has nothing to tell them.
@@ -191,11 +190,6 @@ class MainActivity : AppCompatActivity() {
                 accountManager.activeAccount.value != null
             ) {
                 appSettings.completeOnboarding()
-            }
-
-            // Resolve a migrated legacy login + claim its pre-ownerId library rows for the account.
-            lifecycleScope.launch(Dispatchers.IO) {
-                accountManager.reconcileActiveAccount()
             }
 
             lifecycleScope.launch(Dispatchers.IO) {
@@ -355,15 +349,10 @@ class MainActivity : AppCompatActivity() {
                             // (fresh NavController + ViewModels) so screens refetch the new account.
                             val sessionEpoch by accountManager.sessionEpoch.collectAsStateWithLifecycle()
 
-                            // Both libraries have to exist locally for the list indicators to be
-                            // truthful on the browsing screens, and only the anime one is fetched
-                            // by opening the Library tab.
+                            // The library has to exist locally for the status badges on search and
+                            // details to be truthful before the Library tab was ever opened.
                             LaunchedEffect(sessionEpoch, isLoggedIn) {
-                                if (isLoggedIn) {
-                                    listOf(MediaType.ANIME, MediaType.MANGA).forEach { type ->
-                                        LibrarySyncWorker.enqueueIfEmpty(this@MainActivity, type)
-                                    }
-                                }
+                                if (isLoggedIn) LibrarySyncWorker.enqueueIfEmpty(this@MainActivity)
                             }
 
                             // Signing out later returns to the plain LoginScreen — onboarding is
@@ -409,7 +398,6 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleAuthRedirect(intent)
         if (!routeAccountDeepLink(intent)) {
             _newIntents.tryEmit(intent)
         }
@@ -429,7 +417,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun routeAccountDeepLink(intent: Intent?): Boolean {
         val data = intent?.data ?: return false
-        if (data.scheme != "anisync" || data.host == "auth") return false
+        if (data.scheme != "anisync") return false
         val target = (data.getQueryParameter("account") ?: return false).toIntOrNull()
 
         val cleanedUri = stripAccountParam(data)
@@ -463,37 +451,6 @@ class MainActivity : AppCompatActivity() {
         return builder.build()
     }
 
-    private fun handleAuthRedirect(intent: Intent?) {
-        val uri = intent?.data ?: return
-        if (uri.scheme != "anisync" || uri.host != "auth") return
-
-        val fragment = uri.fragment ?: return
-        val params = parseFragment(fragment)
-        val accessToken = params["access_token"] ?: return
-        val expiresIn = params["expires_in"]?.toLongOrNull() ?: 0L
-
-        // addAccount activates the new account and bumps the session epoch; the keyed MainScreen
-        // subtree rebuilds itself, so no activity recreate is needed here.
-        lifecycleScope.launch {
-            when (accountManager.addAccount(accessToken, expiresIn)) {
-                is AccountManager.AddResult.Success -> Unit
-                AccountManager.AddResult.Failed -> {
-                    Toast.makeText(
-                        this@MainActivity,
-                        getString(R.string.account_sign_in_failed),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-        }
-    }
-
-    /** Parses an OAuth implicit-grant URL fragment (`a=1&b=2`) into a key→value map. */
-    private fun parseFragment(fragment: String): Map<String, String> =
-        fragment.split('&').mapNotNull { part ->
-            val eq = part.indexOf('=')
-            if (eq <= 0) null else part.substring(0, eq) to Uri.decode(part.substring(eq + 1))
-        }.toMap()
 }
 
 @Composable

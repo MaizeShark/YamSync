@@ -12,14 +12,14 @@ import javax.inject.Singleton
 /** The five top-level destinations, as the reselect gestures address them. */
 enum class MainTab {
     LIBRARY,
-    DISCOVER,
+    HOME,
     PROFILE;
 
     /**
      * Whether this tab owns a search bar for the second tap to open. Profile has nothing to
      * search, so it answers a second tap the way it answers the first.
      */
-    val hasSearch: Boolean get() = this == LIBRARY || this == DISCOVER
+    val hasSearch: Boolean get() = this == LIBRARY || this == HOME
 }
 
 /** A request aimed at one tab. [id] only ever grows, so a late reader can still tell it apart. */

@@ -57,12 +57,11 @@ object YamtrackParsers {
     }
 
     fun statusToYamtrack(status: LibraryStatus): String = when (status) {
-        LibraryStatus.CURRENT, LibraryStatus.REPEATING -> "In progress"
+        LibraryStatus.CURRENT -> "In progress"
         LibraryStatus.PLANNING -> "Planning"
         LibraryStatus.COMPLETED -> "Completed"
         LibraryStatus.PAUSED -> "Paused"
         LibraryStatus.DROPPED -> "Dropped"
-        LibraryStatus.UNKNOWN -> "Planning"
     }
 
     private val durationPattern = Regex("""^\s*(?:(\d+)\s*h)?\s*(?:(\d+)\s*min)?\s*$""")

@@ -10,7 +10,6 @@ import com.anisync.android.data.StreamingService
 import com.anisync.android.data.ThemeMode
 import com.anisync.android.data.TitleLanguage
 import com.anisync.android.data.update.Release
-import com.anisync.android.domain.UserProfile
 import com.anisync.android.ui.theme.TypeCategory
 import com.anisync.android.ui.theme.TypographyOverrides
 import com.materialkolor.PaletteStyle
@@ -68,7 +67,6 @@ sealed interface SettingsAction {
     data class ShowTestToast(val type: com.anisync.android.presentation.components.alert.ToastType) : SettingsAction
 
     /** Pins the request budget the gate believes it has, or null to use the real one. */
-    data class SetSimulatedRateLimit(val limit: Int?) : SettingsAction
 
     data object FetchLatestRelease : SettingsAction
 
@@ -146,7 +144,6 @@ data class SettingsUiState(
     val isCacheClearing: Boolean = false,
     
     // Profile
-    val userProfile: UserProfile? = null,
     
     // Updates
     val isAutoUpdateEnabled: Boolean = false,

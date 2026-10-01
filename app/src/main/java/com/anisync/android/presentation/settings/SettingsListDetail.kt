@@ -188,6 +188,7 @@ private fun SettingsDetailPane(
             AniListSettingsScreen(
                 onLogout = { navController.navigate(Login) { popUpTo(0) { inclusive = true } } },
                 onBackClick = popOrClose,
+                onAddAccount = { navController.navigate(Login) },
             )
         }
         composable<SettingsNotifications> { NotificationsScreen(onBackClick = popOrClose) }

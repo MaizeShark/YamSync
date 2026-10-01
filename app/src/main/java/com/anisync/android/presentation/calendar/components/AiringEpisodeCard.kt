@@ -35,17 +35,15 @@ import com.anisync.android.R
 import com.anisync.android.data.TitleLanguage
 import com.anisync.android.domain.AiringEpisode
 import com.anisync.android.domain.LibraryStatus
-import com.anisync.android.presentation.components.ScoreBadge
 import com.anisync.android.presentation.components.StatusBadge
 import com.anisync.android.presentation.util.bouncyClickable
 import com.anisync.android.presentation.util.formatTimeUntilAiring
-import com.anisync.android.util.TitleUtils
 import java.util.Date
 
 /**
  * A single airing entry in the calendar: cover thumbnail, title, episode number, the
- * local airing time, a live countdown ("in 2h" / "Aired"), the average score, and a
- * "Watching"/"Planning" chip when the media is on the viewer's list.
+ * local airing time, a live countdown ("in 2h" / "Aired"), and a "Watching"/"Planning" chip
+ * when the media is on the viewer's list.
  *
  * @param nowEpochSec current time in Unix seconds, hoisted so one ticker drives every
  *   card's countdown without each card holding its own clock.
@@ -60,13 +58,7 @@ fun AiringEpisodeCard(
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow
 ) {
     val context = LocalContext.current
-    val title = TitleUtils.getTitle(
-        titleLanguage,
-        episode.titleRomaji,
-        episode.titleEnglish,
-        episode.titleNative,
-        episode.titleUserPreferred
-    )
+    val title = episode.title
     val secondsUntil = episode.airingAt - nowEpochSec
     val hasAired = secondsUntil <= 0
 
@@ -119,18 +111,20 @@ fun AiringEpisodeCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(Modifier.height(4.dp))
-                Text(
-                    text = stringResource(R.string.calendar_episode_number, episode.episode),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (episode.episode > 0) {
+                    Text(
+                        text = stringResource(R.string.calendar_episode_number, episode.episode),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
                 val statusLabelRes = when (episode.listStatus) {
-                    LibraryStatus.CURRENT, LibraryStatus.REPEATING -> R.string.calendar_chip_watching
+                    LibraryStatus.CURRENT -> R.string.calendar_chip_watching
                     LibraryStatus.PLANNING -> R.string.calendar_chip_planning
                     else -> null
                 }
-                if (episode.averageScore != null || statusLabelRes != null) {
+                if (statusLabelRes != null) {
                     Spacer(Modifier.height(6.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -143,7 +137,6 @@ fun AiringEpisodeCard(
                                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
-                        episode.averageScore?.takeIf { it > 0 }?.let { ScoreBadge(score = it) }
                     }
                 }
             }

@@ -3,7 +3,7 @@ package com.anisync.android.presentation.components.alert
 import android.content.Context
 import android.os.SystemClock
 import com.anisync.android.R
-import com.anisync.android.data.network.findApiError
+import com.anisync.android.data.util.findApiError
 import com.anisync.android.data.util.ApiError
 import com.anisync.android.data.util.AppLocale
 import com.anisync.android.domain.Result

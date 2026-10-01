@@ -1,7 +1,5 @@
 package com.anisync.android.worker
 
-import com.anisync.android.data.network.RequestPriority
-import com.anisync.android.data.network.withRequestPriority
 import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
@@ -12,8 +10,8 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.anisync.android.data.util.ApiError
 import com.anisync.android.domain.LibraryRepository
-import com.anisync.android.type.MediaType
 import com.anisync.android.widget.core.WidgetRefresh
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -21,15 +19,10 @@ import kotlinx.coroutines.flow.first
 import com.anisync.android.domain.Result as DomainResult
 
 /**
- * Fetches one media type library, then repaints the widgets.
+ * Fetches the whole Yamtrack library, then repaints the widgets.
  *
- * Here for the manga side of Watch Progress. Widgets read Room and never the network, which is right
- * for rendering, but a type the app never opened has no rows at all: switching the widget to Manga
- * showed the empty state and the only fix was to open the app, visit the manga tab and come back.
- * Now the widget asks for a sync when it finds nothing and gets repainted once the rows land.
- *
- * The tap does not wait on this. It applies straight away against whatever Room has, this only
- * fills the gap after.
+ * Widgets read Room and never the network, so an account that never opened the library has no rows
+ * at all. The widgets ask for a sync when they find nothing and get repainted once the rows land.
  */
 @HiltWorker
 class LibrarySyncWorker @AssistedInject constructor(
@@ -38,62 +31,44 @@ class LibrarySyncWorker @AssistedInject constructor(
     private val libraryRepository: LibraryRepository
 ) : CoroutineWorker(appContext, workerParams) {
 
-    override suspend fun doWork(): Result =
-        // Every request this run makes yields to whatever the user is doing. When the
-        // budget is short the gate refuses instead of waiting, and WorkManager reruns us.
-        withRequestPriority(RequestPriority.Background) { syncLibrary() }
-
-    private suspend fun syncLibrary(): Result {
-        val type = inputData.getString(KEY_TYPE)
-            ?.let { runCatching { MediaType.valueOf(it) }.getOrNull() }
-            ?: return Result.failure()
-
-        // Callers that only want the first fill stop here once the type has rows.
+    override suspend fun doWork(): Result {
+        // Callers that only want the first fill stop here once the library has rows.
         if (inputData.getBoolean(KEY_ONLY_IF_EMPTY, false) &&
-            libraryRepository.observeLibrary("", type).first().isNotEmpty()
+            libraryRepository.observeLibrary().first().isNotEmpty()
         ) {
             return Result.success()
         }
 
-        // Empty username means resolve the signed in viewer, which the repository already does.
-        return when (libraryRepository.refreshLibrary("", type)) {
+        return when (val result = libraryRepository.refreshLibrary()) {
             is DomainResult.Success -> {
                 WidgetRefresh.all(appContext)
                 Result.success()
             }
-
-            is DomainResult.Error -> Result.retry()
+            is DomainResult.Error -> when (result.exception) {
+                is ApiError.SessionExpired, is ApiError.ParseError -> Result.failure()
+                else -> Result.retry()
+            }
         }
     }
 
     companion object {
-        private const val KEY_TYPE = "media_type"
         private const val KEY_ONLY_IF_EMPTY = "only_if_empty"
+        private const val WORK_NAME = "library_sync"
 
-        /**
-         * Fills a type that has never been synced on this account, and does nothing otherwise.
-         *
-         * The list indicators on the browsing screens read Room, so a manga list the user never
-         * opened would leave every manga card looking like it is not tracked.
-         */
-        fun enqueueIfEmpty(context: Context, type: MediaType) {
-            enqueue(context, type, onlyIfEmpty = true)
+        /** Fills a library that has never been synced on this account, and does nothing otherwise. */
+        fun enqueueIfEmpty(context: Context) {
+            enqueue(context, onlyIfEmpty = true)
         }
 
         /**
-         * Asks for a sync of [type], one in flight per type at most.
+         * Asks for a library sync, one in flight at most.
          *
          * KEEP not REPLACE: the widget asks on every render while the list is empty, and replacing
          * would restart the fetch each time and never finish it.
          */
-        fun enqueue(context: Context, type: MediaType, onlyIfEmpty: Boolean = false) {
+        fun enqueue(context: Context, onlyIfEmpty: Boolean = false) {
             val request = OneTimeWorkRequestBuilder<LibrarySyncWorker>()
-                .setInputData(
-                    Data.Builder()
-                        .putString(KEY_TYPE, type.rawValue)
-                        .putBoolean(KEY_ONLY_IF_EMPTY, onlyIfEmpty)
-                        .build()
-                )
+                .setInputData(Data.Builder().putBoolean(KEY_ONLY_IF_EMPTY, onlyIfEmpty).build())
                 .setConstraints(
                     Constraints.Builder()
                         .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -102,7 +77,7 @@ class LibrarySyncWorker @AssistedInject constructor(
                 .build()
 
             WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
-                "library_sync_${type.rawValue}",
+                WORK_NAME,
                 ExistingWorkPolicy.KEEP,
                 request
             )

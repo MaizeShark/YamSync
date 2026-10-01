@@ -1,256 +1,89 @@
 package com.anisync.android.domain
 
-import com.anisync.android.type.MediaType
-import kotlinx.serialization.Serializable
+import androidx.compose.runtime.Immutable
+import com.anisync.android.domain.model.MediaKey
+import com.anisync.android.domain.model.MediaType
 
-/**
- * Type of external link.
- */
-enum class ExternalLinkType {
-    STREAMING,
-    SOCIAL,
-    INFO
+/** An item as a card: search results, related titles, a show's seasons. */
+@Immutable
+data class MediaCard(
+    /** Local id (see [MediaKeyRegistry]). */
+    val mediaId: Int,
+    val key: MediaKey,
+    val title: String,
+    val imageUrl: String?
+) {
+    val type: MediaType get() = key.type
 }
 
-/**
- * Represents an external link to a streaming service or other resource.
- */
-@Serializable
-data class ExternalLink(
-    val id: Int,
-    val url: String?,
-    val site: String,
-    val type: ExternalLinkType?,
-    val color: String?,   // Hex color (e.g., "#E50914" for Netflix)
-    val icon: String?,    // URL to 64x64 PNG icon
-    val language: String?,
-    val notes: String? = null
+@Immutable
+data class MediaSearchPage(
+    val page: Int,
+    val totalPages: Int,
+    val totalResults: Int?,
+    val results: List<MediaCard>
+) {
+    val hasNextPage: Boolean get() = page < totalPages
+}
+
+@Immutable
+data class CastMember(val name: String, val role: String?, val imageUrl: String?)
+
+@Immutable
+data class RelatedGroup(val title: String, val items: List<MediaCard>)
+
+@Immutable
+data class EpisodeInfo(
+    val number: Int,
+    val title: String?,
+    val airDate: String?,
+    val runtime: String?,
+    val imageUrl: String?,
+    val overview: String?,
+    /** How often the user watched it; 0 when never. */
+    val watchCount: Int
 )
 
-/**
- * Represents a content tag for themes, warnings, etc.
- */
-@Serializable
-data class Tag(
-    val name: String,
-    val category: String,
-    val description: String? = null,
-    val isMediaSpoiler: Boolean,
-    val isGeneralSpoiler: Boolean,
-    val rank: Int?
-)
+@Immutable
+data class StreamingProvider(val name: String, val logoUrl: String?)
 
-/**
- * Represents a media trailer (typically from YouTube).
- */
-@Serializable
-data class Trailer(
-    val id: String?,
-    val site: String?,
-    val thumbnail: String?
-)
-
+/** A details page as Yamtrack shows it: the provider's metadata for one item. */
+@Immutable
 data class MediaDetails(
-    val id: Int,
-    val titleRomaji: String?,
-    val titleEnglish: String?,
-    val titleNative: String?,
-    val titleUserPreferred: String,
-    val coverUrl: String?,
-    val cover: CoverImage? = null,
-    /** Average cover color as a `#RRGGBB` hex string; used to tint link-preview cards. */
-    val coverColor: String? = null,
-    val bannerUrl: String?,
-    val description: String,
-    val score: Int?,
-    val meanScore: Int? = null,
-    val popularity: Int? = null,
-    val favourites: Int? = null,
-    val episodes: Int?,
-    val nextAiringEpisode: NextAiringEpisode? = null,
-    val chapters: Int?,
-    val volumes: Int?,
-    val type: MediaType?,
-    val status: String,
-    val format: String?,
+    val mediaId: Int,
+    val key: MediaKey,
+    /** The item's title; for a season, the show's. */
+    val title: String,
+    /** For a season, its own title ("Season 1"). */
+    val subtitle: String?,
+    val imageUrl: String?,
+    val synopsis: String?,
     val genres: List<String>,
-    val synonyms: List<String> = emptyList(),
-    val hashtags: List<String> = emptyList(),
-    /** Community rankings ("#1 Highest Rated All Time", …) from `Media.rankings`. */
-    val rankings: List<MediaRanking> = emptyList(),
-    val source: String?,
-    val studio: StudioRef?,
-    /** Main animation studios (isMain = true on the AniList studio edge). */
-    val studios: List<StudioRef> = emptyList(),
-    /** Non-main studios — producers, distributors, etc. (isMain = false). */
-    val producers: List<StudioRef> = emptyList(),
-    val year: Int?,
-    val startDate: String?,
-    val endDate: String?,
-    val season: String?,
-    val seasonYear: Int?,
-    val duration: Int?, // Episode duration in minutes
-    val tags: List<Tag>,
-    val trailer: Trailer?,
-    // User's list entry (null if not in user's list)
-    val listEntryId: Int?,
-    val listStatus: LibraryStatus?,
-    val listProgress: Int?,
-    /** The viewer's private freeform note on this entry (null/blank if none). */
-    val listNotes: String? = null,
-    val listEntryPrivate: Boolean? = null,
-    val listEntryHiddenFromStatusLists: Boolean? = null,
-    // Characters
-    val characters: List<CharacterInfo>,
-    // Staff
-    val staff: List<StaffInfo> = emptyList(),
-    // Related media
-    val relations: List<RelatedMedia>,
-    // External and streaming links
-    val externalLinks: List<ExternalLink>,
-    // Recommendations
-    val recommendations: List<RecommendedMedia> = emptyList(),
-    // Reviews
-    val reviews: List<MediaReview> = emptyList(),
-    // Whether this media is in user's favorites
-    val isFavourite: Boolean = false,
-    // Whether this media is blocked from being recommended to/from (null = unknown)
-    val isRecommendationBlocked: Boolean? = null,
-    // Whether this media is blocked from being reviewed (null = unknown)
-    val isReviewBlocked: Boolean? = null
-)
-
-@Serializable
-data class StudioRef(
-    val id: Int,
-    val name: String
-)
-
-@Serializable
-data class CharacterInfo(
-    val id: Int,
-    val nameFull: String,
-    val nameNative: String?,
-    val nameUserPreferred: String,
-    val imageUrl: String?,
-    val role: String,
-    /**
-     * Voice actors for this character across all languages (empty for the cached
-     * preview list, populated by the paged [GetMediaCharacters] fetch). The Characters
-     * tab groups these by [VoiceActor.language] to drive the language filter (#83 follow-up).
-     */
-    val voiceActors: List<VoiceActor> = emptyList()
-)
-
-@Serializable
-data class VoiceActor(
-    val id: Int,
-    val nameFull: String,
-    val nameNative: String?,
-    val nameUserPreferred: String,
-    val imageUrl: String?,
-    val language: String?
-)
-
-@Serializable
-data class NextAiringEpisode(
-    val episode: Int,
-    val airingAt: Long,         // unix seconds, absolute — survives cache reads
-    val timeUntilAiring: Int    // seconds, snapshot at fetch time (fallback only)
-)
-
-/**
- * Episodes to measure a theme's coverage against.
- *
- * AniList leaves [MediaDetails.episodes] null for a show that is still airing, which would
- * cost every long-running series its episode bar. How many have aired is still knowable:
- * the next episode number, minus the one that has not arrived. The denominator grows week
- * to week, which is honest rather than misleading, and the scale label says what it used.
- */
-val MediaDetails.coverageEpisodeCount: Int?
-    get() = coverageEpisodeCount(episodes, nextAiringEpisode?.episode)
-
-/** The rule behind [coverageEpisodeCount], kept separate so it can be tested on its own. */
-fun coverageEpisodeCount(episodes: Int?, nextAiringEpisode: Int?): Int? =
-    episodes ?: nextAiringEpisode?.minus(1)?.takeIf { it > 0 }
-
-@Serializable
-data class StaffInfo(
-    val id: Int,
-    val nameFull: String,
-    val nameNative: String?,
-    val nameUserPreferred: String,
-    val imageUrl: String?,
-    val role: String,
-    val primaryOccupations: List<String> = emptyList()
-)
-
-@Serializable
-data class RelatedMedia(
-    val id: Int,
-    val titleRomaji: String?,
-    val titleEnglish: String?,
-    val titleNative: String?,
-    val titleUserPreferred: String,
-    val coverUrl: String?,
-    val cover: CoverImage? = null,
-    val format: String?,
-    val status: String?,
-    val relationType: String
-)
-
-/**
- * Represents a recommended media item from the AniList recommendations system.
- */
-@Serializable
-data class RecommendedMedia(
-    val id: Int,
-    val titleRomaji: String?,
-    val titleEnglish: String?,
-    val titleNative: String?,
-    val titleUserPreferred: String,
-    val coverUrl: String?,
-    val cover: CoverImage? = null,
-    val format: String?,
-    val score: Int?,
-    val rating: Int, // Community recommendation rating
-    val userRating: String? = null // "RATE_UP", "RATE_DOWN", or "NO_RATING"/null
-)
-
-/**
- * Represents a followed user's list entry for a given media.
- */
-@Serializable
-data class MediaFollowingEntry(
-    val userId: Int,
-    val userName: String,
-    val userAvatarUrl: String?,
-    val status: LibraryStatus,
+    /** The provider's community score, 0–10. */
     val score: Double?,
-    val progress: Int?,
-    val scoreFormat: ScoreFormat? = null,
-    /** The user's freeform note on this entry, read-only. Null/blank when they left none (#78). */
-    val notes: String? = null
-)
+    val scoreCount: Int?,
+    /** The provider's facts in page order, e.g. "Episodes" to ["28"]. */
+    val info: List<Pair<String, List<String>>>,
+    val sourceUrl: String?,
+    val externalLinks: List<Pair<String, String>>,
+    val cast: List<CastMember>,
+    val related: List<RelatedGroup>,
+    /** A show's seasons. */
+    val seasons: List<MediaCard>,
+    /** A season's episodes. */
+    val episodes: List<EpisodeInfo>,
+    val streamingProviders: List<StreamingProvider>,
+    /** The total in the type's unit (episodes, chapters, pages…), when the page states it. */
+    val maxProgress: Int?
+) {
+    val type: MediaType get() = key.type
+}
 
-/**
- * Represents a user review for a media.
- */
-@Serializable
-data class MediaReview(
-    val id: Int,
-    val summary: String,
-    val body: String? = null,
-    val score: Int,
-    val rating: Int,        // Upvotes
-    val ratingAmount: Int,  // Total votes
-    val userRating: String? = null,
-    val userName: String,
-    val userAvatarUrl: String?,
-    val createdAt: Long,    // Unix timestamp
-    val mediaId: Int? = null,
-    val mediaTitle: String? = null,
-    val mediaCoverUrl: String? = null,
-    val mediaCover: CoverImage? = null,
-    val mediaBannerUrl: String? = null
-)
+interface MediaRepository {
+    suspend fun details(mediaId: Int): Result<MediaDetails>
+
+    suspend fun search(type: MediaType, query: String, source: String? = null, page: Int = 1): Result<MediaSearchPage>
+
+    /** Records a watch of one episode of a season (or of a show, by season number). */
+    suspend fun markEpisodeWatched(seasonMediaId: Int, episodeNumber: Int): Result<Unit>
+}

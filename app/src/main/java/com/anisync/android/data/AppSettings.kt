@@ -11,7 +11,7 @@ import com.anisync.android.R
 import com.anisync.android.data.AppSettings.Companion.MAX_GRID_COLUMNS
 import com.anisync.android.data.AppSettings.Companion.MIN_GRID_COLUMNS
 import com.anisync.android.domain.ScoreFormat
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
 import com.anisync.android.ui.theme.FontAxisOverrides
 import com.anisync.android.ui.theme.TypeCategory
 import com.anisync.android.ui.theme.TypographyOverrides
@@ -58,15 +58,6 @@ fun ThemeMode.toNightMode(): Int = when (this) {
 }
 
 /**
- * Layout mode used by the discover search results overlay. Persisted so the
- * user's preferred density (rows vs grid of posters) survives app restarts.
- */
-enum class DiscoverViewMode {
-    LIST,
-    GRID
-}
-
-/**
  * Which tab a cold launch opens on.
  *
  * [LAST_VISITED] is the behaviour the app has always had and stays the default; the rest pin the
@@ -76,7 +67,7 @@ enum class DiscoverViewMode {
 enum class StartScreen(val tabKey: String?) {
     LAST_VISITED(null),
     LIBRARY("library"),
-    DISCOVER("discover")
+    HOME("home")
 }
 
 /**
@@ -332,101 +323,33 @@ class AppSettings @Inject constructor(
     private val _allowPrerelease = MutableStateFlow(prefs.getBoolean(KEY_ALLOW_PRERELEASE, false))
     val allowPrerelease: StateFlow<Boolean> = _allowPrerelease.asStateFlow()
 
-    // Library Custom Lists settings separated by media type
-    private val _animeListOrder = MutableStateFlow(
-        prefs.getString(KEY_ANIME_LIST_ORDER, "")?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
+    // The library's tab order. Yamtrack's statuses are the same for every media type, so one
+    // order serves all of them.
+    private val _libraryListOrder = MutableStateFlow(readCsv(KEY_LIBRARY_LIST_ORDER))
+    val libraryListOrder: StateFlow<List<String>> = _libraryListOrder.asStateFlow()
+
+    private val _hiddenLibraryLists = MutableStateFlow(
+        prefs.getStringSet(KEY_HIDDEN_LIBRARY_LISTS, emptySet()) ?: emptySet()
     )
-    val animeListOrder: StateFlow<List<String>> = _animeListOrder.asStateFlow()
-
-    private val _mangaListOrder = MutableStateFlow(
-        prefs.getString(KEY_MANGA_LIST_ORDER, "")?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
-    )
-    val mangaListOrder: StateFlow<List<String>> = _mangaListOrder.asStateFlow()
-
-    /**
-     * The viewer's advanced scoring categories, in AniList's order. The order is what the save
-     * mutation sends scores in, so it is persisted as JSON rather than joined on a separator a
-     * category name could contain.
-     */
-    private val _animeAdvancedScoring = MutableStateFlow(readStringList(KEY_ANIME_ADVANCED_SCORING))
-    val animeAdvancedScoring: StateFlow<List<String>> = _animeAdvancedScoring.asStateFlow()
-
-    private val _mangaAdvancedScoring = MutableStateFlow(readStringList(KEY_MANGA_ADVANCED_SCORING))
-    val mangaAdvancedScoring: StateFlow<List<String>> = _mangaAdvancedScoring.asStateFlow()
-
-    private val _animeAdvancedScoringEnabled = MutableStateFlow(prefs.getBoolean(KEY_ANIME_ADVANCED_SCORING_ENABLED, false))
-    val animeAdvancedScoringEnabled: StateFlow<Boolean> = _animeAdvancedScoringEnabled.asStateFlow()
-
-    private val _mangaAdvancedScoringEnabled = MutableStateFlow(prefs.getBoolean(KEY_MANGA_ADVANCED_SCORING_ENABLED, false))
-    val mangaAdvancedScoringEnabled: StateFlow<Boolean> = _mangaAdvancedScoringEnabled.asStateFlow()
-
-    private val _hiddenAnimeLists = MutableStateFlow(
-        prefs.getStringSet(KEY_HIDDEN_ANIME_LISTS, emptySet()) ?: emptySet()
-    )
-    val hiddenAnimeLists: StateFlow<Set<String>> = _hiddenAnimeLists.asStateFlow()
-
-    private val _hiddenMangaLists = MutableStateFlow(
-        prefs.getStringSet(KEY_HIDDEN_MANGA_LISTS, emptySet()) ?: emptySet()
-    )
-    val hiddenMangaLists: StateFlow<Set<String>> = _hiddenMangaLists.asStateFlow()
+    val hiddenLibraryLists: StateFlow<Set<String>> = _hiddenLibraryLists.asStateFlow()
 
     private val _showPrivateEntries = MutableStateFlow(
         prefs.getBoolean(KEY_SHOW_PRIVATE_ENTRIES, true)
     )
     val showPrivateEntries: StateFlow<Boolean> = _showPrivateEntries.asStateFlow()
 
-    // Effective "show adult content" flag, followed by search + the activity feed. Mirrored from the
-    // local-first options state (UserOptions.displayAdultContent); see UserOptionsRepositoryImpl.
+    // Whether themes flagged as adult (AnimeThemes' NSFW marker) are shown.
     private val _showAdultContent = MutableStateFlow(
         prefs.getBoolean(KEY_SHOW_ADULT_CONTENT, false)
     )
     val showAdultContent: StateFlow<Boolean> = _showAdultContent.asStateFlow()
 
-    /**
-     * Discover's rail order, per media type. The two tabs do not carry the same set (the airing
-     * timeline is anime only, Releasing now is manga only), so one shared order could not describe
-     * both. Stored as ids joined on a comma; [com.anisync.android.domain.DiscoverSection] repairs
-     * the list against the current build on read.
-     */
-    private val _discoverAnimeSectionOrder = MutableStateFlow(readCsv(KEY_DISCOVER_ANIME_SECTIONS))
-    val discoverAnimeSectionOrder: StateFlow<List<String>> = _discoverAnimeSectionOrder.asStateFlow()
-
-    private val _discoverMangaSectionOrder = MutableStateFlow(readCsv(KEY_DISCOVER_MANGA_SECTIONS))
-    val discoverMangaSectionOrder: StateFlow<List<String>> = _discoverMangaSectionOrder.asStateFlow()
-
-    /** Rails the viewer switched off, per media type. */
-    private val _hiddenDiscoverAnimeSections = MutableStateFlow(
-        prefs.getStringSet(KEY_DISCOVER_ANIME_HIDDEN, emptySet()) ?: emptySet()
-    )
-    val hiddenDiscoverAnimeSections: StateFlow<Set<String>> =
-        _hiddenDiscoverAnimeSections.asStateFlow()
-
-    private val _hiddenDiscoverMangaSections = MutableStateFlow(
-        prefs.getStringSet(KEY_DISCOVER_MANGA_HIDDEN, emptySet()) ?: emptySet()
-    )
-    val hiddenDiscoverMangaSections: StateFlow<Set<String>> =
-        _hiddenDiscoverMangaSections.asStateFlow()
-
     private fun readCsv(key: String): List<String> =
         prefs.getString(key, "")?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
 
-    private val _discoverSearchViewMode = MutableStateFlow(
-        DiscoverViewMode.entries.getOrElse(
-            prefs.getInt(KEY_DISCOVER_SEARCH_VIEW_MODE, DiscoverViewMode.LIST.ordinal)
-        ) { DiscoverViewMode.LIST }
-    )
-    val discoverSearchViewMode: StateFlow<DiscoverViewMode> = _discoverSearchViewMode.asStateFlow()
-
-    // Last selected library tab (per media type)
-    private val _lastSelectedAnimeTab = MutableStateFlow(
-        prefs.getString(KEY_LAST_SELECTED_ANIME_TAB, null)
-    )
-    val lastSelectedAnimeTab: StateFlow<String?> = _lastSelectedAnimeTab.asStateFlow()
-
-    private val _lastSelectedMangaTab = MutableStateFlow(
-        prefs.getString(KEY_LAST_SELECTED_MANGA_TAB, null)
-    )
-    val lastSelectedMangaTab: StateFlow<String?> = _lastSelectedMangaTab.asStateFlow()
+    // Last selected library tab.
+    private val _lastSelectedLibraryTab = MutableStateFlow(prefs.getString(KEY_LAST_SELECTED_LIBRARY_TAB, null))
+    val lastSelectedLibraryTab: StateFlow<String?> = _lastSelectedLibraryTab.asStateFlow()
 
     // Library view density: grid of posters (true) vs single-column list (false). One choice for the
     // whole screen — switching layout on any list switches every list. Persisted so it survives
@@ -487,20 +410,18 @@ class AppSettings @Inject constructor(
     private val _librarySortAscending = MutableStateFlow(prefs.getBoolean(KEY_LIBRARY_SORT_ASCENDING, true))
     val librarySortAscending: StateFlow<Boolean> = _librarySortAscending.asStateFlow()
 
-    // Last selected media type (Anime vs Manga), stored per surface so the Library
-    // and Discover screens each keep their own preference. Encoded as a boolean
-    // (true = Manga) to stay independent of the generated MediaType enum's encoding.
+    // Last selected library media type and search type, stored as Yamtrack's slugs.
     private val _libraryMediaType = MutableStateFlow(
-        if (prefs.getBoolean(KEY_LIBRARY_MEDIA_TYPE_MANGA, false)) MediaType.MANGA else MediaType.ANIME
+        MediaType.fromSlug(prefs.getString(KEY_LIBRARY_MEDIA_TYPE, null) ?: "") ?: MediaType.ANIME
     )
     val libraryMediaType: StateFlow<MediaType> = _libraryMediaType.asStateFlow()
 
-    private val _discoverMediaType = MutableStateFlow(
-        if (prefs.getBoolean(KEY_DISCOVER_MEDIA_TYPE_MANGA, false)) MediaType.MANGA else MediaType.ANIME
+    private val _lastSearchType = MutableStateFlow(
+        MediaType.fromSlug(prefs.getString(KEY_LAST_SEARCH_TYPE, null) ?: "") ?: MediaType.ANIME
     )
-    val discoverMediaType: StateFlow<MediaType> = _discoverMediaType.asStateFlow()
+    val lastSearchType: StateFlow<MediaType> = _lastSearchType.asStateFlow()
 
-    // Last visited main bottom-nav tab key ("library" / "discover").
+    // Last visited main bottom-nav tab key ("library" / "home").
     // Restored as the nav-graph start destination on cold launch so the app reopens
     // on the screen the user left. Profile and Settings are intentionally never stored.
     private val _lastMainTab = MutableStateFlow(prefs.getString(KEY_LAST_MAIN_TAB, null))
@@ -865,73 +786,16 @@ class AppSettings @Inject constructor(
         prefs.edit().putBoolean(KEY_ALLOW_PRERELEASE, allowed).apply()
     }
 
-    fun setAnimeListOrder(order: List<String>) {
-        _animeListOrder.value = order
-        prefs.edit().putString(KEY_ANIME_LIST_ORDER, order.joinToString(",")).apply()
+    fun setLibraryListOrder(order: List<String>) {
+        _libraryListOrder.value = order
+        prefs.edit().putString(KEY_LIBRARY_LIST_ORDER, order.joinToString(",")).apply()
     }
 
-    fun setMangaListOrder(order: List<String>) {
-        _mangaListOrder.value = order
-        prefs.edit().putString(KEY_MANGA_LIST_ORDER, order.joinToString(",")).apply()
+    fun setHiddenLibraryLists(hidden: Set<String>) {
+        _hiddenLibraryLists.value = hidden
+        prefs.edit().putStringSet(KEY_HIDDEN_LIBRARY_LISTS, hidden).apply()
     }
 
-    fun setAdvancedScoring(type: MediaType, categories: List<String>, enabled: Boolean) {
-        val isAnime = type == MediaType.ANIME
-        val categoryFlow = if (isAnime) _animeAdvancedScoring else _mangaAdvancedScoring
-        val enabledFlow = if (isAnime) _animeAdvancedScoringEnabled else _mangaAdvancedScoringEnabled
-        categoryFlow.value = categories
-        enabledFlow.value = enabled
-        prefs.edit()
-            .putString(if (isAnime) KEY_ANIME_ADVANCED_SCORING else KEY_MANGA_ADVANCED_SCORING, Json.encodeToString(categories))
-            .putBoolean(if (isAnime) KEY_ANIME_ADVANCED_SCORING_ENABLED else KEY_MANGA_ADVANCED_SCORING_ENABLED, enabled)
-            .apply()
-    }
-
-    private fun readStringList(key: String): List<String> {
-        val raw = prefs.getString(key, null) ?: return emptyList()
-        return try {
-            Json.decodeFromString<List<String>>(raw)
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-    /** Persist Discover's rail order for one tab. */
-    fun setDiscoverSectionOrder(type: MediaType, order: List<String>) {
-        val isAnime = type == MediaType.ANIME
-        val flow = if (isAnime) _discoverAnimeSectionOrder else _discoverMangaSectionOrder
-        flow.value = order
-        prefs.edit()
-            .putString(
-                if (isAnime) KEY_DISCOVER_ANIME_SECTIONS else KEY_DISCOVER_MANGA_SECTIONS,
-                order.joinToString(",")
-            )
-            .apply()
-    }
-
-    /** Persist which Discover rails are switched off for one tab. */
-    fun setHiddenDiscoverSections(type: MediaType, hidden: Set<String>) {
-        val isAnime = type == MediaType.ANIME
-        val flow = if (isAnime) _hiddenDiscoverAnimeSections else _hiddenDiscoverMangaSections
-        flow.value = hidden
-        prefs.edit()
-            .putStringSet(
-                if (isAnime) KEY_DISCOVER_ANIME_HIDDEN else KEY_DISCOVER_MANGA_HIDDEN,
-                hidden
-            )
-            .apply()
-    }
-
-    fun setHiddenAnimeLists(hidden: Set<String>) {
-        _hiddenAnimeLists.value = hidden
-        prefs.edit().putStringSet(KEY_HIDDEN_ANIME_LISTS, hidden).apply()
-    }
-
-    fun setHiddenMangaLists(hidden: Set<String>) {
-        _hiddenMangaLists.value = hidden
-        prefs.edit().putStringSet(KEY_HIDDEN_MANGA_LISTS, hidden).apply()
-    }
-    
     fun setShowPrivateEntries(show: Boolean) {
         _showPrivateEntries.value = show
         prefs.edit().putBoolean(KEY_SHOW_PRIVATE_ENTRIES, show).apply()
@@ -942,30 +806,12 @@ class AppSettings @Inject constructor(
         prefs.edit().putBoolean(KEY_SHOW_ADULT_CONTENT, show).apply()
     }
 
-    fun setDiscoverSearchViewMode(mode: DiscoverViewMode) {
-        _discoverSearchViewMode.value = mode
-        prefs.edit().putInt(KEY_DISCOVER_SEARCH_VIEW_MODE, mode.ordinal).apply()
-    }
-
-    /**
-     * Persist the last selected library tab for anime.
-     */
-    fun setLastSelectedAnimeTab(tabId: String?) {
-        _lastSelectedAnimeTab.value = tabId
+    /** Persist the last selected library tab. */
+    fun setLastSelectedLibraryTab(tabId: String?) {
+        _lastSelectedLibraryTab.value = tabId
         prefs.edit().apply {
-            if (tabId != null) putString(KEY_LAST_SELECTED_ANIME_TAB, tabId)
-            else remove(KEY_LAST_SELECTED_ANIME_TAB)
-        }.apply()
-    }
-
-    /**
-     * Persist the last selected library tab for manga.
-     */
-    fun setLastSelectedMangaTab(tabId: String?) {
-        _lastSelectedMangaTab.value = tabId
-        prefs.edit().apply {
-            if (tabId != null) putString(KEY_LAST_SELECTED_MANGA_TAB, tabId)
-            else remove(KEY_LAST_SELECTED_MANGA_TAB)
+            if (tabId != null) putString(KEY_LAST_SELECTED_LIBRARY_TAB, tabId)
+            else remove(KEY_LAST_SELECTED_LIBRARY_TAB)
         }.apply()
     }
 
@@ -1036,25 +882,19 @@ class AppSettings @Inject constructor(
             .apply()
     }
 
-    /**
-     * Persist the last selected Library media type (Anime vs Manga).
-     */
     fun setLibraryMediaType(type: MediaType) {
         _libraryMediaType.value = type
-        prefs.edit().putBoolean(KEY_LIBRARY_MEDIA_TYPE_MANGA, type == MediaType.MANGA).apply()
+        prefs.edit().putString(KEY_LIBRARY_MEDIA_TYPE, type.slug).apply()
     }
 
-    /**
-     * Persist the last selected Discover media type (Anime vs Manga).
-     */
-    fun setDiscoverMediaType(type: MediaType) {
-        _discoverMediaType.value = type
-        prefs.edit().putBoolean(KEY_DISCOVER_MEDIA_TYPE_MANGA, type == MediaType.MANGA).apply()
+    fun setLastSearchType(type: MediaType) {
+        _lastSearchType.value = type
+        prefs.edit().putString(KEY_LAST_SEARCH_TYPE, type.slug).apply()
     }
 
     /**
      * Persist the last visited main bottom-nav tab so the app reopens on it.
-     * Only Library/Discover are ever stored.
+     * Only Library/Home are ever stored.
      */
     fun setLastMainTab(tabKey: String) {
         _lastMainTab.value = tabKey
@@ -1081,35 +921,19 @@ class AppSettings @Inject constructor(
      * layout / hidden lists / last-opened tabs don't bleed into another. Account-agnostic
      * preferences (theme, locale, cover quality, nav bar, etc.) are left untouched.
      *
-     * Score format is intentionally NOT reset here — it self-heals from the next library load,
-     * which reads the new account's MediaListOptions (see LibraryRepositoryImpl).
      */
     fun clearAccountScoped() {
-        _hiddenAnimeLists.value = emptySet()
-        _hiddenMangaLists.value = emptySet()
-        _animeListOrder.value = emptyList()
-        _mangaListOrder.value = emptyList()
-        _animeAdvancedScoring.value = emptyList()
-        _mangaAdvancedScoring.value = emptyList()
-        _animeAdvancedScoringEnabled.value = false
-        _mangaAdvancedScoringEnabled.value = false
-        _lastSelectedAnimeTab.value = null
-        _lastSelectedMangaTab.value = null
+        _hiddenLibraryLists.value = emptySet()
+        _libraryListOrder.value = emptyList()
+        _lastSelectedLibraryTab.value = null
         _showPrivateEntries.value = true
         // Land on the default home tab after a switch instead of the other account's last tab.
         _lastMainTab.value = null
         prefs.edit()
             .remove(KEY_LAST_MAIN_TAB)
-            .remove(KEY_HIDDEN_ANIME_LISTS)
-            .remove(KEY_HIDDEN_MANGA_LISTS)
-            .remove(KEY_ANIME_LIST_ORDER)
-            .remove(KEY_MANGA_LIST_ORDER)
-            .remove(KEY_ANIME_ADVANCED_SCORING)
-            .remove(KEY_MANGA_ADVANCED_SCORING)
-            .remove(KEY_ANIME_ADVANCED_SCORING_ENABLED)
-            .remove(KEY_MANGA_ADVANCED_SCORING_ENABLED)
-            .remove(KEY_LAST_SELECTED_ANIME_TAB)
-            .remove(KEY_LAST_SELECTED_MANGA_TAB)
+            .remove(KEY_HIDDEN_LIBRARY_LISTS)
+            .remove(KEY_LIBRARY_LIST_ORDER)
+            .remove(KEY_LAST_SELECTED_LIBRARY_TAB)
             .remove(KEY_SHOW_PRIVATE_ENTRIES)
             .apply()
     }
@@ -1183,26 +1007,11 @@ companion object {
         private const val KEY_APP_LOCALE = "app_locale"
         private const val KEY_AUTO_UPDATE_ENABLED = "auto_update_enabled"
         private const val KEY_ALLOW_PRERELEASE = "allow_prerelease"
-        private const val KEY_ANIME_ADVANCED_SCORING = "anime_advanced_scoring"
-        private const val KEY_MANGA_ADVANCED_SCORING = "manga_advanced_scoring"
-        private const val KEY_ANIME_ADVANCED_SCORING_ENABLED = "anime_advanced_scoring_enabled"
-        private const val KEY_MANGA_ADVANCED_SCORING_ENABLED = "manga_advanced_scoring_enabled"
-        private const val KEY_ANIME_LIST_ORDER = "anime_list_order"
-        private const val KEY_MANGA_LIST_ORDER = "manga_list_order"
-        private const val KEY_HIDDEN_ANIME_LISTS = "hidden_anime_lists"
-        private const val KEY_HIDDEN_MANGA_LISTS = "hidden_manga_lists"
         private const val KEY_USER_SCORE_FORMAT = "user_score_format"
         private const val KEY_SHOW_PRIVATE_ENTRIES = "show_private_entries"
         private const val KEY_SHOW_ADULT_CONTENT = "show_adult_content"
         private const val KEY_STAFF_NAME_LANGUAGE = "staff_name_language"
-        private const val KEY_DISCOVER_SEARCH_VIEW_MODE = "discover_search_view_mode"
-        private const val KEY_LAST_SELECTED_ANIME_TAB = "last_selected_anime_tab"
-        private const val KEY_LAST_SELECTED_MANGA_TAB = "last_selected_manga_tab"
         private const val KEY_LIBRARY_GRID_VIEW = "library_grid_view"
-        private const val KEY_DISCOVER_ANIME_SECTIONS = "discover_anime_sections"
-        private const val KEY_DISCOVER_MANGA_SECTIONS = "discover_manga_sections"
-        private const val KEY_DISCOVER_ANIME_HIDDEN = "discover_anime_hidden_sections"
-        private const val KEY_DISCOVER_MANGA_HIDDEN = "discover_manga_hidden_sections"
         private const val KEY_GRID_COLUMNS_AUTO = "grid_columns_auto"
         private const val KEY_GRID_COLUMN_COUNT = "grid_column_count"
         private const val KEY_SHOW_SCORE_ON_CARDS = "show_score_on_cards"
@@ -1220,8 +1029,11 @@ companion object {
         private const val KEY_LIBRARY_SORT_OPTION = "library_sort_option"
         private const val KEY_LIBRARY_SORT_ASCENDING = "library_sort_ascending"
         private const val DEFAULT_LIBRARY_SORT = "AIRING_SOON"
-        private const val KEY_LIBRARY_MEDIA_TYPE_MANGA = "library_media_type_manga"
-        private const val KEY_DISCOVER_MEDIA_TYPE_MANGA = "discover_media_type_manga"
+        private const val KEY_LIBRARY_LIST_ORDER = "library_list_order"
+        private const val KEY_HIDDEN_LIBRARY_LISTS = "hidden_library_lists"
+        private const val KEY_LAST_SELECTED_LIBRARY_TAB = "last_selected_library_tab"
+        private const val KEY_LIBRARY_MEDIA_TYPE = "library_media_type"
+        private const val KEY_LAST_SEARCH_TYPE = "last_search_type"
         private const val KEY_LAST_MAIN_TAB = "last_main_tab"
         private const val KEY_START_SCREEN = "start_screen"
     }

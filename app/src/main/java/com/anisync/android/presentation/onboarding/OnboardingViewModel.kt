@@ -4,18 +4,13 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anisync.android.data.AppSettings
-import com.anisync.android.data.CoverQuality
 import com.anisync.android.data.StartScreen
 import com.anisync.android.data.ThemeMode
 import com.anisync.android.data.TitleLanguage
 import com.anisync.android.data.account.AccountManager
-import com.anisync.android.domain.DiscoverRepository
 import com.anisync.android.domain.LibraryEntry
 import com.anisync.android.domain.LibraryRepository
 import com.anisync.android.domain.LibraryStatus
-import com.anisync.android.domain.ProfileRepository
-import com.anisync.android.domain.getOrNull
-import com.anisync.android.type.MediaType
 import com.anisync.android.util.AppLinksUtil
 import com.anisync.android.util.BackgroundWorkUtil
 import com.anisync.android.util.NotificationPermissionHelper
@@ -41,9 +36,7 @@ class OnboardingViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val appSettings: AppSettings,
     private val accountManager: AccountManager,
-    private val libraryRepository: LibraryRepository,
-    private val discoverRepository: DiscoverRepository,
-    private val profileRepository: ProfileRepository
+    private val libraryRepository: LibraryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -70,7 +63,6 @@ class OnboardingViewModel @Inject constructor(
         observeReplayRequests()
         observeAccount()
         observeSettings()
-        loadHeroCovers()
         refreshPermissions()
     }
 
@@ -161,27 +153,19 @@ class OnboardingViewModel @Inject constructor(
             }
 
             _uiState.update { copy(sync = sync.copy(library = TaskState.Running)) }
-            profileRepository.refreshProfile(account.name)
-            profileRepository.observeProfile().first()?.let { profile ->
-                _uiState.update { copy(bannerUrl = profile.bannerUrl, avatarUrl = profile.avatarUrl) }
-            }
-
-            libraryRepository.refreshLibrary(account.name, MediaType.ANIME)
-            libraryRepository.refreshLibrary(account.name, MediaType.MANGA)
-
-            val anime = libraryRepository.observeLibrary(account.name, MediaType.ANIME).first()
-            val manga = libraryRepository.observeLibrary(account.name, MediaType.MANGA).first()
+            libraryRepository.refreshLibrary()
+            val library = libraryRepository.observeLibrary().first()
             _uiState.update {
                 copy(
-                    sync = sync.copy(library = TaskState.Done, libraryEntries = anime.size + manga.size),
-                    previewEntry = pickPreview(anime) ?: previewEntry
+                    sync = sync.copy(library = TaskState.Done, libraryEntries = library.size),
+                    previewEntry = pickPreview(library) ?: previewEntry
                 )
             }
 
             _uiState.update { copy(sync = sync.copy(airing = TaskState.Running)) }
             delay(STEP_PACING_MS)
             _uiState.update {
-                copy(sync = sync.copy(airing = TaskState.Done, airingThisWeek = countAiringThisWeek(anime)))
+                copy(sync = sync.copy(airing = TaskState.Done, airingThisWeek = countAiringThisWeek(library)))
             }
 
             _uiState.update { copy(sync = sync.copy(notifications = TaskState.Running)) }
@@ -205,14 +189,14 @@ class OnboardingViewModel @Inject constructor(
     }
 
     /** The card under the personalise choices: the viewer's own next episode, when they have one. */
-    private fun pickPreview(anime: List<LibraryEntry>): LibraryEntry? =
-        anime.firstOrNull { it.status == LibraryStatus.CURRENT && it.nextAiringEpisode != null }
-            ?: anime.firstOrNull { it.status == LibraryStatus.CURRENT }
-            ?: anime.firstOrNull()
+    private fun pickPreview(library: List<LibraryEntry>): LibraryEntry? =
+        library.firstOrNull { it.status == LibraryStatus.CURRENT && it.nextAiringEpisode != null }
+            ?: library.firstOrNull { it.status == LibraryStatus.CURRENT }
+            ?: library.firstOrNull()
 
-    private fun countAiringThisWeek(anime: List<LibraryEntry>): Int =
-        anime.count { entry ->
-            val seconds = entry.dynamicTimeUntilAiring ?: return@count false
+    private fun countAiringThisWeek(library: List<LibraryEntry>): Int =
+        library.count { entry ->
+            val seconds = entry.timeUntilNextRelease ?: return@count false
             seconds <= WEEK_SECONDS
         }
 
@@ -275,29 +259,6 @@ class OnboardingViewModel @Inject constructor(
         titleLanguage = appSettings.titleLanguage.value,
         startScreen = appSettings.startScreen.value
     )
-
-    /**
-     * Trending covers for the welcome marquee, and the fallback preview card for anyone whose list
-     * is empty. Unauthenticated, so it runs before the sign-in handoff.
-     */
-    private fun loadHeroCovers() {
-        viewModelScope.launch {
-            val trending = discoverRepository.getTrending(MediaType.ANIME).getOrNull().orEmpty()
-            if (trending.isEmpty()) return@launch
-            _uiState.update {
-                copy(
-                    // Deliberately not the viewer's CoverQuality preference: the marquee blows
-                    // each cover up well past card size, where anything below extraLarge is visibly
-                    // soft.
-                    heroCovers = trending.mapNotNull { entry ->
-                        entry.cover?.preferred(CoverQuality.EXTRA_LARGE) ?: entry.coverUrl
-                    },
-                    previewEntry = previewEntry ?: trending.firstOrNull { it.nextAiringEpisode != null }
-                    ?: trending.firstOrNull()
-                )
-            }
-        }
-    }
 
     /** Re-reads every system toggle. Called on each resume, since all four are granted off-screen. */
     fun refreshPermissions() {

@@ -208,7 +208,7 @@ private fun NoteJournalCard(
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(entry.cover.url() ?: entry.coverUrl)
+                        .data(entry.coverUrl)
                         .crossfade(true)
                         .build(),
                     contentDescription = null,

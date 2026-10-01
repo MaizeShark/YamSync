@@ -11,6 +11,8 @@ import com.anisync.android.domain.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.concurrent.TimeUnit
+import com.anisync.android.domain.MediaKeyRegistry
+import com.anisync.android.domain.model.MediaType
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,7 +26,8 @@ import javax.inject.Singleton
 @Singleton
 class MediaThemesRepositoryImpl @Inject constructor(
     private val api: AnimeThemesApi,
-    private val dao: MediaThemesDao
+    private val dao: MediaThemesDao,
+    private val registry: MediaKeyRegistry
 ) : MediaThemesRepository {
 
     override fun observeThemes(mediaId: Int): Flow<MediaThemes?> =
@@ -33,7 +36,10 @@ class MediaThemesRepositoryImpl @Inject constructor(
         }
 
     override suspend fun refreshThemes(mediaId: Int): Result<MediaThemes> = try {
-        val lookup = api.getThemes(mediaId)
+        // AnimeThemes knows anime by their MyAnimeList id; anything else has no themes to find.
+        val key = registry.keyFor(mediaId)
+        val malId = key?.takeIf { it.source == "mal" && it.type == MediaType.ANIME }?.mediaId?.toIntOrNull()
+        val lookup = if (malId != null) api.getThemes(malId) else MediaThemes()
         dao.upsert(
             MediaThemesEntity(
                 mediaId = mediaId,

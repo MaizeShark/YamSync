@@ -6,30 +6,31 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
-import com.anisync.android.data.local.dao.LibraryDao
-import com.anisync.android.domain.DetailsRepository
+import com.anisync.android.domain.LibraryRepository
 import com.anisync.android.domain.LibraryStatus
+import com.anisync.android.domain.MediaKeyRegistry
 import com.anisync.android.R
 import com.anisync.android.domain.Result
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
  * BroadcastReceiver that handles the "Add to Watching" action from planning notifications.
- * When a user taps the action button, this receiver updates the anime status to WATCHING
- * on AniList and dismisses the notification.
+ * When a user taps the action button, this receiver sets the entry to "In progress" on Yamtrack
+ * (adding it when it is not tracked yet) and dismisses the notification.
  */
 @AndroidEntryPoint
 class AddToWatchingReceiver : BroadcastReceiver() {
 
     @Inject
-    lateinit var detailsRepository: DetailsRepository
+    lateinit var libraryRepository: LibraryRepository
 
     @Inject
-    lateinit var libraryDao: LibraryDao
+    lateinit var registry: MediaKeyRegistry
 
     companion object {
         const val ACTION_ADD_TO_WATCHING = "com.anisync.android.ACTION_ADD_TO_WATCHING"
@@ -65,12 +66,15 @@ class AddToWatchingReceiver : BroadcastReceiver() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Update status to CURRENT (watching) with progress 0
-                val result = detailsRepository.updateMediaListEntry(
-                    mediaId = mediaId,
-                    status = LibraryStatus.CURRENT,
-                    progress = 0
-                )
+                val entry = libraryRepository.observeEntry(mediaId).first()
+                val result = if (entry != null) {
+                    libraryRepository.updateEntry(entry.copy(status = LibraryStatus.CURRENT))
+                } else {
+                    val key = registry.keyFor(mediaId)
+                        ?: error("No media key for local id $mediaId")
+                    val summary = registry.summary(mediaId)
+                    libraryRepository.addEntry(key, LibraryStatus.CURRENT, summary?.title, summary?.imageUrl)
+                }
 
                 when (result) {
                     is Result.Success -> {

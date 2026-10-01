@@ -1,33 +1,32 @@
 package com.anisync.android.data.account
 
+import java.net.URI
+
 /**
- * A single signed-in AniList account.
+ * A signed-in Yamtrack account: one user on one server.
  *
- * [token] is the OAuth access token and is **never** persisted in plain storage — it lives in
- * EncryptedSharedPreferences keyed by [id] (see [AccountStore]). The remaining fields are lightweight
- * metadata persisted as JSON so the account list can render without a network call.
+ * [id] is assigned on this device; Room rows and notification tags are scoped by it. The session
+ * cookies and the optional stored password live in encrypted storage (see [AccountStore]), never in
+ * this object.
  */
 data class Account(
     val id: Int,
-    val name: String,
-    val avatarUrl: String?,
-    /** Epoch millis when the token expires, or `0` if unknown (e.g. a migrated legacy token). */
-    val expiresAt: Long,
-    val token: String,
+    /** The server root as the user entered it, normalised: scheme, host and any sub-path. */
+    val serverUrl: String,
+    val username: String,
+    val avatarUrl: String? = null,
+    /** Set when the session ran out and could not be renewed; the user has to sign in again. */
+    val sessionExpired: Boolean = false,
+    /** Token for the server's calendar feed, read from its integrations page. */
+    val calendarToken: String? = null,
 ) {
-    /** True once the stored expiry has passed. Unknown expiry (`0`) is treated as not-expired. */
-    val isExpired: Boolean
-        get() = expiresAt in 1 until System.currentTimeMillis()
+    /** What the app shows as the account's name. */
+    val name: String get() = username
 
-    /**
-     * A migrated legacy login whose real AniList id/name/avatar haven't been resolved yet.
-     * Reconciled on the next successful `GetViewer` (see [AccountManager.reconcileActiveIfProvisional]).
-     */
-    val isProvisional: Boolean
-        get() = id == PROVISIONAL_ID
+    val isExpired: Boolean get() = sessionExpired
 
-    companion object {
-        /** Placeholder id for a migrated legacy token before its real Viewer id is known. */
-        const val PROVISIONAL_ID = 0
-    }
+    /** The server's host, for telling accounts on different servers apart. */
+    val serverLabel: String
+        get() = runCatching { URI(serverUrl).let { uri -> uri.host + (uri.path?.takeIf { it.length > 1 } ?: "") } }
+            .getOrNull() ?: serverUrl
 }

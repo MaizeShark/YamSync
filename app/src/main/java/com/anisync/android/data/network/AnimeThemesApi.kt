@@ -45,19 +45,20 @@ class AnimeThemesApi @Inject constructor() {
     private val json = Json { ignoreUnknownKeys = true }
 
     /**
-     * Every theme AnimeThemes lists for the AniList title [anilistId]. An empty result means
-     * the title is not in their database, which is a real answer rather than a failure.
+     * Every theme AnimeThemes lists for the MyAnimeList title [malId], which is how Yamtrack
+     * identifies anime. An empty result means the title is not in their database, which is a real
+     * answer rather than a failure.
      */
-    suspend fun getThemes(anilistId: Int): MediaThemes = withContext(Dispatchers.IO) {
-        val slug = resolveSlug(anilistId) ?: return@withContext MediaThemes()
+    suspend fun getThemes(malId: Int): MediaThemes = withContext(Dispatchers.IO) {
+        val slug = resolveSlug(malId) ?: return@withContext MediaThemes()
         MediaThemes(animeSlug = slug, themes = fetchThemes(slug))
     }
 
-    private fun resolveSlug(anilistId: Int): String? {
+    private fun resolveSlug(malId: Int): String? {
         val url = BASE_URL.newBuilder()
             .addPathSegment("resource")
-            .addQueryParameter("filter[site]", "AniList")
-            .addQueryParameter("filter[external_id]", anilistId.toString())
+            .addQueryParameter("filter[site]", "MyAnimeList")
+            .addQueryParameter("filter[external_id]", malId.toString())
             .addQueryParameter("include", "anime")
             .addQueryParameter("fields[resource]", "id")
             .addQueryParameter("fields[anime]", "slug")

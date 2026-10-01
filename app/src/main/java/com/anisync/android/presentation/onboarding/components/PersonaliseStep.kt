@@ -28,7 +28,7 @@ import com.anisync.android.presentation.components.SegmentedTabGroup
 import com.anisync.android.presentation.library.components.LibraryQueueRow
 import com.anisync.android.presentation.onboarding.PersonaliseState
 import com.anisync.android.presentation.settings.components.ColorSchemeSelector
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
 import com.anisync.android.ui.theme.PresetPalettes
 import com.materialkolor.PaletteStyle
 
@@ -309,7 +309,7 @@ private fun ColumnScope.Choices(
                 when (screen) {
                     StartScreen.LAST_VISITED -> R.string.start_screen_last_visited
                     StartScreen.LIBRARY -> R.string.nav_library
-                    StartScreen.DISCOVER -> R.string.nav_discover
+                    StartScreen.HOME -> R.string.nav_home
                 }
             )
         },

@@ -31,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -39,18 +38,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.anisync.android.R
 import com.anisync.android.presentation.components.filtersheet.FilterSheetScaffold
-import com.anisync.android.presentation.library.LibraryFilters
 import com.anisync.android.presentation.library.LibrarySort
 import com.anisync.android.presentation.util.bouncyClickable
-import com.anisync.android.presentation.util.toLabel
-import com.anisync.android.type.MediaFormat
 
 /**
- * Sort and filters in one sheet.
- *
- * Sort is a grid of pills rather than the old one-per-row list: eight options fitted into four rows
- * leaves room for the filters underneath, which is the point — the library had no filtering at all,
- * while Discover has had a filter sheet for as long as it has existed.
+ * How the library is sorted, as a grid of pills.
  *
  * Direction is an explicit Asc/Desc control. The previous sheet flipped direction when you tapped
  * the already-selected option, which nothing on screen said.
@@ -61,24 +53,16 @@ fun LibraryFilterSheet(
     visible: Boolean,
     sort: LibrarySort,
     isAscending: Boolean,
-    filters: LibraryFilters,
-    availableGenres: List<String>,
-    availableFormats: List<MediaFormat>,
-    availableAiringStatuses: List<String>,
-    resultCount: Int,
     onSortChange: (LibrarySort, Boolean) -> Unit,
-    onFiltersChange: (LibraryFilters) -> Unit,
     onDismiss: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 ) {
     if (!visible) return
 
     FilterSheetScaffold(
-        title = stringResource(R.string.library_sort_and_filter),
+        title = stringResource(R.string.library_sort_by_label),
         onDismiss = onDismiss,
-        sheetState = sheetState,
-        onReset = { onFiltersChange(LibraryFilters.None) },
-        resetEnabled = !filters.isEmpty
+        sheetState = sheetState
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Row(
@@ -111,72 +95,6 @@ fun LibraryFilterSheet(
                 }
             }
 
-            if (availableAiringStatuses.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                SectionLabel(stringResource(R.string.library_filter_airing_status))
-                FilterChipRow(
-                    values = availableAiringStatuses,
-                    label = { it.airingStatusLabel() },
-                    selected = filters.airingStatuses,
-                    onToggle = { value ->
-                        onFiltersChange(filters.copy(airingStatuses = filters.airingStatuses.toggle(value)))
-                    }
-                )
-            }
-
-            if (availableFormats.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                SectionLabel(stringResource(R.string.library_filter_format))
-                FilterChipRow(
-                    values = availableFormats,
-                    label = { it.toLabel() },
-                    selected = filters.formats,
-                    onToggle = { value ->
-                        onFiltersChange(filters.copy(formats = filters.formats.toggle(value)))
-                    }
-                )
-            }
-
-            if (availableGenres.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                SectionLabel(stringResource(R.string.library_filter_genre))
-                var expanded by remember { mutableStateOf(false) }
-                val shown = if (expanded) availableGenres else availableGenres.take(8)
-                FilterChipRow(
-                    values = shown,
-                    label = { it },
-                    selected = filters.genres,
-                    onToggle = { value ->
-                        onFiltersChange(filters.copy(genres = filters.genres.toggle(value)))
-                    },
-                    trailing = if (!expanded && availableGenres.size > 8) {
-                        {
-                            FilterPill(
-                                label = stringResource(
-                                    R.string.library_filter_more,
-                                    availableGenres.size - 8
-                                ),
-                                selected = false,
-                                onClick = { expanded = true }
-                            )
-                        }
-                    } else {
-                        null
-                    }
-                )
-            }
-
-            Spacer(Modifier.height(20.dp))
-            Button(
-                onClick = onDismiss,
-                shape = CircleShape,
-                modifier = Modifier.fillMaxWidth().height(52.dp)
-            ) {
-                Text(
-                    text = pluralStringResource(R.plurals.library_show_results, resultCount, resultCount),
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
         }
     }
 }
@@ -300,88 +218,4 @@ private fun DirectionSegment(
             )
         }
     }
-}
-
-@Composable
-private fun <T> FilterChipRow(
-    values: List<T>,
-    label: @Composable (T) -> String,
-    selected: Set<T>,
-    onToggle: (T) -> Unit,
-    trailing: (@Composable () -> Unit)? = null
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(bottom = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        values.forEach { value ->
-            FilterPill(
-                label = label(value),
-                selected = value in selected,
-                onClick = { onToggle(value) }
-            )
-        }
-        trailing?.invoke()
-    }
-}
-
-@Composable
-private fun FilterPill(label: String, selected: Boolean, onClick: () -> Unit) {
-    Surface(
-        color = if (selected) {
-            MaterialTheme.colorScheme.secondaryContainer
-        } else {
-            MaterialTheme.colorScheme.surface
-        },
-        shape = CircleShape,
-        modifier = Modifier
-            .height(32.dp)
-            .bouncyClickable(
-                onClick = onClick,
-                role = Role.Checkbox,
-                onClickLabel = label,
-                clipShape = CircleShape
-            )
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            if (selected) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(14.dp)
-                )
-            }
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = if (selected) {
-                    MaterialTheme.colorScheme.onSecondaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-                maxLines = 1
-            )
-        }
-    }
-}
-
-private fun <T> Set<T>.toggle(value: T): Set<T> = if (value in this) this - value else this + value
-
-@Composable
-private fun String.airingStatusLabel(): String = when (this) {
-    "RELEASING" -> stringResource(R.string.media_status_releasing)
-    "FINISHED" -> stringResource(R.string.media_status_finished)
-    "NOT_YET_RELEASED" -> stringResource(R.string.media_status_not_yet_released)
-    "HIATUS" -> stringResource(R.string.media_status_hiatus)
-    "CANCELLED" -> stringResource(R.string.media_status_cancelled)
-    else -> this
 }

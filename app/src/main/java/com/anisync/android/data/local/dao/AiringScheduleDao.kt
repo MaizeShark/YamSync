@@ -37,13 +37,11 @@ interface AiringScheduleDao {
      *
      * Either signal counts, they cover each other blind spots.
      *
-     * isWatching comes from the mediaListEntry AniList returned when the schedule was fetched, so it
-     * holds up even if the local library never synced. The join handles the other case, a series
+     * isWatching is the entry's status when the calendar was synced, so it holds up even if the
+     * local library never synced. The join handles the other case, a series
      * added, dropped or finished in the app since that fetch, which the cached flag knows nothing
      * about. Going by the flag alone emptied the My List filter whenever a schedule refresh landed
      * before the library loaded.
-     *
-     * REPEATING counts with CURRENT, a rewatch is still watching.
      */
     @Query(
         """
@@ -55,7 +53,7 @@ interface AiringScheduleDao {
                 OR EXISTS (
                     SELECT 1 FROM library_entries AS l
                     WHERE l.ownerId = s.ownerId AND l.mediaId = s.mediaId
-                        AND l.status IN ('CURRENT', 'REPEATING')
+                        AND l.status = 'CURRENT'
                 )
             )
         ORDER BY s.airingAt ASC
@@ -78,7 +76,7 @@ interface AiringScheduleDao {
                 OR EXISTS (
                     SELECT 1 FROM library_entries AS l
                     WHERE l.ownerId = s.ownerId AND l.mediaId = s.mediaId
-                        AND l.status IN ('CURRENT', 'REPEATING')
+                        AND l.status = 'CURRENT'
                 )
             )
         ORDER BY s.airingAt ASC

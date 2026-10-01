@@ -1,20 +1,13 @@
 package com.anisync.android.domain
 
-/**
- * Repository for the airing calendar. Fetches the anime episodes airing within a
- * time window (typically one week) from the AniList airing schedule.
- */
+/** The release calendar from the user's Yamtrack server. */
 interface CalendarRepository {
+    /** Reads the server's calendar into the local cache the widgets and calendar screen use. */
+    suspend fun sync(): Result<Unit>
+
     /**
-     * Get every episode airing in the half-open window
-     * `[weekStartEpochSec, weekEndEpochSec)`.
-     *
-     * @param weekStartEpochSec inclusive lower bound, Unix seconds (UTC)
-     * @param weekEndEpochSec   exclusive upper bound, Unix seconds (UTC)
-     * @return episodes sorted by airing time, or an error
+     * Every release in the half-open window `[weekStartEpochSec, weekEndEpochSec)`, in Unix seconds,
+     * sorted by time. Syncs first when the cache is old.
      */
-    suspend fun getWeekSchedule(
-        weekStartEpochSec: Long,
-        weekEndEpochSec: Long
-    ): Result<List<AiringEpisode>>
+    suspend fun getWeekSchedule(weekStartEpochSec: Long, weekEndEpochSec: Long): Result<List<AiringEpisode>>
 }

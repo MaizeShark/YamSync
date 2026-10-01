@@ -1,28 +1,20 @@
 package com.anisync.android.domain
 
-/**
- * A single anime episode airing entry, used by the in-app airing calendar.
- *
- * Richer than [AiringSchedule] (which backs the home-screen widgets): it carries the
- * fields the calendar UI needs — score, format, the four title variants, and the
- * viewer's list status for the "following only" filter and the "Watching" chip.
- */
+/** A release on the calendar: an episode, chapter or issue of something the user tracks. */
 data class AiringEpisode(
     val id: Int,
+    /** The episode, chapter or issue number; 0 when the release has none (a movie, a book). */
     val episode: Int,
-    /** Unix time (seconds) the episode airs, in UTC. */
+    /** Unix time (seconds) of the release, in UTC. */
     val airingAt: Long,
+    /** Local media id; 0 when the release could not be matched to an item. */
     val mediaId: Int,
-    val titleRomaji: String?,
-    val titleEnglish: String?,
-    val titleNative: String?,
-    val titleUserPreferred: String,
+    val title: String,
     val coverImageUrl: String?,
+    /** The media type's slug (`anime`, `season`, `comic`…). */
     val format: String?,
-    val averageScore: Int?,
-    /** True when the media is on the viewer's list (any status). */
+    /** True when the item is in the user's library (any status). */
     val isOnList: Boolean,
-    /** The viewer's list status for this media, if on their list. */
-    val listStatus: LibraryStatus?,
-    val isAdult: Boolean
+    /** The user's status for the item, if it is in the library. */
+    val listStatus: LibraryStatus?
 )

@@ -4,13 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anisync.android.data.AppSettings
 import com.anisync.android.domain.LibraryRepository
-import com.anisync.android.type.MediaType
 import com.anisync.android.util.getTitle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -31,13 +31,9 @@ class NotesJournalViewModel @Inject constructor(
 
     // Noted entries derived from the cached library only — so it is recomputed (and re-sorted) when
     // the library changes, not on every keystroke. The query/title filter is layered on top below.
-    private val notedEntries = combine(
-        libraryRepository.observeLibrary("", MediaType.ANIME),
-        libraryRepository.observeLibrary("", MediaType.MANGA)
-    ) { anime, manga ->
-        (anime + manga)
+    private val notedEntries = libraryRepository.observeLibrary().map { library ->
+        library
             .filter { !it.notes.isNullOrBlank() }
-            .distinctBy { it.mediaId }
             .sortedByDescending { it.updatedAt ?: 0L }
     }
 

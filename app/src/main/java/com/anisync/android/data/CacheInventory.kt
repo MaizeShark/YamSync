@@ -3,8 +3,6 @@ package com.anisync.android.data
 import android.content.Context
 import coil.ImageLoader
 import coil.annotation.ExperimentalCoilApi
-import com.apollographql.apollo.ApolloClient
-import com.apollographql.cache.normalized.apolloStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -16,15 +14,14 @@ import javax.inject.Singleton
  * The one list of everything AniSync caches on disk, so the figure shown in Settings and the
  * bytes the clear button reclaims cannot drift apart.
  *
- * Two of these sit outside [Context.getCacheDir] and used to be invisible to both: the Apollo
- * normalized cache lives in `databases/`, and the downloaded update APK in the app's external
- * files directory.
+ * Two of these sit outside [Context.getCacheDir] and used to be invisible to both: the AniList-era
+ * Apollo cache a pre-Yamtrack install leaves in `databases/`, and the downloaded update APK in the
+ * app's external files directory.
  */
 @Singleton
 class CacheInventory @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val imageLoader: ImageLoader,
-    private val apolloClient: ApolloClient
+    private val imageLoader: ImageLoader
 ) {
 
     /** Every cache, measured. */
@@ -37,13 +34,12 @@ class CacheInventory @Inject constructor(
      *
      * The image cache goes through Coil's own API rather than a directory delete: Coil holds an
      * open journal and its own size accounting, and pulling the directory out from under it
-     * corrupts both. Apollo likewise clears through its store so the open SQLite connection stays
-     * consistent.
+     * corrupts both.
      */
     suspend fun clearAll() = withContext(Dispatchers.IO) {
         imageLoader.diskCache?.clear()
         imageLoader.memoryCache?.clear()
-        runCatching { apolloClient.apolloStore.clearAll() }
+        apolloCacheFiles().forEach { it.delete() }
         updateApkDirs().forEach { it.deleteRecursively() }
         otherCacheFiles().forEach { it.deleteRecursively() }
     }
@@ -58,9 +54,8 @@ class CacheInventory @Inject constructor(
     private fun otherBytes(): Long = otherCacheFiles().sumOf { it.sizeRecursive() }
 
     /**
-     * The normalized cache and its write-ahead companions. Named explicitly because the file moved
-     * from `databases/` into the cache directory when the cache library changed, and both spellings
-     * need to keep resolving.
+     * The AniList-era normalized cache and its write-ahead companions, left behind by an install
+     * that predates the move to Yamtrack. Nothing opens it any more; it only waits to be cleared.
      */
     private fun apolloCacheFiles(): List<File> =
         listOf(context.getDatabasePath(APOLLO_CACHE_DB), File(context.cacheDir, APOLLO_CACHE_DB))

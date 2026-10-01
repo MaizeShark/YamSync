@@ -27,10 +27,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuOpen
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.VideoLibrary
-import androidx.compose.material.icons.outlined.Explore
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.VideoLibrary
 import androidx.compose.material3.Badge
@@ -92,7 +92,7 @@ import com.anisync.android.presentation.components.alert.TopToastHost
 import com.anisync.android.presentation.components.navigation.CompactNavBar
 import com.anisync.android.presentation.components.navigation.CompactNavBarItem
 import com.anisync.android.presentation.navigation.AniSyncNavHost
-import com.anisync.android.presentation.navigation.Discover
+import com.anisync.android.presentation.navigation.Home
 import com.anisync.android.presentation.navigation.navigateSafely
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
@@ -144,13 +144,13 @@ private fun rememberMainNavItems(): List<BottomNavItem<*>> = remember {
             persistKey = "library"
         ),
         BottomNavItem(
-            R.string.nav_discover,
-            Discover,
-            Discover::class,
-            MainTab.DISCOVER,
-            Icons.Filled.Explore,
-            Icons.Outlined.Explore,
-            persistKey = "discover"
+            R.string.nav_home,
+            Home,
+            Home::class,
+            MainTab.HOME,
+            Icons.Filled.Home,
+            Icons.Outlined.Home,
+            persistKey = "home"
         ),
         BottomNavItem(
             R.string.nav_profile,
@@ -200,44 +200,17 @@ fun MainScreen(
             }
         }
     }
-    // "Open Discover search with preset filters" (ranking cards, genre/tag chips on
-    // media details): switch to the Discover tab; DiscoverViewModel picks the request
-    // up from the same launcher, applies the filters and expands the search overlay.
-    LaunchedEffect(navController) {
-        // Routes the launcher pop below stops at — the main tab roots.
-        val mainTabClasses = listOf(Library::class, Discover::class, Profile::class)
-        viewModel.discoverSearchNavigations.collect {
-            // This tab switch is app-initiated (a ranking/genre/tag tap), not a
-            // deliberate "leave and come back later": first pop the detail chain
-            // that launched the search back to the source tab's root WITHOUT
-            // saving it, so returning to that tab later lands on the tab itself
-            // (with its own state intact), not on the media page again. Manual
-            // tab switches keep the normal save/restore behaviour.
-            while (
-                navController.currentBackStackEntry?.destination
-                    ?.let { dest -> mainTabClasses.any { dest.hasRoute(it) } } == false
-            ) {
-                if (!navController.popBackStack()) break
-            }
-            navController.navigateToMainTab(Discover, "discover", viewModel::onMainTabSelected)
-            // The restored Discover tab stack may itself have a details screen on
-            // top (search → details → chip tap). Pop back to the Discover root,
-            // otherwise the "switch" lands on the same details screen and the
-            // search overlay never shows.
-            navController.popBackStack(route = Discover, inclusive = false)
-        }
-    }
     val navBarStyle by viewModel.navBarStyle.collectAsStateWithLifecycle()
     val navBarShowLabels by viewModel.navBarShowLabels.collectAsStateWithLifecycle()
     val navBarCornerRadius by viewModel.navBarCornerRadius.collectAsStateWithLifecycle()
     val navBarSuppressor = remember { MainNavBarSuppressor() }
 
-    // Cold-launch restore: open on the tab the user last visited (Library/Discover).
+    // Cold-launch restore: open on the tab the user last visited (Library/Home).
     // Compose Navigation restores its own back stack across process
     // death, so this only governs a genuinely fresh start.
     val startDestination: Any = remember(viewModel.startTabKey) {
         when (viewModel.startTabKey) {
-            "discover" -> Discover
+            "home" -> Home
             else -> Library
         }
     }
@@ -497,7 +470,7 @@ private fun MainBottomBar(
         derivedStateOf {
             val dest = navBackStackEntryState.value?.destination
             val onWhitelistedRoute = dest?.hasRoute<Library>() == true ||
-                    dest?.hasRoute<Discover>() == true ||
+                    dest?.hasRoute<Home>() == true ||
                     dest?.hasRoute<Profile>() == true
             onWhitelistedRoute && navBarSuppressor?.isSuppressed != true
         }
@@ -636,7 +609,7 @@ private fun MainWideNavigationRail(
         derivedStateOf {
             val dest = navBackStackEntryState.value?.destination
             val onWhitelistedRoute = dest?.hasRoute<Library>() == true ||
-                    dest?.hasRoute<Discover>() == true ||
+                    dest?.hasRoute<Home>() == true ||
                     dest?.hasRoute<Profile>() == true
             onWhitelistedRoute && navBarSuppressor?.isSuppressed != true
         }

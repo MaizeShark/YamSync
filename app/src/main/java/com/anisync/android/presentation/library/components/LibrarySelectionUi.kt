@@ -53,7 +53,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anisync.android.R
-import com.anisync.android.domain.LibraryPriority
 import com.anisync.android.domain.LibraryStatus
 import com.anisync.android.domain.ScoreFormat
 import com.anisync.android.domain.formatScore
@@ -66,7 +65,7 @@ import com.anisync.android.presentation.util.bouncyClickable
 import com.anisync.android.presentation.util.toIcon
 import com.anisync.android.presentation.util.toLabel
 import com.anisync.android.presentation.util.toListIcon
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
 import com.anisync.android.ui.theme.ListIndicatorKind
 import com.anisync.android.ui.theme.listIndicatorColor
 import kotlin.math.roundToInt
@@ -144,7 +143,6 @@ fun LibrarySelectionTopBar(
 fun LibraryBulkActionBar(
     onStatus: () -> Unit,
     onScore: () -> Unit,
-    onAddToList: () -> Unit,
     moreMenu: @Composable (expanded: Boolean, onDismiss: () -> Unit) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -175,13 +173,6 @@ fun LibraryBulkActionBar(
                 onClick = onScore,
                 modifier = Modifier.weight(1f)
             )
-            BulkAction(
-                icon = Icons.AutoMirrored.Filled.List,
-                label = stringResource(R.string.library_bulk_add_to_list),
-                onClick = onAddToList,
-                slow = true,
-                modifier = Modifier.weight(1f)
-            )
             Box(modifier = Modifier.weight(1f)) {
                 BulkAction(
                     icon = Icons.Default.MoreVert,
@@ -200,8 +191,7 @@ private fun BulkAction(
     icon: ImageVector,
     label: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    slow: Boolean = false
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
@@ -216,24 +206,12 @@ private fun BulkAction(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Box {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(24.dp)
-            )
-            // Marks the actions that cost one request per entry rather than one for the batch.
-            if (slow) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .size(6.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                )
-            }
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(24.dp)
+        )
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
@@ -250,8 +228,6 @@ fun LibraryBulkMoreMenu(
     onDismiss: () -> Unit,
     canEditSingle: Boolean,
     onEditSingle: () -> Unit,
-    onSetPriority: () -> Unit,
-    onSetPrivate: (Boolean) -> Unit,
     onRemove: () -> Unit
 ) {
     Menu(expanded = expanded, onDismissRequest = onDismiss) {
@@ -265,30 +241,6 @@ fun LibraryBulkMoreMenu(
                 }
             )
         }
-        item(
-            text = stringResource(R.string.library_set_priority),
-            leadingIcon = Icons.Default.LowPriority,
-            onClick = {
-                onDismiss()
-                onSetPriority()
-            }
-        )
-        item(
-            text = stringResource(R.string.library_make_private),
-            leadingIcon = Icons.Outlined.Lock,
-            onClick = {
-                onDismiss()
-                onSetPrivate(true)
-            }
-        )
-        item(
-            text = stringResource(R.string.library_make_public),
-            leadingIcon = Icons.Outlined.LockOpen,
-            onClick = {
-                onDismiss()
-                onSetPrivate(false)
-            }
-        )
         gap()
         item(
             text = stringResource(R.string.library_remove_from_library),
@@ -320,7 +272,6 @@ fun BulkStatusSheet(
     val statuses = remember {
         listOf(
             LibraryStatus.CURRENT,
-            LibraryStatus.REPEATING,
             LibraryStatus.PLANNING,
             LibraryStatus.COMPLETED,
             LibraryStatus.PAUSED,
@@ -373,12 +324,10 @@ fun BulkStatusSheet(
 private fun StatusBadge(status: LibraryStatus) {
     val kind = when (status) {
         LibraryStatus.CURRENT -> ListIndicatorKind.WATCHING
-        LibraryStatus.REPEATING -> ListIndicatorKind.REPEATING
         LibraryStatus.PLANNING -> ListIndicatorKind.PLANNING
         LibraryStatus.PAUSED -> ListIndicatorKind.PAUSED
         LibraryStatus.COMPLETED -> ListIndicatorKind.COMPLETED
         LibraryStatus.DROPPED -> ListIndicatorKind.DROPPED
-        LibraryStatus.UNKNOWN -> ListIndicatorKind.CUSTOM
     }
     val colors = listIndicatorColor(kind)
     val shape = when (kind) {
@@ -395,104 +344,6 @@ private fun StatusBadge(status: LibraryStatus) {
             contentDescription = null,
             tint = colors.content,
             modifier = Modifier.size(16.dp)
-        )
-    }
-}
-
-/**
- * Priority for the whole selection. High first, because that is the level anyone opens this to set.
- *
- * Same one-request path as status and score, so it says so in the same place. Picking Low writes 0,
- * which is also what an entry that has never carried a priority reads as — clearing and setting Low
- * are the same edit on AniList, and this sheet does not pretend otherwise.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BulkPrioritySheet(
-    visible: Boolean,
-    count: Int,
-    onPick: (LibraryPriority) -> Unit,
-    onDismiss: () -> Unit
-) {
-    if (!visible) return
-    var picked by remember { mutableStateOf<LibraryPriority?>(null) }
-    val levels = remember { LibraryPriority.entries.reversed() }
-
-    FilterSheetScaffold(
-        title = stringResource(R.string.library_set_priority),
-        onDismiss = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ) {
-        levels.forEach { level ->
-            val selected = picked == level
-            FilterOptionRow(
-                label = level.toLabel(),
-                selected = selected,
-                leading = { PriorityBadge(level) },
-                trailing = if (selected) {
-                    {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                } else {
-                    null
-                },
-                onClick = { picked = level }
-            )
-        }
-        Text(
-            text = stringResource(R.string.library_bulk_one_request, count),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
-        )
-        androidx.compose.material3.Button(
-            onClick = { picked?.let(onPick) },
-            enabled = picked != null,
-            shape = CircleShape,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .height(52.dp)
-        ) {
-            Text(
-                text = picked?.let {
-                    stringResource(R.string.library_priority_count_to, count, it.toLabel())
-                } ?: stringResource(R.string.library_set_priority)
-            )
-        }
-    }
-}
-
-/**
- * The level badge: a rounded square whose fill steps down with the level, so the three rows read as
- * a ladder before you have read a word of them.
- */
-@Composable
-private fun PriorityBadge(level: LibraryPriority) {
-    val container = when (level) {
-        LibraryPriority.HIGH -> MaterialTheme.colorScheme.primary
-        LibraryPriority.MEDIUM -> MaterialTheme.colorScheme.secondaryContainer
-        LibraryPriority.LOW -> MaterialTheme.colorScheme.surfaceContainerHigh
-    }
-    val content = when (level) {
-        LibraryPriority.HIGH -> MaterialTheme.colorScheme.onPrimary
-        LibraryPriority.MEDIUM -> MaterialTheme.colorScheme.onSecondaryContainer
-        LibraryPriority.LOW -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
-    Box(
-        modifier = Modifier.size(28.dp).clip(RoundedCornerShape(9.dp)).background(container),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = level.toIcon(),
-            contentDescription = null,
-            tint = content,
-            modifier = Modifier.size(20.dp)
         )
     }
 }
@@ -568,53 +419,9 @@ fun BulkScoreSheet(
     }
 }
 
-/** Which custom list to fill. Empty state points at the list manager rather than dead-ending. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BulkAddToListSheet(
-    visible: Boolean,
-    lists: List<String>,
-    onPick: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    if (!visible) return
-    FilterSheetScaffold(
-        title = stringResource(R.string.library_add_to_list),
-        onDismiss = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ) {
-        if (lists.isEmpty()) {
-            Text(
-                text = stringResource(R.string.library_no_custom_lists),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-            )
-        } else {
-            lists.forEach { name ->
-                FilterOptionRow(
-                    label = name,
-                    selected = false,
-                    leading = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.List,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    onClick = { onPick(name) }
-                )
-            }
-        }
-    }
-}
-
 /**
- * Progress for the two operations that cost one request per entry.
- *
- * The explanation is deliberately plain: AniList exposes no bulk delete and no bulk custom-list
- * write, and the client paces itself at 25 requests a minute, so a large selection genuinely takes
- * minutes. Saying so is better than a spinner that looks stuck.
+ * Progress for a batch. Yamtrack saves one entry per request, so a large selection takes a while;
+ * saying so is better than a spinner that looks stuck.
  */
 @Composable
 fun BulkProgressDialog(operation: BulkOperation, onCancel: () -> Unit) {
@@ -624,11 +431,7 @@ fun BulkProgressDialog(operation: BulkOperation, onCancel: () -> Unit) {
             Text(
                 text = when (operation.kind) {
                     BulkKind.REMOVE -> stringResource(R.string.library_removing_title, operation.total)
-                    BulkKind.ADD_TO_LIST -> stringResource(
-                        R.string.library_adding_title,
-                        operation.total,
-                        operation.listName.orEmpty()
-                    )
+                    BulkKind.UPDATE -> stringResource(R.string.library_updating_title, operation.total)
                 },
                 style = MaterialTheme.typography.headlineSmall
             )

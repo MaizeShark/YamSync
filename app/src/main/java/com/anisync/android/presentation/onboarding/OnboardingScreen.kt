@@ -33,7 +33,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.anisync.android.presentation.login.AniListAuth
 import com.anisync.android.presentation.onboarding.components.AllSetStep
 import com.anisync.android.presentation.onboarding.components.PermissionRow
 import com.anisync.android.presentation.onboarding.components.PermissionsStep
@@ -208,13 +207,6 @@ fun OnboardingScreen(
 
         if (uiState.showSignInSheet) {
             SignInSheet(
-                onOpenAniList = {
-                    runCatching {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, AniListAuth.AUTH_URL.toUri())
-                        )
-                    }
-                },
                 onDismiss = { viewModel.onAction(OnboardingAction.DismissSignInSheet) }
             )
         }

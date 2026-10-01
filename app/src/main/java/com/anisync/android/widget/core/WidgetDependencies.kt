@@ -5,7 +5,6 @@ import com.anisync.android.data.AppSettings
 import com.anisync.android.data.account.AccountStore
 import com.anisync.android.data.local.dao.AiringScheduleDao
 import com.anisync.android.data.local.dao.LibraryDao
-import com.anisync.android.data.local.dao.TrendingDao
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -21,7 +20,6 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 interface WidgetEntryPoint {
     fun airingScheduleDao(): AiringScheduleDao
-    fun trendingDao(): TrendingDao
     fun libraryDao(): LibraryDao
     fun accountStore(): AccountStore
 
@@ -32,7 +30,7 @@ interface WidgetEntryPoint {
 fun Context.widgetDeps(): WidgetEntryPoint =
     EntryPointAccessors.fromApplication(applicationContext, WidgetEntryPoint::class.java)
 
-/** Active AniList user id, or -1 when signed out. Library and schedule rows are scoped by this. */
+/** Active account id, or -1 when signed out. Library and schedule rows are scoped by this. */
 fun WidgetEntryPoint.activeOwnerId(): Int = accountStore().activeAccount.value?.id ?: NO_OWNER
 
 const val NO_OWNER = -1

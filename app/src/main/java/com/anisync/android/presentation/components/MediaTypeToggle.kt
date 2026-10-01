@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.Dp
 import com.anisync.android.R
 import com.anisync.android.presentation.util.LocalAdaptiveInfo
 import com.anisync.android.presentation.util.rememberHapticFeedback
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
 
 /** Height of the rails this toggle sits in, on Library, Discover and Feed. */
 val MediaTypeToggleHeight = ConnectedToggleDefaults.Height

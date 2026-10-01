@@ -1,9 +1,6 @@
 package com.anisync.android.data.util
 
 import com.anisync.android.domain.Result
-import com.apollographql.apollo.exception.ApolloHttpException
-import com.apollographql.apollo.exception.ApolloNetworkException
-import com.apollographql.apollo.exception.DefaultApolloException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -56,13 +53,13 @@ class SafeApiCallTest {
     }
 
     /**
-     * ApolloException is sealed, so ApiError can never be one and Apollo always hands ours back
-     * wrapped. Reading only the top of the chain reported a rate limit as "no internet connection".
+     * OkHttp wraps what an interceptor throws in an IOException. Reading only the top of the chain
+     * reported a rate limit as "no internet connection".
      */
     @Test
     fun `a wrapped ApiError is unwrapped, not reported as a network failure`() = runTest {
         val result = safeApiCall<Unit> {
-            throw ApolloNetworkException("Error while reading JSON response", ApiError.RateLimited(45))
+            throw java.io.IOException("Error while reading the response", ApiError.RateLimited(45))
         }
 
         val error = result as Result.Error
@@ -102,18 +99,16 @@ class SafeApiCallTest {
     }
 
     @Test
-    fun `an unclassified HTTP failure keeps its status code`() = runTest {
-        val result = safeApiCall<Unit> {
-            throw ApolloHttpException(503, emptyList(), null, "Service Unavailable")
-        }
+    fun `a server failure keeps its status code`() = runTest {
+        val result = safeApiCall<Unit> { throw ApiError.ServerError(503) }
 
         val error = result as Result.Error
         assertEquals(503, error.code)
     }
 
     @Test
-    fun `a bare Apollo failure does not invent a status code`() = runTest {
-        val result = safeApiCall<Unit> { throw DefaultApolloException("malformed json") }
+    fun `an unclassified failure does not invent a status code`() = runTest {
+        val result = safeApiCall<Unit> { throw IllegalStateException("malformed page") }
 
         val error = result as Result.Error
         assertNull(error.code)

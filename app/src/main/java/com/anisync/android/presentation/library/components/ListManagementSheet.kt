@@ -63,7 +63,7 @@ import com.anisync.android.presentation.components.AppModalBottomSheet
 import com.anisync.android.presentation.util.LIBRARY_ALL_TAB_ID
 import com.anisync.android.presentation.util.libraryTabLabel
 import com.anisync.android.presentation.util.toIcon
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlinx.coroutines.delay
@@ -74,29 +74,16 @@ fun ListManagementSheet(
     visible: Boolean,
     onDismiss: () -> Unit,
     tabOrder: List<String>,
-    customLists: List<String>,
     hiddenLists: Set<String>,
     counts: Map<String, Int>,
     mediaType: MediaType,
     onVisibilityChanged: (String, Boolean) -> Unit,
     onReorder: (List<String>) -> Unit,
-    onDeleteList: (String) -> Unit,
-    onCreateList: (String, MediaType) -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 ) {
-    var isCreatingList by remember { mutableStateOf(false) }
-    var newListTitle by remember { mutableStateOf("") }
-    var selectedType by remember { mutableStateOf(MediaType.ANIME) }
-    val focusRequester = remember { FocusRequester() }
-
     if (visible) {
         AppModalBottomSheet(
-            onDismissRequest = {
-                // Reset state when sheet is closed
-                isCreatingList = false
-                newListTitle = ""
-                onDismiss()
-            },
+            onDismissRequest = onDismiss,
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
@@ -120,13 +107,8 @@ fun ListManagementSheet(
                 hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
             }
 
-            // CRITICAL FIX: Everything is placed inside the LazyColumn.
-            // This ensures that when the keyboard opens (.imePadding()), the content simply
-            // becomes scrollable instead of shrinking the TextField to 0 height and dropping focus.
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .imePadding(),
+                modifier = Modifier.fillMaxWidth(),
                 state = lazyListState,
                 contentPadding = PaddingValues(
                     start = 24.dp,
@@ -157,8 +139,6 @@ fun ListManagementSheet(
                 // Reorderable Tab Items
                 items(localOrder, key = { it }) { tabId ->
                     ReorderableItem(reorderableLazyListState, key = tabId) { isDragging ->
-                        // "All" isn't a custom list, so it must not offer the delete affordance.
-                        val isCustom = !tabId.startsWith("status:") && tabId != LIBRARY_ALL_TAB_ID
                         val isHidden = hiddenLists.contains(tabId)
 
                         val elevation by animateDpAsState(
@@ -225,146 +205,28 @@ fun ListManagementSheet(
                                     )
                                 }
 
-                                // Controls — visibility toggle for all, delete for custom lists only
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    IconButton(onClick = { onVisibilityChanged(tabId, !isHidden) }) {
-                                        Icon(
-                                            imageVector = if (isHidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                            contentDescription = stringResource(
-                                                if (isHidden) R.string.cd_show_tab else R.string.cd_hide_tab
-                                            ),
-                                            tint = if (isHidden) MaterialTheme.colorScheme.onSurfaceVariant
-                                                   else MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                    if (isCustom) {
-                                        IconButton(onClick = { onDeleteList(tabId) }) {
-                                            Icon(
-                                                Icons.Default.Delete,
-                                                contentDescription = stringResource(R.string.cd_delete_list),
-                                                tint = MaterialTheme.colorScheme.error
-                                            )
-                                        }
-                                    }
+                                IconButton(onClick = { onVisibilityChanged(tabId, !isHidden) }) {
+                                    Icon(
+                                        imageVector = if (isHidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                        contentDescription = stringResource(
+                                            if (isHidden) R.string.cd_show_tab else R.string.cd_hide_tab
+                                        ),
+                                        tint = if (isHidden) MaterialTheme.colorScheme.onSurfaceVariant
+                                               else MaterialTheme.colorScheme.primary
+                                    )
                                 }
                             }
                         }
                     }
                 }
-                item(key = "create_spacer") { Spacer(modifier = Modifier.height(8.dp)) }
-
-                // Form / Button
-                item(key = "create_form") {
-                    if (isCreatingList) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            OutlinedTextField(
-                                value = newListTitle,
-                                onValueChange = { newListTitle = it },
-                                placeholder = { Text(stringResource(R.string.new_list_name)) },
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(
-                                    capitalization = KeyboardCapitalization.Words,
-                                    imeAction = ImeAction.Done
-                                ),
-                                keyboardActions = KeyboardActions(
-                                    onDone = {
-                                        if (newListTitle.isNotBlank()) {
-                                            onCreateList(newListTitle.trim(), selectedType)
-                                        }
-                                        isCreatingList = false
-                                        newListTitle = ""
-                                    }
-                                ),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .focusRequester(focusRequester)
-                            )
-                            
-                            // Media Type Selection for new list
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                androidx.compose.material3.FilterChip(
-                                    selected = selectedType == MediaType.ANIME,
-                                    onClick = { selectedType = MediaType.ANIME },
-                                    label = { Text(stringResource(R.string.media_type_anime)) },
-                                    leadingIcon = if (selectedType == MediaType.ANIME) {
-                                        { Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                                    } else null
-                                )
-                                androidx.compose.material3.FilterChip(
-                                    selected = selectedType == MediaType.MANGA,
-                                    onClick = { selectedType = MediaType.MANGA },
-                                    label = { Text(stringResource(R.string.media_type_manga)) },
-                                    leadingIcon = if (selectedType == MediaType.MANGA) {
-                                        { Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                                    } else null
-                                )
-                            }
-                            
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End
-                            ) {
-                                TextButton(
-                                    onClick = {
-                                        isCreatingList = false
-                                        newListTitle = ""
-                                    }
-                                ) {
-                                    Text(stringResource(R.string.cancel))
-                                }
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Button(
-                                    onClick = {
-                                        if (newListTitle.isNotBlank()) {
-                                            onCreateList(newListTitle.trim(), selectedType)
-                                        }
-                                        isCreatingList = false
-                                        newListTitle = ""
-                                    },
-                                    enabled = newListTitle.isNotBlank()
-                                ) {
-                                    Text(stringResource(R.string.save))
-                                }
-                            }
-
-                            // Request focus after the layout is successfully mounted in the LazyColumn
-                            LaunchedEffect(Unit) {
-                                delay(100)
-                                focusRequester.requestFocus()
-                            }
-                        }
-                    } else {
-                        androidx.compose.material3.OutlinedButton(
-                            onClick = { isCreatingList = true },
-                            shape = androidx.compose.foundation.shape.CircleShape,
-                            modifier = Modifier.fillMaxWidth().height(52.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.library_new_list))
-                        }
-                    }
-                }
-
             }
         }
     }
 }
 
 /**
- * Items before the reorderable rows in the LazyColumn — the header alone, now that the create
- * action sits at the bottom. The reorder callback subtracts it to map list indices back to
- * positions in the tab order.
+ * Items before the reorderable rows in the LazyColumn: the header. The reorder callback subtracts
+ * it to map list indices back to positions in the tab order.
  */
 private const val NON_REORDERABLE_ITEM_COUNT = 1
 
@@ -385,18 +247,4 @@ private fun TabLabel(
                 else MaterialTheme.colorScheme.onSurface,
         modifier = modifier
     )
-}
-
-/**
- * Returns the appropriate icon for a tab identifier.
- */
-private fun getTabIcon(tabId: String, mediaType: MediaType): ImageVector = when {
-    tabId == LIBRARY_ALL_TAB_ID -> Icons.Default.AllInclusive
-    tabId == "status:FAVORITES" -> Icons.Default.Favorite
-    tabId.startsWith("status:") -> {
-        val statusName = tabId.removePrefix("status:")
-        LibraryStatus.entries.find { it.name == statusName }?.toIcon(mediaType)
-            ?: Icons.AutoMirrored.Filled.List
-    }
-    else -> Icons.AutoMirrored.Filled.List // Custom list
 }

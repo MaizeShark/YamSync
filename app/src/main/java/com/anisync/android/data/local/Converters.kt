@@ -1,216 +1,30 @@
 package com.anisync.android.data.local
 
 import androidx.room.TypeConverter
-import com.anisync.android.domain.AnimeStatusCounts
-import com.anisync.android.domain.CharacterInfo
-import com.anisync.android.domain.ExternalLink
-import com.anisync.android.domain.LibraryEntry
 import com.anisync.android.domain.LibraryStatus
-import com.anisync.android.domain.MediaReview
 import com.anisync.android.domain.MediaTheme
-import com.anisync.android.domain.RecommendedMedia
-import com.anisync.android.domain.RelatedMedia
-import com.anisync.android.domain.StudioInfo
-import com.anisync.android.domain.StudioRef
-import com.anisync.android.domain.Tag
-import com.anisync.android.domain.Trailer
-import com.anisync.android.type.MediaFormat
-import com.anisync.android.type.MediaType
 import kotlinx.serialization.json.Json
 
-/**
- * Room TypeConverters for complex types and enums.
- */
 class Converters {
     private val json = Json { ignoreUnknownKeys = true }
 
-    // --- Enum Converters ---
-
     @TypeConverter
-    fun fromMediaType(value: String?): MediaType? = value?.let { MediaType.valueOf(it) }
-
-    @TypeConverter
-    fun toMediaType(type: MediaType?): String? = type?.name
-
-    @TypeConverter
-    fun fromMediaFormat(value: String?): MediaFormat? =
-        value?.let { MediaFormat.safeValueOf(it) }
-
-    @TypeConverter
-    fun toMediaFormat(format: MediaFormat?): String? = format?.rawValue
-
-    @TypeConverter
-    fun fromLibraryStatus(value: String): LibraryStatus = LibraryStatus.valueOf(value)
+    fun fromLibraryStatus(value: String): LibraryStatus =
+        runCatching { LibraryStatus.valueOf(value) }.getOrDefault(LibraryStatus.PLANNING)
 
     @TypeConverter
     fun toLibraryStatus(status: LibraryStatus): String = status.name
 
     @TypeConverter
-    fun fromNullableLibraryStatus(value: String?): LibraryStatus? =
-        value?.let { LibraryStatus.valueOf(it) }
-
-    @TypeConverter
-    fun toNullableLibraryStatus(status: LibraryStatus?): String? = status?.name
-
-    // --- List Converters using kotlinx.serialization ---
-
-    @TypeConverter
-    fun fromStringList(value: String): List<String> = json.decodeFromString(value)
+    fun fromStringList(value: String): List<String> =
+        runCatching { json.decodeFromString<List<String>>(value) }.getOrDefault(emptyList())
 
     @TypeConverter
     fun toStringList(list: List<String>): String = json.encodeToString(list)
 
     @TypeConverter
-    fun fromAdvancedScores(value: String): Map<String, Double> = try {
-        json.decodeFromString(value)
-    } catch (e: Exception) {
-        emptyMap()
-    }
-
-    @TypeConverter
-    fun toAdvancedScores(scores: Map<String, Double>): String = json.encodeToString(scores)
-
-    @TypeConverter
-    fun fromCharacterList(value: String): List<CharacterInfo> = json.decodeFromString(value)
-
-    @TypeConverter
-    fun toCharacterList(list: List<CharacterInfo>): String = json.encodeToString(list)
-
-    @TypeConverter
-    fun fromStaffInfoList(value: String): List<com.anisync.android.domain.StaffInfo> = try {
-        json.decodeFromString(value)
-    } catch (e: Exception) {
-        emptyList()
-    }
-
-    @TypeConverter
-    fun toStaffInfoList(list: List<com.anisync.android.domain.StaffInfo>): String =
-        json.encodeToString(list)
-
-    @TypeConverter
-    fun fromRelationList(value: String): List<RelatedMedia> = json.decodeFromString(value)
-
-    @TypeConverter
-    fun toRelationList(list: List<RelatedMedia>): String = json.encodeToString(list)
-
-    @TypeConverter
-    fun fromExternalLinkList(value: String): List<ExternalLink> = json.decodeFromString(value)
-
-    @TypeConverter
-    fun toExternalLinkList(list: List<ExternalLink>): String = json.encodeToString(list)
-
-    @TypeConverter
-    fun fromLibraryEntryList(value: String): List<LibraryEntry> = json.decodeFromString(value)
-
-    @TypeConverter
-    fun toLibraryEntryList(list: List<LibraryEntry>): String = json.encodeToString(list)
-
-    @TypeConverter
-    fun fromAnimeStatusCounts(value: String): AnimeStatusCounts = try {
-        json.decodeFromString(value)
-    } catch (e: Exception) {
-        AnimeStatusCounts()
-    }
-
-    @TypeConverter
-    fun toAnimeStatusCounts(counts: AnimeStatusCounts): String = json.encodeToString(counts)
-
-    // --- Tag and Trailer Converters ---
-
-    @TypeConverter
-    fun fromTagList(value: String): List<Tag> = try {
-        json.decodeFromString(value)
-    } catch (e: Exception) {
-        emptyList()
-    }
-
-    @TypeConverter
-    fun toTagList(list: List<Tag>): String = json.encodeToString(list)
-
-    @TypeConverter
-    fun fromMediaRankingList(value: String): List<com.anisync.android.domain.MediaRanking> = try {
-        json.decodeFromString(value)
-    } catch (e: Exception) {
-        emptyList()
-    }
-
-    @TypeConverter
-    fun toMediaRankingList(list: List<com.anisync.android.domain.MediaRanking>): String =
-        json.encodeToString(list)
-
-    @TypeConverter
-    fun fromTrailer(value: String?): Trailer? = value?.let {
-        try {
-            json.decodeFromString<Trailer>(it)
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    @TypeConverter
-    fun toTrailer(trailer: Trailer?): String? = trailer?.let { json.encodeToString(it) }
-
-    // --- RecommendedMedia Converters ---
-
-    @TypeConverter
-    fun fromRecommendedMediaList(value: String): List<RecommendedMedia> = try {
-        json.decodeFromString(value)
-    } catch (e: Exception) {
-        emptyList()
-    }
-
-    @TypeConverter
-    fun toRecommendedMediaList(list: List<RecommendedMedia>): String = json.encodeToString(list)
-
-    // --- MediaReview Converters ---
-
-    @TypeConverter
-    fun fromMediaReviewList(value: String): List<MediaReview> = try {
-        json.decodeFromString(value)
-    } catch (e: Exception) {
-        emptyList()
-    }
-
-    @TypeConverter
-    fun toMediaReviewList(list: List<MediaReview>): String = json.encodeToString(list)
-
-    @TypeConverter
-    fun fromGenreStatList(value: String): List<com.anisync.android.domain.GenreStat> = try {
-        json.decodeFromString(value)
-    } catch (e: Exception) {
-        emptyList()
-    }
-
-    @TypeConverter
-    fun toGenreStatList(list: List<com.anisync.android.domain.GenreStat>): String =
-        json.encodeToString(list)
-
-    @TypeConverter
-    fun fromStudioInfoList(value: String): List<StudioInfo> = try {
-        json.decodeFromString(value)
-    } catch (e: Exception) {
-        emptyList()
-    }
-
-    @TypeConverter
-    fun toStudioInfoList(list: List<StudioInfo>): String = json.encodeToString(list)
-
-    @TypeConverter
-    fun fromStudioRefList(value: String): List<StudioRef> = try {
-        json.decodeFromString(value)
-    } catch (e: Exception) {
-        emptyList()
-    }
-
-    @TypeConverter
-    fun toStudioRefList(list: List<StudioRef>): String = json.encodeToString(list)
-
-    @TypeConverter
-    fun fromMediaThemeList(value: String): List<MediaTheme> = try {
-        json.decodeFromString(value)
-    } catch (e: Exception) {
-        emptyList()
-    }
+    fun fromMediaThemeList(value: String): List<MediaTheme> =
+        runCatching { json.decodeFromString<List<MediaTheme>>(value) }.getOrDefault(emptyList())
 
     @TypeConverter
     fun toMediaThemeList(list: List<MediaTheme>): String = json.encodeToString(list)

@@ -29,12 +29,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.anisync.android.presentation.util.compactProgress
 import com.anisync.android.R
 import com.anisync.android.data.TitleLanguage
 import com.anisync.android.domain.LibraryEntry
 import com.anisync.android.presentation.util.bouncyClickable
 import com.anisync.android.presentation.util.toLabel
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
 import com.anisync.android.util.getTitle
 
 /**
@@ -57,11 +58,11 @@ fun LibrarySearchResultCard(
 
     val statusLabel = entry.status.toLabel(mediaType)
     val subtitle = remember(entry, mediaType, statusLabel) {
-        val total = if (mediaType == MediaType.MANGA) entry.totalChapters else entry.totalEpisodes
-        "$statusLabel • ${entry.progress}/${total ?: "?"}"
+        listOfNotNull(statusLabel, compactProgress(mediaType, entry.progress, entry.maxProgress))
+            .joinToString(" • ")
     }
 
-    val coverData = entry.cover.url() ?: entry.coverUrl
+    val coverData = entry.coverUrl
     val imageRequest = remember(coverData) {
         ImageRequest.Builder(context)
             .data(coverData)

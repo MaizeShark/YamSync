@@ -1,7 +1,5 @@
 package com.anisync.android.presentation.settings
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,7 +42,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anisync.android.R
 import com.anisync.android.data.account.Account
 import com.anisync.android.presentation.components.UserAvatar
-import com.anisync.android.presentation.login.AniListAuth
 import com.anisync.android.util.AppLinksUtil
 
 /**
@@ -54,6 +51,8 @@ import com.anisync.android.util.AppLinksUtil
 fun AniListSettingsScreen(
     onLogout: () -> Unit,
     onBackClick: () -> Unit,
+    /** Opens the sign-in form, for a new account or one whose session expired. */
+    onAddAccount: () -> Unit,
     modifier: Modifier = Modifier,
     accountViewModel: AccountViewModel = hiltViewModel(),
 ) {
@@ -63,10 +62,6 @@ fun AniListSettingsScreen(
 
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
     var accountToRemove by remember { mutableStateOf<Account?>(null) }
-
-    fun launchOAuth() {
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(AniListAuth.AUTH_URL)))
-    }
 
     if (showLogoutDialog) {
         AlertDialog(
@@ -131,7 +126,7 @@ fun AniListSettingsScreen(
             if (active != null && active.name.isNotBlank()) {
                 IconButton(
                     onClick = {
-                        AppLinksUtil.openInBrowser(context, "https://anilist.co/user/${active.name}")
+                        AppLinksUtil.openInBrowser(context, active.serverUrl)
                     }
                 ) {
                     Icon(
@@ -157,10 +152,10 @@ fun AniListSettingsScreen(
                     account = account,
                     isActive = account.id == activeAccount?.id,
                     onSwitch = {
-                        if (account.isExpired) launchOAuth()
+                        if (account.isExpired) onAddAccount()
                         else accountViewModel.switch(account.id)
                     },
-                    onReauthenticate = ::launchOAuth,
+                    onReauthenticate = onAddAccount,
                     onRemove = { accountToRemove = account }
                 )
             }
@@ -169,7 +164,7 @@ fun AniListSettingsScreen(
                 title = stringResource(R.string.account_add),
                 subtitle = stringResource(R.string.account_add_desc),
                 icon = Icons.Outlined.PersonAddAlt,
-                onClick = ::launchOAuth
+                onClick = onAddAccount
             )
         }
 

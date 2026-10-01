@@ -6,7 +6,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import com.anisync.android.widget.AiringTodayWidgetProvider
-import com.anisync.android.widget.TrendingWidgetProvider
 import com.anisync.android.widget.UpNextWidgetProvider
 import com.anisync.android.widget.WatchProgressWidgetProvider
 import com.anisync.android.widget.WeeklyCalendarWidgetProvider
@@ -27,7 +26,6 @@ object WidgetRefresh {
         UpNextWidgetProvider::class.java,
         AiringTodayWidgetProvider::class.java,
         WeeklyCalendarWidgetProvider::class.java,
-        TrendingWidgetProvider::class.java,
         WatchProgressWidgetProvider::class.java,
     )
 

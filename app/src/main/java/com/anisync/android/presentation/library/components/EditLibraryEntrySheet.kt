@@ -92,9 +92,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.anisync.android.R
-import com.anisync.android.data.TitleLanguage
 import com.anisync.android.domain.LibraryEntry
-import com.anisync.android.domain.LibraryPriority
 import com.anisync.android.domain.LibraryStatus
 import com.anisync.android.domain.ScoreFormat
 import com.anisync.android.domain.displayValue
@@ -108,13 +106,18 @@ import com.anisync.android.presentation.components.alert.OverlayToastHost
 import com.anisync.android.presentation.components.iconRes
 import com.anisync.android.presentation.components.toIndicatorKind
 import com.anisync.android.presentation.util.rememberHapticFeedback
-import com.anisync.android.presentation.util.toIconRes
 import com.anisync.android.presentation.util.toLabel
-import com.anisync.android.type.MediaType
+import com.anisync.android.domain.model.MediaType
+import com.anisync.android.domain.model.ProgressUnit
+import com.anisync.android.presentation.util.formatPlayTime
+import com.anisync.android.presentation.util.label
+import com.anisync.android.presentation.util.labelRes
+import com.anisync.android.presentation.util.unitRes
+import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material3.OutlinedButton
 import com.anisync.android.ui.theme.emphasis
 import com.anisync.android.ui.theme.ListIndicatorKind
 import com.anisync.android.ui.theme.listIndicatorColor
-import com.anisync.android.util.getTitle
 import java.text.DateFormat
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -136,29 +139,21 @@ private val ControlShape = RoundedCornerShape(16.dp)
 @Composable
 fun EditLibraryEntrySheet(
     entry: LibraryEntry,
-    titleLanguage: TitleLanguage = TitleLanguage.ROMAJI,
-    scoreFormat: ScoreFormat = ScoreFormat.POINT_100,
-    availableCustomLists: List<String> = emptyList(),
-    advancedScoringCategories: List<String> = emptyList(),
+    maxProgress: Int? = entry.maxProgress,
+    isSaving: Boolean = false,
     onDismiss: () -> Unit,
     onSave: (LibraryEntry) -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onAddRewatch: (() -> Unit)? = null
 ) {
+    // Yamtrack scores 0–10 with one decimal place, which is this format exactly.
+    val scoreFormat = ScoreFormat.POINT_10_DECIMAL
     var status by rememberSaveable(entry.id) { mutableStateOf(entry.status) }
     var progress by rememberSaveable(entry.id) { mutableIntStateOf(entry.progress) }
-    var progressVolumes by rememberSaveable(entry.id) { mutableIntStateOf(entry.progressVolumes ?: 0) }
     var score by rememberSaveable(entry.id) { mutableDoubleStateOf(entry.score ?: 0.0) }
     var notes by rememberSaveable(entry.id) { mutableStateOf(entry.notes.orEmpty()) }
     var startedAt by rememberSaveable(entry.id) { mutableStateOf(entry.startedAt) }
     var completedAt by rememberSaveable(entry.id) { mutableStateOf(entry.completedAt) }
-    var rewatches by rememberSaveable(entry.id) { mutableIntStateOf(entry.rewatches) }
-    // Raw, not the level: an untouched foreign 3..255 has to survive, and the repository decides
-    // whether to send the field by comparing it to what was there before.
-    var priority by rememberSaveable(entry.id) { mutableIntStateOf(entry.priority) }
-    var isPrivate by rememberSaveable(entry.id) { mutableStateOf(entry.isPrivate) }
-    var hiddenFromStatusLists by rememberSaveable(entry.id) { mutableStateOf(entry.hiddenFromStatusLists) }
-    var selectedCustomLists by remember(entry.id) { mutableStateOf(entry.customLists.toSet()) }
-    var advancedScores by remember(entry.id) { mutableStateOf(entry.advancedScores) }
 
     var finishPromptDismissed by rememberSaveable(entry.id) { mutableStateOf(false) }
     var moreExpanded by rememberSaveable { mutableStateOf(false) }
@@ -168,25 +163,21 @@ fun EditLibraryEntrySheet(
     var showCompletedPicker by rememberSaveable { mutableStateOf(false) }
     var numberPrompt by remember { mutableStateOf<NumberPrompt?>(null) }
 
-    val isAnime = entry.type != MediaType.MANGA
-    val total = if (isAnime) entry.totalEpisodes else entry.totalChapters
+    val type = entry.type
+    val total = maxProgress
+    // Games count minutes, stepped by half an hour like Yamtrack's own buttons.
+    val step = if (type.progressUnit == ProgressUnit.MINUTES) 30 else 1
+    val hasProgress = type.hasEditableProgress
     val haptics = rememberHapticFeedback()
 
     val hasChanges by remember(entry.id) {
         derivedStateOf {
             status != entry.status ||
                 progress != entry.progress ||
-                progressVolumes != (entry.progressVolumes ?: 0) ||
                 score != (entry.score ?: 0.0) ||
                 notes != entry.notes.orEmpty() ||
                 startedAt != entry.startedAt ||
-                completedAt != entry.completedAt ||
-                rewatches != entry.rewatches ||
-                priority != entry.priority ||
-                isPrivate != entry.isPrivate ||
-                hiddenFromStatusLists != entry.hiddenFromStatusLists ||
-                selectedCustomLists != entry.customLists.toSet() ||
-                advancedScores != entry.advancedScores
+                completedAt != entry.completedAt
         }
     }
 
@@ -210,19 +201,11 @@ fun EditLibraryEntrySheet(
     fun edited() = entry.copy(
         status = status,
         progress = progress,
-        progressVolumes = progressVolumes.takeIf { entry.type == MediaType.MANGA },
         score = score.takeIf { it > 0 },
-        // The raw text goes out, empty string included: collapsing it to null makes the repository
-        // send Optional.absent(), which leaves the old note on AniList instead of clearing it.
-        notes = notes,
+        notes = notes.ifBlank { null },
         startedAt = startedAt,
         completedAt = completedAt,
-        rewatches = rewatches,
-        priority = priority,
-        customLists = selectedCustomLists.toList(),
-        advancedScores = advancedScores,
-        isPrivate = isPrivate,
-        hiddenFromStatusLists = hiddenFromStatusLists
+        updatedAt = System.currentTimeMillis()
     )
 
     AppModalBottomSheet(
@@ -247,7 +230,7 @@ fun EditLibraryEntrySheet(
 
         Column(modifier = Modifier.fillMaxWidth().imePadding()) {
             EditEntryTopBar(
-                saveEnabled = hasChanges,
+                saveEnabled = hasChanges && !isSaving,
                 onClose = { if (hasChanges) showDiscardDialog = true else onDismiss() },
                 onSave = {
                     haptics.performHapticFeedback(HapticFeedbackType.Confirm)
@@ -263,33 +246,28 @@ fun EditLibraryEntrySheet(
                     .navigationBarsPadding(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                MediaRow(entry = entry, titleLanguage = titleLanguage)
+                MediaRow(entry = entry, total = total)
 
-                ProgressCard(
+                if (hasProgress) ProgressCard(
+                    type = type,
                     progress = progress,
-                    total = total,
-                    isAnime = isAnime,
-                    volumes = if (isAnime) null else progressVolumes,
-                    totalVolumes = entry.totalVolumes,
+                    total = total.takeIf { step == 1 },
+                    step = step,
                     onProgressChange = {
                         haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                        progress = it.coerceIn(0, total ?: Int.MAX_VALUE)
-                    },
-                    onVolumesChange = {
-                        haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                        progressVolumes = it.coerceIn(0, entry.totalVolumes ?: Int.MAX_VALUE)
+                        progress = it.coerceIn(0, total.takeIf { step == 1 } ?: Int.MAX_VALUE)
                     },
                     onTypeRequest = {
-                        numberPrompt = NumberPrompt.Progress(progress, total)
+                        numberPrompt = NumberPrompt.Progress(progress, total.takeIf { step == 1 })
                     }
                 )
 
-                val atTheEnd = total != null && total > 0 && progress >= total
+                val atTheEnd = hasProgress && step == 1 && total != null && total > 0 && progress >= total
                 AnimatedVisibility(
                     visible = atTheEnd && status != LibraryStatus.COMPLETED && !finishPromptDismissed
                 ) {
                     FinishPrompt(
-                        isAnime = isAnime,
+                        type = type,
                         onDismiss = { finishPromptDismissed = true },
                         onConfirm = {
                             haptics.performHapticFeedback(HapticFeedbackType.Confirm)
@@ -302,54 +280,18 @@ fun EditLibraryEntrySheet(
 
                 StatusGrid(
                     status = status,
-                    isAnime = isAnime,
+                    type = type,
                     onSelect = {
                         haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
                         status = it
                     }
                 )
 
-                PriorityRow(
-                    priority = LibraryPriority.of(priority),
-                    onSelect = {
-                        haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                        priority = it.raw
-                    }
-                )
-
-                if (availableCustomLists.isNotEmpty()) {
-                    CustomListsRow(
-                        available = availableCustomLists,
-                        selectedLists = selectedCustomLists,
-                        onToggle = { name ->
-                            haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                            selectedCustomLists = if (name in selectedCustomLists) {
-                                selectedCustomLists - name
-                            } else {
-                                selectedCustomLists + name
-                            }
-                        }
-                    )
-                }
-
                 ScoreCard(
                     score = score,
                     scoreFormat = scoreFormat,
-                    categories = advancedScoringCategories,
-                    advancedScores = advancedScores,
                     onScoreChange = { score = it },
-                    onClear = {
-                        score = 0.0
-                        advancedScores = emptyMap()
-                    },
-                    onCategoryChange = { name, value ->
-                        val next = advancedScores.toMutableMap()
-                        if (value <= 0.0) next.remove(name) else next[name] = value
-                        advancedScores = next
-                        // AniList treats the overall score as the average of the rated categories.
-                        val rated = next.values.filter { it > 0.0 }
-                        if (rated.isNotEmpty()) score = scoreFormat.snap(rated.average())
-                    },
+                    onClear = { score = 0.0 },
                     onTypeRequest = { numberPrompt = NumberPrompt.Score(score, scoreFormat) }
                 )
 
@@ -364,26 +306,16 @@ fun EditLibraryEntrySheet(
 
                 MoreOptionsRow(
                     expanded = moreExpanded,
-                    isAnime = isAnime,
                     onToggle = { moreExpanded = !moreExpanded }
                 )
 
                 AnimatedVisibility(visible = moreExpanded) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        RewatchRow(
-                            rewatches = rewatches,
-                            isAnime = isAnime,
-                            onChange = { rewatches = it.coerceAtLeast(0) }
-                        )
-
                         NotesField(notes = notes, onNotesChange = { notes = it })
 
-                        PrivacyToggles(
-                            isPrivate = isPrivate,
-                            hiddenFromStatusLists = hiddenFromStatusLists,
-                            onPrivateChange = { isPrivate = it },
-                            onHiddenChange = { hiddenFromStatusLists = it }
-                        )
+                        if (onAddRewatch != null && entry.id > 0) {
+                            RewatchAction(type = type, onClick = onAddRewatch)
+                        }
 
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
@@ -500,12 +432,7 @@ private fun EditEntryTopBar(
 // ================== MEDIA ==================
 
 @Composable
-private fun MediaRow(entry: LibraryEntry, titleLanguage: TitleLanguage) {
-    val title = entry.getTitle(titleLanguage)
-    val isAnime = entry.type != MediaType.MANGA
-    val total = if (isAnime) entry.totalEpisodes else entry.totalChapters
-    val unit = stringResource(if (isAnime) R.string.stat_episodes else R.string.stat_chapters)
-
+private fun MediaRow(entry: LibraryEntry, total: Int?) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -513,7 +440,7 @@ private fun MediaRow(entry: LibraryEntry, titleLanguage: TitleLanguage) {
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(entry.cover.url() ?: entry.coverUrl)
+                .data(entry.coverUrl)
                 .crossfade(200)
                 .build(),
             contentDescription = stringResource(R.string.content_description_cover),
@@ -525,16 +452,17 @@ private fun MediaRow(entry: LibraryEntry, titleLanguage: TitleLanguage) {
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = title,
+                text = entry.title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
+            val unit = entry.type.unitRes()?.let { stringResource(it) }
             Text(
                 text = listOfNotNull(
-                    if (isAnime) stringResource(R.string.media_type_anime) else stringResource(R.string.media_type_manga),
-                    total?.let { "$it $unit" }
+                    entry.type.label(),
+                    total?.takeIf { unit != null }?.let { "$it $unit" }
                 ).joinToString(" · "),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -543,17 +471,33 @@ private fun MediaRow(entry: LibraryEntry, titleLanguage: TitleLanguage) {
     }
 }
 
+/** Another watch or read: a new entry, the finished one kept as history. */
+@Composable
+private fun RewatchAction(type: MediaType, onClick: () -> Unit) {
+    OutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Icon(imageVector = Icons.Default.Replay, contentDescription = null, modifier = Modifier.size(18.dp))
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = stringResource(
+                when (type) {
+                    MediaType.MANGA, MediaType.BOOK, MediaType.COMIC -> R.string.edit_entry_start_reread
+                    MediaType.GAME, MediaType.BOARDGAME -> R.string.edit_entry_start_replay
+                    else -> R.string.edit_entry_start_rewatch
+                }
+            )
+        )
+    }
+}
+
 // ================== PROGRESS ==================
 
 @Composable
 private fun ProgressCard(
+    type: MediaType,
     progress: Int,
     total: Int?,
-    isAnime: Boolean,
-    volumes: Int?,
-    totalVolumes: Int?,
+    step: Int,
     onProgressChange: (Int) -> Unit,
-    onVolumesChange: (Int) -> Unit,
     onTypeRequest: () -> Unit
 ) {
     val remaining = total?.let { (it - progress).coerceAtLeast(0) }
@@ -576,15 +520,13 @@ private fun ProgressCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 SectionLabel(
-                    text = stringResource(
-                        if (isAnime) R.string.edit_entry_episodes_watched else R.string.edit_entry_chapters_read
-                    ),
+                    text = stringResource(R.string.edit_entry_progress),
                     modifier = Modifier.weight(1f)
                 )
                 if (remaining != null) {
                     Text(
                         text = if (remaining == 0) {
-                            stringResource(if (isAnime) R.string.edit_entry_all_watched else R.string.edit_entry_all_read)
+                            stringResource(R.string.edit_entry_all_done)
                         } else {
                             stringResource(R.string.edit_entry_remaining, remaining)
                         },
@@ -603,11 +545,11 @@ private fun ProgressCard(
                     icon = Icons.Default.Remove,
                     contentDescription = stringResource(R.string.cd_decrease_progress),
                     enabled = progress > 0,
-                    onClick = { onProgressChange(progress - 1) }
+                    onClick = { onProgressChange(progress - step) }
                 )
 
                 ValueField(
-                    value = progress.toString(),
+                    value = if (type.progressUnit == ProgressUnit.MINUTES) formatPlayTime(progress) else progress.toString(),
                     suffix = total?.let { stringResource(R.string.edit_entry_of_total, it) },
                     onClick = onTypeRequest,
                     modifier = Modifier.weight(1f)
@@ -617,15 +559,7 @@ private fun ProgressCard(
                     icon = Icons.Default.Add,
                     contentDescription = stringResource(R.string.cd_increase_progress),
                     enabled = total == null || progress < total,
-                    onClick = { onProgressChange(progress + 1) }
-                )
-            }
-
-            if (volumes != null) {
-                VolumesRow(
-                    volumes = volumes,
-                    totalVolumes = totalVolumes,
-                    onChange = onVolumesChange
+                    onClick = { onProgressChange(progress + step) }
                 )
             }
 
@@ -641,57 +575,6 @@ private fun ProgressCard(
                     strokeCap = StrokeCap.Round
                 )
             }
-        }
-    }
-}
-
-/** Manga carry a second count AniList tracks separately, so volumes get their own row. */
-@Composable
-private fun VolumesRow(
-    volumes: Int,
-    totalVolumes: Int?,
-    onChange: (Int) -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        SectionLabel(
-            text = stringResource(R.string.edit_entry_volumes_read),
-            modifier = Modifier.weight(1f)
-        )
-        FilledTonalIconButton(
-            onClick = { onChange(volumes - 1) },
-            enabled = volumes > 0,
-            modifier = Modifier.size(36.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Remove,
-                contentDescription = stringResource(R.string.cd_decrease_progress),
-                modifier = Modifier.size(20.dp)
-            )
-        }
-        Text(
-            text = if (totalVolumes != null) {
-                stringResource(R.string.edit_entry_score_of_max, volumes, totalVolumes)
-            } else {
-                volumes.toString()
-            },
-            style = MaterialTheme.typography.titleSmall,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            modifier = Modifier.width(64.dp)
-        )
-        FilledTonalIconButton(
-            onClick = { onChange(volumes + 1) },
-            enabled = totalVolumes == null || volumes < totalVolumes,
-            modifier = Modifier.size(36.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = stringResource(R.string.cd_increase_progress),
-                modifier = Modifier.size(20.dp)
-            )
         }
     }
 }
@@ -763,7 +646,7 @@ private fun ValueField(
  */
 @Composable
 private fun FinishPrompt(
-    isAnime: Boolean,
+    type: MediaType,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -786,7 +669,11 @@ private fun FinishPrompt(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(
-                            if (isAnime) R.string.edit_entry_finish_title_anime else R.string.edit_entry_finish_title_manga
+                            if (type == MediaType.MANGA || type == MediaType.BOOK || type == MediaType.COMIC) {
+                                R.string.edit_entry_finish_title_manga
+                            } else {
+                                R.string.edit_entry_finish_title_anime
+                            }
                         ),
                         style = MaterialTheme.typography.labelLarge
                     )
@@ -819,11 +706,11 @@ private fun FinishPrompt(
 @Composable
 private fun StatusGrid(
     status: LibraryStatus,
-    isAnime: Boolean,
+    type: MediaType,
     onSelect: (LibraryStatus) -> Unit
 ) {
     val rows = listOf(
-        listOf(LibraryStatus.CURRENT, LibraryStatus.REPEATING, LibraryStatus.COMPLETED),
+        listOf(LibraryStatus.CURRENT, LibraryStatus.COMPLETED),
         listOf(LibraryStatus.PLANNING, LibraryStatus.PAUSED, LibraryStatus.DROPPED)
     )
 
@@ -838,7 +725,7 @@ private fun StatusGrid(
                     row.forEach { option ->
                         StatusCell(
                             status = option,
-                            isAnime = isAnime,
+                            type = type,
                             isSelected = option == status,
                             onClick = { onSelect(option) },
                             modifier = Modifier.weight(1f)
@@ -853,14 +740,14 @@ private fun StatusGrid(
 @Composable
 private fun StatusCell(
     status: LibraryStatus,
-    isAnime: Boolean,
+    type: MediaType,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val kind = status.toIndicatorKind()
     val listColors = listIndicatorColor(kind)
-    val label = stringResource(status.labelRes(isAnime))
+    val label = stringResource(status.labelRes(type))
 
     Surface(
         onClick = onClick,
@@ -894,153 +781,9 @@ private fun StatusCell(
     }
 }
 
-private fun LibraryStatus.labelRes(isAnime: Boolean): Int = when (this) {
-    LibraryStatus.CURRENT -> if (isAnime) R.string.status_watching else R.string.status_reading
-    LibraryStatus.REPEATING -> if (isAnime) R.string.status_rewatching else R.string.status_rereading
-    LibraryStatus.COMPLETED -> R.string.status_completed
-    LibraryStatus.PLANNING -> R.string.status_planning
-    LibraryStatus.PAUSED -> R.string.status_paused
-    LibraryStatus.DROPPED -> R.string.status_dropped
-    LibraryStatus.UNKNOWN -> R.string.filter_status
-}
-
 // ================== PRIORITY ==================
 
-/**
- * Low / Medium / High, in the status grid's cell language one row shorter.
- *
- * AniList stores this as a 0..255 Int with no documented levels, so the three cells are the whole
- * vocabulary this client writes. Low is also what an entry that has never been touched reads as,
- * which is why nothing else in the app marks it.
- */
-@Composable
-private fun PriorityRow(
-    priority: LibraryPriority,
-    onSelect: (LibraryPriority) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        SectionLabel(text = stringResource(R.string.priority))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            LibraryPriority.entries.forEach { level ->
-                PriorityCell(
-                    level = level,
-                    isSelected = level == priority,
-                    onClick = { onSelect(level) },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PriorityCell(
-    level: LibraryPriority,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier
-            .height(56.dp)
-            .semantics { selected = isSelected },
-        shape = ControlShape,
-        color = if (isSelected) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.surfaceContainer
-        },
-        contentColor = if (isSelected) {
-            MaterialTheme.colorScheme.onPrimary
-        } else {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        },
-        border = if (isSelected) {
-            BorderStroke(1.5.dp, MaterialTheme.colorScheme.onPrimary)
-        } else {
-            null
-        }
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(level.toIconRes()),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = level.toLabel(),
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
-
 // ================== CUSTOM LISTS ==================
-
-@Composable
-private fun CustomListsRow(
-    available: List<String>,
-    selectedLists: Set<String>,
-    onToggle: (String) -> Unit
-) {
-    val listColors = listIndicatorColor(ListIndicatorKind.CUSTOM)
-
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        SectionLabel(text = stringResource(R.string.custom_lists))
-        // Custom lists are user defined and unbounded, so they scroll rather than wrap the sheet
-        // taller with every list the viewer owns.
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            available.forEach { name ->
-                val isSelected = name in selectedLists
-                FilterChip(
-                    selected = isSelected,
-                    onClick = { onToggle(name) },
-                    label = { Text(name) },
-                    shape = RoundedCornerShape(10.dp),
-                    leadingIcon = if (isSelected) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    } else null,
-                    colors = FilterChipDefaults.filterChipColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                        selectedContainerColor = listColors.container,
-                        selectedLabelColor = listColors.content,
-                        selectedLeadingIconColor = listColors.content
-                    ),
-                    border = if (isSelected) null else {
-                        FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = false,
-                            borderColor = MaterialTheme.colorScheme.outlineVariant
-                        )
-                    },
-                    modifier = Modifier.semantics { selected = isSelected }
-                )
-            }
-        }
-    }
-}
 
 // ================== SCORE ==================
 
@@ -1048,11 +791,8 @@ private fun CustomListsRow(
 private fun ScoreCard(
     score: Double,
     scoreFormat: ScoreFormat,
-    categories: List<String>,
-    advancedScores: Map<String, Double>,
     onScoreChange: (Double) -> Unit,
     onClear: () -> Unit,
-    onCategoryChange: (String, Double) -> Unit,
     onTypeRequest: () -> Unit
 ) {
     Surface(shape = CardShape, color = MaterialTheme.colorScheme.surfaceContainer) {
@@ -1110,74 +850,6 @@ private fun ScoreCard(
                     steps = scoreFormat.sliderSteps,
                     modifier = Modifier.fillMaxWidth()
                 )
-            }
-
-            if (categories.isNotEmpty()) {
-                CategoryScores(
-                    categories = categories,
-                    scores = advancedScores,
-                    scoreFormat = scoreFormat,
-                    onCategoryChange = onCategoryChange
-                )
-            }
-        }
-    }
-}
-
-/**
- * AniList's advanced scoring: the viewer names the categories, rates any of them, and the overall
- * score follows their average. A category left at zero is unrated and stays out of that average.
- */
-@Composable
-private fun CategoryScores(
-    categories: List<String>,
-    scores: Map<String, Double>,
-    scoreFormat: ScoreFormat,
-    onCategoryChange: (String, Double) -> Unit
-) {
-    Surface(shape = ControlShape, color = MaterialTheme.colorScheme.surfaceContainerHigh) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            SectionLabel(text = stringResource(R.string.edit_entry_by_category))
-            Text(
-                text = stringResource(R.string.edit_entry_by_category_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            categories.forEach { category ->
-                val value = scores[category] ?: 0.0
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = category,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.weight(1f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = if (value > 0) scoreFormat.displayValue(value) else "–",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = if (value > 0) {
-                                MaterialTheme.colorScheme.onSurface
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            }
-                        )
-                    }
-                    Slider(
-                        value = value.toFloat().coerceIn(0f, scoreFormat.max.toFloat()),
-                        onValueChange = { onCategoryChange(category, scoreFormat.snap(it.toDouble())) },
-                        valueRange = 0f..scoreFormat.max.toFloat(),
-                        steps = scoreFormat.sliderSteps,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
             }
         }
     }
@@ -1357,7 +1029,6 @@ private fun DateChip(
 @Composable
 private fun MoreOptionsRow(
     expanded: Boolean,
-    isAnime: Boolean,
     onToggle: () -> Unit
 ) {
     Surface(
@@ -1380,9 +1051,7 @@ private fun MoreOptionsRow(
             )
             if (!expanded) {
                 Text(
-                    text = stringResource(
-                        if (isAnime) R.string.edit_entry_more_summary_anime else R.string.edit_entry_more_summary_manga
-                    ),
+                    text = stringResource(R.string.edit_entry_more_summary),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -1393,64 +1062,6 @@ private fun MoreOptionsRow(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.rotate(if (expanded) 180f else 0f)
             )
-        }
-    }
-}
-
-@Composable
-private fun RewatchRow(
-    rewatches: Int,
-    isAnime: Boolean,
-    onChange: (Int) -> Unit
-) {
-    val label = stringResource(if (isAnime) R.string.times_rewatched else R.string.times_reread)
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        shape = ControlShape,
-        color = MaterialTheme.colorScheme.surfaceContainer
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(start = 16.dp, end = 10.dp)
-                .semantics(mergeDescendants = true) { contentDescription = "$label: $rewatches" },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.weight(1f)
-            )
-            FilledTonalIconButton(
-                onClick = { onChange(rewatches - 1) },
-                enabled = rewatches > 0,
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Remove,
-                    contentDescription = stringResource(R.string.cd_decrease_progress),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            Text(
-                text = rewatches.toString(),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.width(26.dp),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-            FilledTonalIconButton(
-                onClick = { onChange(rewatches + 1) },
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.cd_increase_progress),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
         }
     }
 }
@@ -1478,30 +1089,6 @@ private fun NotesField(notes: String, onNotesChange: (String) -> Unit) {
             ),
             minLines = 3,
             maxLines = 6
-        )
-    }
-}
-
-@Composable
-private fun PrivacyToggles(
-    isPrivate: Boolean,
-    hiddenFromStatusLists: Boolean,
-    onPrivateChange: (Boolean) -> Unit,
-    onHiddenChange: (Boolean) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        SectionLabel(text = stringResource(R.string.privacy))
-        ToggleRow(
-            title = stringResource(R.string.private_entry),
-            subtitle = stringResource(R.string.private_entry_desc),
-            checked = isPrivate,
-            onCheckedChange = onPrivateChange
-        )
-        ToggleRow(
-            title = stringResource(R.string.hide_from_status_lists),
-            subtitle = stringResource(R.string.hide_from_status_lists_desc),
-            checked = hiddenFromStatusLists,
-            onCheckedChange = onHiddenChange
         )
     }
 }

@@ -1,592 +1,269 @@
 package com.anisync.android.data
 
-import android.content.Context
-import com.anisync.android.GetUserLibraryQuery
-import com.anisync.android.GetViewerQuery
 import com.anisync.android.data.account.AccountStore
 import com.anisync.android.data.local.dao.LibraryDao
+import com.anisync.android.data.local.dao.MediaItemDao
+import com.anisync.android.data.local.entity.LibraryEntryEntity
 import com.anisync.android.data.local.toDomain
 import com.anisync.android.data.local.toEntity
-import com.anisync.android.data.mapper.mapFuzzyDateToLong
-import com.anisync.android.data.mapper.toApiStatus
-import com.anisync.android.data.mapper.toDomainStatus
-import com.anisync.android.data.mapper.toFuzzyDateInput
-import com.anisync.android.data.mapper.toScoreMap
-import com.anisync.android.data.mapper.todayUtcMillis
-import com.anisync.android.data.util.safeApiCall
+import com.anisync.android.data.yamtrack.YamtrackEntry
+import com.anisync.android.data.yamtrack.YamtrackEntryFields
+import com.anisync.android.data.yamtrack.YamtrackGateway
+import com.anisync.android.data.yamtrack.YamtrackTrackForm
 import com.anisync.android.domain.LibraryEntry
 import com.anisync.android.domain.LibraryRepository
 import com.anisync.android.domain.LibraryStatus
 import com.anisync.android.domain.Result
-import com.anisync.android.type.MediaListStatus
-import com.anisync.android.type.MediaType
-import com.anisync.android.util.AniListTextEncoder.encodeForAniList
-import com.anisync.android.widget.core.WidgetRefresh
-import com.apollographql.apollo.ApolloClient
-import com.apollographql.apollo.api.Optional
-import kotlinx.coroutines.ensureActive
-import kotlin.coroutines.coroutineContext
-import com.apollographql.cache.normalized.FetchPolicy
-import com.apollographql.cache.normalized.fetchPolicy
-import dagger.hilt.android.qualifiers.ApplicationContext
+import com.anisync.android.domain.model.MediaKey
+import com.anisync.android.domain.model.MediaType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
+import javax.inject.Singleton
 
-/** Owner id that matches no rows — used when there is no active account. */
-private const val NO_OWNER = -1
-
-private val SCORE_FORMAT_BY_NAME: Map<String, com.anisync.android.domain.ScoreFormat> = mapOf(
-    "POINT_100" to com.anisync.android.domain.ScoreFormat.POINT_100,
-    "POINT_10_DECIMAL" to com.anisync.android.domain.ScoreFormat.POINT_10_DECIMAL,
-    "POINT_10" to com.anisync.android.domain.ScoreFormat.POINT_10,
-    "POINT_5" to com.anisync.android.domain.ScoreFormat.POINT_5,
-    "POINT_3" to com.anisync.android.domain.ScoreFormat.POINT_3,
-)
-
-internal fun mapScoreFormat(name: String?): com.anisync.android.domain.ScoreFormat =
-    name?.let { SCORE_FORMAT_BY_NAME[it] } ?: com.anisync.android.domain.ScoreFormat.POINT_100
-
+/**
+ * The library, cached in Room per account and read from Yamtrack.
+ *
+ * A refresh reads the CSV export (every row of every type, no side effects on the user's web
+ * filters) and the home page (ids and totals for what is in progress). Room keeps the newest row per
+ * item, with earlier rows counted as rewatches. Episode rows are not library entries; they belong to
+ * their season.
+ */
+@Singleton
+@OptIn(ExperimentalCoroutinesApi::class)
 class LibraryRepositoryImpl @Inject constructor(
-    private val apolloClient: ApolloClient,
+    private val gateway: YamtrackGateway,
     private val libraryDao: LibraryDao,
-    private val appSettings: AppSettings,
+    private val mediaItemDao: MediaItemDao,
     private val accountStore: AccountStore,
-    @param:ApplicationContext private val context: Context
 ) : LibraryRepository {
 
-    private fun currentOwnerId(): Int = accountStore.activeAccount.value?.id ?: NO_OWNER
+    /** One refresh at a time; a second caller waits and then finds the cache fresh. */
+    private val refreshMutex = Mutex()
 
-    /**
-     * Observe the active account's library from Room (SSOT). Re-subscribes when the active account
-     * changes, so switching accounts immediately shows the new account's cached entries.
-     */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override fun observeLibrary(username: String, type: MediaType): Flow<List<LibraryEntry>> {
-        return accountStore.activeAccount
-            .flatMapLatest { account ->
-                libraryDao.observeByType(account?.id ?: NO_OWNER, type)
-            }
-            .map { entities -> entities.map { it.toDomain() } }
-    }
+    override fun observeLibrary(type: MediaType?): Flow<List<LibraryEntry>> =
+        accountStore.activeAccount.flatMapLatest { account ->
+            val owner = account?.id ?: -1
+            if (type == null) libraryDao.observeAll(owner) else libraryDao.observeByType(owner, type.slug)
+        }.map { rows -> rows.mapNotNull { it.toDomain() } }
 
-    /**
-     * Observe list membership for the active account, re-subscribing on account switch so an
-     * indicator never survives from the outgoing account's library.
-     */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override fun observeListStatuses(): Flow<Map<Int, LibraryStatus>> {
-        return accountStore.activeAccount
-            .flatMapLatest { account ->
-                libraryDao.observeListStatuses(account?.id ?: NO_OWNER)
-            }
-            .map { rows -> rows.associate { it.mediaId to it.status } }
-            .distinctUntilChanged()
-    }
+    override fun observeListStatuses(): Flow<Map<Int, LibraryStatus>> =
+        accountStore.activeAccount.flatMapLatest { account ->
+            libraryDao.observeListStatuses(account?.id ?: -1)
+        }.map { rows -> rows.associate { it.mediaId to it.status } }
 
-    /**
-     * Fetch from network and update local cache.
-     * The Flow from getLibrary() will emit automatically.
-     */
-    override suspend fun refreshLibrary(username: String, type: MediaType): Result<Unit> {
-        return safeApiCall {
-            var resolvedScoreFormat: com.anisync.android.type.ScoreFormat? = null
-            val actualUsername = if (username.isBlank()) {
-                val viewerResponse = apolloClient.query(GetViewerQuery()).execute()
-                resolvedScoreFormat = viewerResponse.data?.Viewer?.mediaListOptions?.scoreFormat
-                viewerResponse.data?.Viewer?.name
-                    ?: throw Exception("Unable to get current user")
-            } else {
-                username
-            }
+    override fun observeEntry(mediaId: Int): Flow<LibraryEntry?> =
+        accountStore.activeAccount.flatMapLatest { account ->
+            libraryDao.observeEntry(account?.id ?: -1, mediaId)
+        }.map { it?.toDomain() }
 
-            val response = apolloClient.query(
-                GetUserLibraryQuery(username = actualUsername, type = type)
-            )
-            .fetchPolicy(FetchPolicy.NetworkOnly)
-            .execute()
-
-            if (response.hasErrors()) {
-                val errorMessage = response.errors?.firstOrNull()?.message ?: "Unknown error"
-                throw Exception(errorMessage)
-            }
-
-            val lists = response.data?.MediaListCollection?.lists ?: emptyList()
-            val options = response.data?.MediaListCollection?.user?.mediaListOptions
-
-            val scoreFormatApi = resolvedScoreFormat
-                ?: apolloClient.query(GetViewerQuery())
-                    .fetchPolicy(FetchPolicy.CacheFirst)
-                    .execute()
-                    .data?.Viewer?.mediaListOptions?.scoreFormat
-            if (scoreFormatApi != null) {
-                appSettings.setUserScoreFormat(mapScoreFormat(scoreFormatApi.name))
-            }
-
-            val animeCustomLists = options?.animeList?.customLists?.filterNotNull() ?: emptyList()
-            val mangaCustomLists = options?.mangaList?.customLists?.filterNotNull() ?: emptyList()
-
-            // The categories are the key to the per-entry scores: the save mutation takes a bare
-            // array, so the order AniList returns them in is the order scores go back in.
-            appSettings.setAdvancedScoring(
-                MediaType.ANIME,
-                options?.animeList?.advancedScoring?.filterNotNull() ?: emptyList(),
-                options?.animeList?.advancedScoringEnabled == true
-            )
-            appSettings.setAdvancedScoring(
-                MediaType.MANGA,
-                options?.mangaList?.advancedScoring?.filterNotNull() ?: emptyList(),
-                options?.mangaList?.advancedScoringEnabled == true
-            )
-
-            val apiAnimeSet = animeCustomLists.toHashSet()
-            val apiMangaSet = mangaCustomLists.toHashSet()
-
-            val currentAnimeOrder = appSettings.animeListOrder.value
-            val currentAnimeOrderSet = currentAnimeOrder.toHashSet()
-            val syncedAnime = currentAnimeOrder.filter { it.startsWith("status:") || it in apiAnimeSet } +
-                    animeCustomLists.filter { it !in currentAnimeOrderSet }
-            if (syncedAnime != currentAnimeOrder) {
-                appSettings.setAnimeListOrder(syncedAnime)
-            }
-
-            val currentMangaOrder = appSettings.mangaListOrder.value
-            val currentMangaOrderSet = currentMangaOrder.toHashSet()
-            val syncedManga = currentMangaOrder.filter { it.startsWith("status:") || it in apiMangaSet } +
-                    mangaCustomLists.filter { it !in currentMangaOrderSet }
-            if (syncedManga != currentMangaOrder) {
-                appSettings.setMangaListOrder(syncedManga)
-            }
-
-            val apiCustomNamesForType = if (type == MediaType.ANIME) apiAnimeSet else apiMangaSet
-
-            // Group by entry ID to handle duplicates from custom lists
-            val entryMap = mutableMapOf<Int, LibraryEntry>()
-
-            lists.filterNotNull().forEach { group ->
-                val listName = group.name ?: return@forEach
-                val isCustom = group.isCustomList == true ||
-                        (group.isCustomList != false && listName in apiCustomNamesForType)
-
-                group.entries?.filterNotNull()?.forEach { entry ->
-                    val entryId = entry.id ?: return@forEach
-                    val media = entry.media
-                    val existing = entryMap[entryId]
-
-                    if (existing == null) {
-                        val status = entry.status?.toDomainStatus() ?: LibraryStatus.UNKNOWN
-                        entryMap[entryId] = LibraryEntry(
-                            id = entryId,
-                            mediaId = media?.id ?: 0,
-                            titleRomaji = media?.title?.romaji,
-                            titleEnglish = media?.title?.english,
-                            titleNative = media?.title?.native,
-                            titleUserPreferred = media?.title?.userPreferred ?: "Unknown Title",
-                            coverUrl = media?.coverImage?.extraLarge,
-                            cover = com.anisync.android.domain.CoverImage.of(media?.coverImage?.medium, media?.coverImage?.large, media?.coverImage?.extraLarge),
-                            progress = entry.progress ?: 0,
-                            progressVolumes = entry.progressVolumes,
-                            totalEpisodes = media?.episodes,
-                            totalChapters = media?.chapters,
-                            totalVolumes = media?.volumes,
-                            type = media?.type,
-                            format = media?.format,
-                            status = status,
-                            nextAiringEpisode = media?.nextAiringEpisode?.episode,
-                            timeUntilAiring = media?.nextAiringEpisode?.timeUntilAiring,
-                            mediaStatus = media?.status?.name,
-                            nextAiringEpisodeTime = media?.nextAiringEpisode?.airingAt?.toLong(),
-                            score = entry.score,
-                            advancedScores = entry.advancedScores.toScoreMap(),
-                            rewatches = entry.repeat ?: 0,
-                            priority = entry.priority ?: 0,
-                            notes = entry.notes,
-                            startedAt = entry.startedAt?.let { mapFuzzyDateToLong(it.year, it.month, it.day) },
-                            completedAt = entry.completedAt?.let { mapFuzzyDateToLong(it.year, it.month, it.day) },
-                            updatedAt = entry.updatedAt?.toLong()?.times(1000L),
-                            createdAt = entry.createdAt?.toLong()?.times(1000L),
-                            mediaStartDate = media?.startDate?.let { mapFuzzyDateToLong(it.year, it.month, it.day) },
-                            genres = media?.genres?.filterNotNull() ?: emptyList(),
-                            customLists = if (isCustom) listOf(listName) else emptyList(),
-                            isPrivate = entry.`private` ?: false,
-                            hiddenFromStatusLists = entry.hiddenFromStatusLists ?: false
+    override suspend fun refreshLibrary(): Result<Unit> = refreshMutex.withLock {
+        val owner = gateway.ownerId
+        if (owner < 0) return@withLock Result.Error("Not signed in")
+        when (val rows = gateway.call { libraryEntries() }) {
+            is Result.Error -> rows
+            is Result.Success -> {
+                // The home page supplies the totals and ids the export lacks. Not having them is not
+                // worth failing the refresh over.
+                val home = (gateway.call { inProgressItems() } as? Result.Success)?.data.orEmpty()
+                    .associateBy { it.key }
+                val entities = rows.data
+                    .filter { it.key.type != MediaType.EPISODE }
+                    .groupBy { it.key }
+                    .map { (key, group) ->
+                        val newest = group.maxBy { it.createdAt ?: 0L }
+                        val homeItem = home[key]
+                        val mediaId = mediaItemDao.idFor(
+                            mediaKey = key.asString(),
+                            title = newest.title.ifBlank { null },
+                            imageUrl = newest.imageUrl,
+                            maxProgress = homeItem?.maxProgress
                         )
-                    } else if (isCustom && !existing.customLists.contains(listName)) {
-                        entryMap[entryId] = existing.copy(customLists = existing.customLists + listName)
+                        val known = mediaItemDao.getById(mediaId)
+                        newest.toEntity(
+                            ownerId = owner,
+                            mediaId = mediaId,
+                            instanceId = homeItem?.instanceId?.toInt() ?: 0,
+                            maxProgress = homeItem?.maxProgress ?: known?.maxProgress,
+                            rewatches = group.size - 1
+                        )
                     }
-                }
+                libraryDao.replaceAll(owner, entities)
+                Result.Success(Unit)
             }
-
-            // Collapse any rows that resolve to the same media into one (AniList media merges, or a
-            // duplicate written by an external sync tool, can produce two list entries for one media).
-            // Keep the most recently updated, carrying over every custom-list membership, so the cache
-            // holds a single row per media and the grid never gets two cards with the same key.
-            val entries = entryMap.values
-                .groupBy { it.mediaId }
-                .map { (_, dups) ->
-                    if (dups.size == 1) {
-                        dups[0]
-                    } else {
-                        val keep = dups.maxByOrNull { it.updatedAt ?: 0L } ?: dups[0]
-                        keep.copy(customLists = dups.flatMap { it.customLists }.distinct())
-                    }
-                }
-
-            // Smart merge to preserve locally-added entries during API sync delay.
-            // Tag rows with the active account so each account's library persists independently.
-            val owner = currentOwnerId()
-
-            // An empty response is far likelier to be a throttled or partial fetch than an account
-            // that just deleted its entire list for this media type — a 429 whose body still parses
-            // gets here with no lists at all. smartMergeByType reads "absent from the response" as
-            // "removed on the server", so without this the cached library is wiped and the screen
-            // shows an empty-state for a library that is still perfectly intact upstream.
-            if (entries.isEmpty() && libraryDao.getByType(owner, type).isNotEmpty()) {
-                return@safeApiCall
-            }
-
-            libraryDao.smartMergeByType(owner, type, entries.map { it.toEntity(type).copy(ownerId = owner) })
         }
     }
 
-    /**
-     * Optimistic local update + network sync.
-     * Automatically changes status to COMPLETED if progress reaches total.
-     * Also sets completedAt date when completing.
-     */
-    /**
-     * Optimistic local update + network sync.
-     * Automatically changes status to COMPLETED if progress reaches total.
-     * Also sets completedAt date when completing.
-     */
     override suspend fun updateProgress(mediaId: Int, progress: Int): Result<Unit> {
-        // 1. Update local
-        val localResult = updateProgressLocal(mediaId, progress)
-        if (localResult is Result.Error) return localResult
-
-        // 2. Need to recalculate completion status for Sync parameters
-        // (Refetching entry or duplicating logic - refetching is safer)
-        val entry = libraryDao.getEntry(currentOwnerId(), mediaId) ?: return Result.Error("Entry not found")
-        val isCompleted = entry.status == LibraryStatus.COMPLETED
-        val now = todayUtcMillis()
-
-        // 3. Try sync to network
-        return safeApiCall {
-            val response = apolloClient.mutation(
-                com.anisync.android.SaveMediaListEntryMutation(
-                    mediaId = Optional.present(mediaId),
-                    progress = Optional.present(progress),
-                    status = if (isCompleted) Optional.present(MediaListStatus.COMPLETED) else Optional.absent(),
-                    completedAt = if (isCompleted) Optional.present(now.toFuzzyDateInput()) else Optional.absent()
-                )
-            ).execute()
-
-            if (response.data?.SaveMediaListEntry == null || response.hasErrors()) {
-                val errorMessage = response.errors?.firstOrNull()?.message ?: "Sync failed"
-                throw Exception(errorMessage)
-            }
-        }
-    }
-
-    override suspend fun updateProgressLocal(mediaId: Int, progress: Int): Result<Unit> {
-        val owner = currentOwnerId()
-        val entry = libraryDao.getEntry(owner, mediaId) ?: return Result.Error("Entry not found")
-
-        // Determine the total based on media type
-        val total = if (entry.mediaType == MediaType.MANGA) entry.totalChapters else entry.totalEpisodes
-
-        // Check if this progress update completes the media
-        val isCompleted = total != null && total > 0 && progress >= total
-        val now = todayUtcMillis()
-
-        if (isCompleted) {
-            // Auto-set completedAt when finishing
-            libraryDao.updateStatusProgressAndCompletedAt(
-                ownerId = owner,
-                mediaId = mediaId,
-                status = LibraryStatus.COMPLETED,
-                progress = progress,
-                completedAt = now
-            )
-        } else {
-            libraryDao.updateProgress(owner, mediaId, progress)
-        }
-        // Watch Progress and Up Next both count off this row, and their 30 minute period would
-        // otherwise leave the home screen showing a stale count right after an increment.
-        runCatching { WidgetRefresh.all(context) }
-        return Result.Success(Unit)
-    }
-
-    override suspend fun updateEntry(entry: LibraryEntry): Result<Unit> {
-        val owner = currentOwnerId()
-        // Get original entry to detect status changes
-        val originalEntry = libraryDao.getEntry(owner, entry.mediaId)
-        val now = todayUtcMillis()
-        
-        // Auto-fill dates based on status changes
-        var updatedEntry = entry
-        
-        // If changing to CURRENT (Watching/Reading) and startedAt is not set, auto-fill it
-        if (entry.status == LibraryStatus.CURRENT && 
-            originalEntry?.status != LibraryStatus.CURRENT &&
-            entry.startedAt == null) {
-            updatedEntry = updatedEntry.copy(startedAt = now)
-        }
-        
-        // If changing to COMPLETED and completedAt is not set, auto-fill it
-        if (entry.status == LibraryStatus.COMPLETED && 
-            originalEntry?.status != LibraryStatus.COMPLETED &&
-            entry.completedAt == null) {
-            updatedEntry = updatedEntry.copy(completedAt = now)
-        }
-        
-        // 1. Update local DB
-        // We assume media type is present or default to ANIME logic for entity mapping
-        libraryDao.updateEntry(updatedEntry.toEntity(updatedEntry.type ?: MediaType.ANIME).copy(ownerId = owner))
-
-        // 2. Sync to network
-        return safeApiCall {
-            val apiStatus = updatedEntry.status.toApiStatus()
-
-            val response = apolloClient.mutation(
-                com.anisync.android.SaveMediaListEntryMutation(
-                    mediaId = Optional.present(updatedEntry.mediaId),
-                    status = Optional.present(apiStatus),
-                    progress = Optional.present(updatedEntry.progress),
-                    progressVolumes = Optional.presentIfNotNull(updatedEntry.progressVolumes),
-                    score = Optional.presentIfNotNull(updatedEntry.score),
-                    advancedScores = advancedScoresFor(updatedEntry),
-                    repeat = Optional.present(updatedEntry.rewatches),
-                    // Only when it moved. AniList's priority is a plain 0..255 Int and this client
-                    // only writes 0/1/2, so resending it unchanged would flatten a value some other
-                    // client set outside that range.
-                    priority = if (updatedEntry.priority != (originalEntry?.priority ?: 0)) {
-                        Optional.present(updatedEntry.priority)
-                    } else {
-                        Optional.absent()
-                    },
-                    notes = Optional.presentIfNotNull(updatedEntry.notes?.let(::encodeForAniList)),
-                    startedAt = updatedEntry.startedAt?.let { Optional.present(it.toFuzzyDateInput()) } ?: Optional.absent(),
-                    completedAt = updatedEntry.completedAt?.let { Optional.present(it.toFuzzyDateInput()) } ?: Optional.absent(),
-                    customLists = Optional.present(updatedEntry.customLists),
-                    `private` = Optional.present(updatedEntry.isPrivate),
-                    hiddenFromStatusLists = Optional.present(updatedEntry.hiddenFromStatusLists)
-                )
-            ).execute()
-
-            if (response.data?.SaveMediaListEntry != null && !response.hasErrors()) {
-                // Success
+        val owner = gateway.ownerId
+        val current = libraryDao.getEntry(owner, mediaId)?.toDomain()
+            ?: return Result.Error("This entry is not in the library")
+        if (!current.type.hasEditableProgress) return Result.Success(Unit)
+        val max = current.maxProgress
+        val clamped = progress.coerceAtLeast(0).let { if (max != null) it.coerceAtMost(max) else it }
+        val updated = current.copy(
+            progress = clamped,
+            // Yamtrack completes an entry that reaches its total; mirror it so the UI does not flicker.
+            status = if (max != null && clamped >= max && current.status == LibraryStatus.CURRENT) {
+                LibraryStatus.COMPLETED
             } else {
-                val errorMessage = response.errors?.firstOrNull()?.message ?: "Sync failed"
-                throw Exception(errorMessage)
+                current.status
+            },
+            updatedAt = System.currentTimeMillis()
+        )
+        return when (val result = updateEntry(updated)) {
+            is Result.Success -> Result.Success(Unit)
+            is Result.Error -> result
+        }
+    }
+
+    override suspend fun updateEntry(entry: LibraryEntry): Result<LibraryEntry> {
+        val owner = gateway.ownerId
+        val previous = libraryDao.getEntry(owner, entry.mediaId)
+        libraryDao.insertOrReplace(entry.toEntity(owner))
+        val result = gateway.call {
+            val instanceId = entry.id.takeIf { it > 0 }?.toLong() ?: trackForm(entry.key).instanceId
+            saveEntry(entry.key, instanceId, entry.toFields())
+        }
+        return when (result) {
+            is Result.Success -> {
+                val saved = entry.withForm(result.data)
+                libraryDao.insertOrReplace(saved.toEntity(owner))
+                Result.Success(saved)
+            }
+            is Result.Error -> {
+                if (previous != null) libraryDao.insertOrReplace(previous) else libraryDao.deleteByMediaId(owner, entry.mediaId)
+                result
             }
         }
     }
 
-    /**
-     * The categories the viewer configured for this media type, in AniList's order, paired with the
-     * entry's scores. Absent when the viewer has no categories, so a save never clears scores that
-     * this client simply does not know about.
-     */
-    private fun advancedScoresFor(entry: LibraryEntry): Optional<List<Double>> {
-        val categories = if (entry.type == MediaType.MANGA) {
-            appSettings.mangaAdvancedScoring.value
-        } else {
-            appSettings.animeAdvancedScoring.value
-        }
-        if (categories.isEmpty()) return Optional.absent()
-        return Optional.present(categories.map { entry.advancedScores[it] ?: 0.0 })
-    }
-
-    override suspend fun deleteEntry(entryId: Int, mediaId: Int): Result<Unit> {
-        // 1. Delete from local DB immediately (optimistic)
-        libraryDao.deleteByMediaId(currentOwnerId(), mediaId)
-
-        // 2. Delete from network
-        return safeApiCall {
-            val response = apolloClient.mutation(
-                com.anisync.android.DeleteMediaListEntryMutation(
-                    id = Optional.present(entryId)
-                )
-            ).execute()
-
-            if (response.data?.DeleteMediaListEntry?.deleted == true && !response.hasErrors()) {
-                // Success
-            } else {
-                val errorMessage = response.errors?.firstOrNull()?.message ?: "Delete failed"
-                throw Exception(errorMessage)
-            }
-        }
-    }
-
-    override suspend fun bulkUpdateEntries(
-        entryIds: List<Int>,
-        status: LibraryStatus?,
-        score: Double?,
-        priority: Int?,
-        isPrivate: Boolean?
-    ): Result<Unit> {
-        if (entryIds.isEmpty()) return Result.Success(Unit)
-        val owner = currentOwnerId()
+    override suspend fun addEntry(key: MediaKey, status: LibraryStatus, title: String?, imageUrl: String?): Result<LibraryEntry> {
+        val owner = gateway.ownerId
+        val mediaId = mediaItemDao.idFor(key.asString(), title, imageUrl)
+        val known = mediaItemDao.getById(mediaId)
         val now = System.currentTimeMillis()
-
-        // Optimistic, one column at a time. Rewriting whole rows here would clobber progress
-        // landing from a concurrent +1 on a row that happens to be in the selection.
-        status?.let { libraryDao.updateStatusForIds(owner, entryIds, it, now) }
-        score?.let { libraryDao.updateScoreForIds(owner, entryIds, it, now) }
-        priority?.let { libraryDao.updatePriorityForIds(owner, entryIds, it, now) }
-        isPrivate?.let { libraryDao.updatePrivateForIds(owner, entryIds, it, now) }
-
-        return safeApiCall {
-            val response = apolloClient.mutation(
-                com.anisync.android.UpdateMediaListEntriesMutation(
-                    ids = Optional.present(entryIds),
-                    status = Optional.presentIfNotNull(status?.toApiStatus()),
-                    score = Optional.presentIfNotNull(score),
-                    priority = Optional.presentIfNotNull(priority),
-                    `private` = Optional.presentIfNotNull(isPrivate)
-                )
-            ).execute()
-
-            if (response.data?.UpdateMediaListEntries == null || response.hasErrors()) {
-                throw Exception(response.errors?.firstOrNull()?.message ?: "Bulk update failed")
+        val draft = LibraryEntry(
+            id = 0,
+            mediaId = mediaId,
+            key = key,
+            title = title ?: known?.title.orEmpty(),
+            coverUrl = imageUrl ?: known?.imageUrl,
+            progress = 0,
+            maxProgress = known?.maxProgress,
+            status = status,
+            createdAt = now,
+            updatedAt = now
+        )
+        libraryDao.insertOrReplace(draft.toEntity(owner))
+        return when (val result = gateway.call { saveEntry(key, null, draft.toFields()) }) {
+            is Result.Success -> {
+                val saved = draft.withForm(result.data)
+                libraryDao.insertOrReplace(saved.toEntity(owner))
+                Result.Success(saved)
+            }
+            is Result.Error -> {
+                libraryDao.deleteByMediaId(owner, mediaId)
+                result
             }
         }
     }
 
-    override suspend fun bulkAddToCustomList(
-        entries: List<LibraryEntry>,
-        listName: String,
-        onProgress: (Int) -> Unit
-    ): Result<Int> {
-        val owner = currentOwnerId()
-        var done = 0
-        for (entry in entries) {
-            if (listName in entry.customLists) {
-                done++
-                onProgress(done)
-                continue
+    override suspend fun addRewatch(entry: LibraryEntry): Result<LibraryEntry> {
+        val owner = gateway.ownerId
+        val now = System.currentTimeMillis()
+        val fresh = entry.copy(
+            id = 0,
+            progress = 0,
+            status = LibraryStatus.CURRENT,
+            score = null,
+            startedAt = now,
+            completedAt = null,
+            notes = null,
+            rewatches = entry.rewatches + 1,
+            createdAt = now,
+            updatedAt = now
+        )
+        return when (val result = gateway.call { saveEntry(entry.key, null, fresh.toFields()) }) {
+            is Result.Success -> {
+                val saved = fresh.withForm(result.data)
+                libraryDao.insertOrReplace(saved.toEntity(owner))
+                Result.Success(saved)
             }
-            coroutineContext.ensureActive()
-            val merged = entry.customLists + listName
-            val result = safeApiCall {
-                val response = apolloClient.mutation(
-                    com.anisync.android.SaveMediaListEntryMutation(
-                        mediaId = Optional.present(entry.mediaId),
-                        customLists = Optional.present(merged)
-                    )
-                ).execute()
-                if (response.data?.SaveMediaListEntry == null || response.hasErrors()) {
-                    throw Exception(response.errors?.firstOrNull()?.message ?: "Add to list failed")
-                }
-            }
-            when (result) {
-                is Result.Success -> {
-                    // Commit as each one lands, so a cancel leaves Room agreeing with AniList.
-                    libraryDao.updateEntry(
-                        entry.copy(customLists = merged)
-                            .toEntity(entry.type ?: MediaType.ANIME)
-                            .copy(ownerId = owner)
-                    )
-                    done++
-                    onProgress(done)
-                }
-                is Result.Error -> return if (done > 0) Result.Success(done) else result
-            }
+            is Result.Error -> result
         }
-        return Result.Success(done)
     }
 
-    override suspend fun bulkDeleteEntries(
-        entries: List<LibraryEntry>,
-        onProgress: (Int) -> Unit
-    ): Result<Int> {
-        val owner = currentOwnerId()
-        var done = 0
-        for (entry in entries) {
-            coroutineContext.ensureActive()
-            val result = safeApiCall {
-                val response = apolloClient.mutation(
-                    com.anisync.android.DeleteMediaListEntryMutation(id = Optional.present(entry.id))
-                ).execute()
-                if (response.data?.DeleteMediaListEntry?.deleted != true || response.hasErrors()) {
-                    throw Exception(response.errors?.firstOrNull()?.message ?: "Delete failed")
-                }
-            }
-            when (result) {
-                is Result.Success -> {
+    override suspend fun deleteEntry(entry: LibraryEntry): Result<Unit> {
+        val owner = gateway.ownerId
+        val result = gateway.call {
+            val instanceId = entry.id.takeIf { it > 0 }?.toLong() ?: trackForm(entry.key).instanceId
+            if (instanceId != null) deleteEntry(entry.key.type, instanceId)
+            // An earlier watch, if there was one, is now the newest entry.
+            trackForm(entry.key)
+        }
+        return when (result) {
+            is Result.Success -> {
+                val remaining = result.data
+                if (remaining.instanceId == null) {
                     libraryDao.deleteByMediaId(owner, entry.mediaId)
-                    done++
-                    onProgress(done)
-                }
-                is Result.Error -> return if (done > 0) Result.Success(done) else result
-            }
-        }
-        return Result.Success(done)
-    }
-
-    override suspend fun deleteCustomList(customList: String, type: MediaType): Result<Unit> {
-        return safeApiCall {
-            val response = apolloClient.mutation(
-                com.anisync.android.DeleteCustomListMutation(
-                    customList = customList,
-                    type = type
-                )
-            ).execute()
-
-            if (response.data?.DeleteCustomList?.deleted == true && !response.hasErrors()) {
-                // Success - trigger refresh to update local data
-            } else {
-                val errorMessage = response.errors?.firstOrNull()?.message ?: "Delete custom list failed"
-                throw Exception(errorMessage)
-            }
-        }
-    }
-
-    override suspend fun createCustomList(customList: String, type: MediaType): Result<Unit> {
-        return safeApiCall {
-            val isAnime = type == MediaType.ANIME
-            
-            // Get the full stored order (may contain status: entries)
-            val currentOrder = if (isAnime) appSettings.animeListOrder.value else appSettings.mangaListOrder.value
-            
-            // Extract only custom list names for the API (filter out status: entries)
-            val customOnlyList = currentOrder.filter { !it.startsWith("status:") }
-            val apiList = if (customList !in customOnlyList) {
-                customOnlyList + customList
-            } else {
-                customOnlyList
-            }
-            
-            // Full order for local storage — append new list at end
-            val fullOrder = if (customList !in currentOrder) {
-                currentOrder + customList
-            } else {
-                currentOrder
-            }
-            
-            val response = apolloClient.mutation(
-                com.anisync.android.UpdateCustomListsMutation(
-                    animeCustomLists = if (isAnime) Optional.present(apiList) else Optional.absent(),
-                    mangaCustomLists = if (!isAnime) Optional.present(apiList) else Optional.absent()
-                )
-            ).execute()
-
-            if (response.hasErrors()) {
-                val errorMessage = response.errors?.firstOrNull()?.message ?: "Create custom list failed"
-                throw Exception(errorMessage)
-            } else {
-                // Update local so it doesn't blink out before a refresh
-                if (isAnime) {
-                    appSettings.setAnimeListOrder(fullOrder)
                 } else {
-                    appSettings.setMangaListOrder(fullOrder)
+                    val previous = entry.copy(rewatches = (entry.rewatches - 1).coerceAtLeast(0)).withForm(remaining)
+                    libraryDao.insertOrReplace(previous.toEntity(owner))
                 }
+                Result.Success(Unit)
             }
+            is Result.Error -> result
         }
     }
 
+    private fun LibraryEntry.toFields() = YamtrackEntryFields(
+        status = status,
+        score = score,
+        progress = progress.takeIf { type.hasEditableProgress },
+        startDate = startedAt,
+        endDate = completedAt,
+        notes = notes
+    )
+
+    /** This entry as the server stored it. */
+    private fun LibraryEntry.withForm(form: YamtrackTrackForm) = copy(
+        id = form.instanceId?.toInt() ?: id,
+        status = form.fields.status,
+        score = form.fields.score,
+        progress = form.fields.progress ?: progress,
+        startedAt = form.fields.startDate,
+        completedAt = form.fields.endDate,
+        notes = form.fields.notes
+    )
+
+    private fun YamtrackEntry.toEntity(
+        ownerId: Int,
+        mediaId: Int,
+        instanceId: Int,
+        maxProgress: Int?,
+        rewatches: Int
+    ) = LibraryEntryEntity(
+        ownerId = ownerId,
+        mediaId = mediaId,
+        instanceId = instanceId,
+        mediaKey = key.asString(),
+        mediaType = key.type.slug,
+        title = title,
+        coverUrl = imageUrl,
+        progress = progress ?: 0,
+        maxProgress = maxProgress,
+        status = status ?: LibraryStatus.PLANNING,
+        score = score,
+        startedAt = startDate,
+        completedAt = endDate,
+        notes = notes,
+        rewatches = rewatches,
+        createdAt = createdAt,
+        updatedAt = progressedAt ?: createdAt
+    )
 }

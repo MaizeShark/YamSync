@@ -69,12 +69,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.anisync.android.presentation.details.MediaDetailsScreen
-import com.anisync.android.presentation.details.MediaRelationsGridScreen
 import com.anisync.android.presentation.details.MediaThemesScreen
 
 // Shared-element source tag for detail screens hosted in a two-pane detail slot. No cross-pane
 // morph partner exists under this tag, so pane-hosted details fade in instead of morphing.
-// Internal so sibling list-detail hosts (e.g. Discover's review target) reuse the same tag.
+// Internal so sibling list-detail hosts (e.g. the search pane) reuse the same tag.
 internal const val LIST_DETAIL_PANE_SOURCE = "list_detail_pane"
 
 // Width split between the two panes while the detail is open, as the list pane's fraction. The list
@@ -446,8 +445,7 @@ internal fun NavGraphBuilder.mediaPaneGraph(
             // Back at the root closes the pane; deeper destinations pop within the pane. The nav icon
             // (✕ at the pane root, ← when drilled) comes from LocalPaneNavIcon, provided by the host.
             onBackClick = { if (!paneNav.popBackStack()) onClose() },
-            onRelationClick = { relId -> paneNav.navigate(MediaDetails(relId, LIST_DETAIL_PANE_SOURCE)) },
-            onRelatedSeeAllClick = { mId, t -> paneNav.navigate(MediaRelationsGrid(mId, t)) },
+            onMediaClick = { relId -> paneNav.navigate(MediaDetails(relId, LIST_DETAIL_PANE_SOURCE)) },
             onThemesSeeAllClick = { mId, t, episodes, cover ->
                 paneNav.navigate(MediaThemes(mId, t, episodes, cover))
             },
@@ -469,17 +467,6 @@ internal fun NavGraphBuilder.mediaPaneGraph(
         )
     }
 
-    composable<MediaRelationsGrid> { backStackEntry ->
-        val route: MediaRelationsGrid = backStackEntry.toRoute()
-        MediaRelationsGridScreen(
-            mediaId = route.mediaId,
-            mediaTitle = route.mediaTitle,
-            onBackClick = { paneNav.popBackStack() },
-            onRelationClick = { paneNav.navigate(MediaDetails(it, LIST_DETAIL_PANE_SOURCE)) },
-            sharedTransitionScope = sharedScope,
-            animatedVisibilityScope = this,
-        )
-    }
 
 }
 

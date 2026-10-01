@@ -55,7 +55,6 @@ import androidx.compose.ui.platform.LocalContext
 import com.anisync.android.BuildConfig
 import com.anisync.android.R
 import com.anisync.android.util.launchUrl
-import com.anisync.android.presentation.components.AppLinksPromptDialog
 import com.anisync.android.presentation.util.LocalAppSettings
 import com.anisync.android.ui.theme.decorativeAvatarShape
 import com.anisync.android.ui.theme.resolveDarkTheme
@@ -89,12 +88,8 @@ fun SettingsScreen(
     // on the About screen's version label (see AboutScreen).
     val devToolsUnlocked by LocalAppSettings.current.devToolsUnlocked
         .collectAsStateWithLifecycle(initialValue = false)
-    var showAppLinksDialog by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
-    if (showAppLinksDialog) {
-        AppLinksPromptDialog(onDismissRequest = { showAppLinksDialog = false })
-    }
 
     LaunchedEffect(Unit) {
         viewModel.onAction(SettingsAction.RefreshCacheSize)
@@ -185,13 +180,6 @@ fun SettingsScreen(
                 subtitle = stringResource(R.string.settings_storage_subtitle, uiState.cacheSize),
                 icon = Icons.Outlined.Storage,
                 onClick = { onCategorySelected(SettingsCategory.Storage) }
-            ),
-            CategoryData(
-                key = "links",
-                title = stringResource(R.string.settings_app_links),
-                subtitle = stringResource(R.string.settings_app_links_desc),
-                icon = Icons.Rounded.Link,
-                onClick = { showAppLinksDialog = true }
             ),
             CategoryData(
                 key = "updates",

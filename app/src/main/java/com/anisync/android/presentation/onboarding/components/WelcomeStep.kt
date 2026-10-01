@@ -27,6 +27,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -240,12 +243,10 @@ private fun ColumnScope.WelcomeCopy(
         text = stringResource(R.string.onboarding_welcome_cta),
         onClick = onContinue,
         leading = {
-            Image(
-                painter = painterResource(R.drawable.anilist_logo),
+            Icon(
+                imageVector = Icons.Outlined.Dns,
                 contentDescription = null,
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(RoundedCornerShape(6.dp))
+                modifier = Modifier.size(24.dp)
             )
         }
     )

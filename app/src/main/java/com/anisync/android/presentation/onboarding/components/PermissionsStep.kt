@@ -45,7 +45,7 @@ import com.anisync.android.R
 import com.anisync.android.presentation.onboarding.PermissionStates
 
 /** The four system toggles the set-up step offers, in the order they are listed. */
-enum class PermissionRow { Notifications, Battery, Links, Hibernation }
+enum class PermissionRow { Notifications, Battery, Hibernation }
 
 /**
  * Step 1 of 2: the background-work asks. Every row states what breaks without it, because none of
@@ -198,18 +198,6 @@ private fun PermissionCards(
                     granted = permissions.batteryExempt,
                     actionLabel = stringResource(R.string.onboarding_perm_action_allow),
                     onClick = { onRequest(PermissionRow.Battery) },
-                    modifier = cardModifier
-                )
-            },
-            { cardModifier ->
-                PermissionCard(
-                    icon = Icons.Outlined.Link,
-                    tint = OnboardingAccents.Green,
-                    title = stringResource(R.string.onboarding_perm_links_title),
-                    body = stringResource(R.string.onboarding_perm_links_body),
-                    granted = permissions.linksVerified,
-                    actionLabel = stringResource(R.string.onboarding_perm_action_open),
-                    onClick = { onRequest(PermissionRow.Links) },
                     modifier = cardModifier
                 )
             },

@@ -110,7 +110,7 @@ object ShareUtils {
     /** Copies a plain-text [text] link to the clipboard (paste into the Feed composer, chats, …). */
     fun copyText(context: Context, text: String) {
         val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
-        clipboard.setPrimaryClip(ClipData.newPlainText("AniSync", text))
+        clipboard.setPrimaryClip(ClipData.newPlainText("YamSync", text))
     }
 
     /**
@@ -128,7 +128,7 @@ object ShareUtils {
                     val values = ContentValues().apply {
                         put(MediaStore.Images.Media.DISPLAY_NAME, name)
                         put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-                        put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/AniSync")
+                        put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/YamSync")
                         put(MediaStore.Images.Media.IS_PENDING, 1)
                     }
                     val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
@@ -143,7 +143,7 @@ object ShareUtils {
                 } else {
                     @Suppress("DEPRECATION")
                     MediaStore.Images.Media.insertImage(
-                        context.contentResolver, bmp, name, "AniSync card"
+                        context.contentResolver, bmp, name, "YamSync card"
                     ) != null
                 }
             } catch (_: Exception) {
@@ -159,7 +159,7 @@ object ShareUtils {
     private fun writeShareableImage(context: Context, bitmap: ImageBitmap): Pair<Uri, String> {
         val dir = File(context.cacheDir, "shared").apply { mkdirs() }
         val useWebp = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-        val file = File(dir, if (useWebp) "anisync_share.webp" else "anisync_share.png")
+        val file = File(dir, if (useWebp) "yamsync_share.webp" else "yamsync_share.png")
         val bmp = bitmap.asAndroidBitmap()
         file.outputStream().use { out ->
             if (useWebp) {

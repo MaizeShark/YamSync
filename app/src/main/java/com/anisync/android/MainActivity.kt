@@ -417,7 +417,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun routeAccountDeepLink(intent: Intent?): Boolean {
         val data = intent?.data ?: return false
-        if (data.scheme != "anisync") return false
+        if (data.scheme != "yamsync") return false
         val target = (data.getQueryParameter("account") ?: return false).toIntOrNull()
 
         val cleanedUri = stripAccountParam(data)

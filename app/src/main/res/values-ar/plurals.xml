@@ -60,31 +60,4 @@
         <item quantity="other">%dد</item>
     </plurals>
 
-    <!-- Days unit for profile: "Day" / "Days" -->
-    <plurals name="days_unit">
-        <item quantity="zero">أيام</item>
-        <item quantity="one">يوم</item>
-        <item quantity="two">يومان</item>
-        <item quantity="few">أيام</item>
-        <item quantity="many">يومًا</item>
-        <item quantity="other">يوم</item>
-    </plurals>
-
-    <!-- Plurals for episodes/chapters -->
-    <plurals name="episodes_format">
-        <item quantity="zero">%d حلقة</item>
-        <item quantity="one">حلقة %d</item>
-        <item quantity="two">حلقتان %d</item>
-        <item quantity="few">%d حلقات</item>
-        <item quantity="many">%d حلقة</item>
-        <item quantity="other">%d حلقة</item>
-    </plurals>
-    <plurals name="chapters_format">
-        <item quantity="zero">%d فصل</item>
-        <item quantity="one">فصل %d</item>
-        <item quantity="two">فصلان %d</item>
-        <item quantity="few">%d فصول</item>
-        <item quantity="many">%d فصلاً</item>
-        <item quantity="other">%d فصل</item>
-    </plurals>
 </resources>

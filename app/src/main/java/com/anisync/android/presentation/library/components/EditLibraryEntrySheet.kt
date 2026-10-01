@@ -112,7 +112,7 @@ import com.anisync.android.domain.model.ProgressUnit
 import com.anisync.android.presentation.util.formatPlayTime
 import com.anisync.android.presentation.util.label
 import com.anisync.android.presentation.util.labelRes
-import com.anisync.android.presentation.util.unitRes
+import com.anisync.android.presentation.util.unitLabel
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.OutlinedButton
 import com.anisync.android.ui.theme.emphasis
@@ -458,11 +458,10 @@ private fun MediaRow(entry: LibraryEntry, total: Int?) {
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            val unit = entry.type.unitRes()?.let { stringResource(it) }
             Text(
                 text = listOfNotNull(
                     entry.type.label(),
-                    total?.takeIf { unit != null }?.let { "$it $unit" }
+                    total?.let { count -> entry.type.unitLabel(count)?.let { "$count $it" } }
                 ).joinToString(" · "),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant

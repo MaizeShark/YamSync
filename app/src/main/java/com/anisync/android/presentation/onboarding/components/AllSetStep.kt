@@ -53,7 +53,6 @@ private val DoneMaxWidth = 560.dp
 fun AllSetStep(
     libraryEntries: Int,
     alertsOn: Boolean,
-    linksOn: Boolean,
     widgetPinSupported: Boolean,
     onAddWidget: () -> Unit,
     onFinish: () -> Unit,
@@ -63,7 +62,6 @@ fun AllSetStep(
         WideAllSet(
             libraryEntries = libraryEntries,
             alertsOn = alertsOn,
-            linksOn = linksOn,
             widgetPinSupported = widgetPinSupported,
             onAddWidget = onAddWidget,
             onFinish = onFinish,
@@ -103,7 +101,7 @@ fun AllSetStep(
 
         Spacer(modifier = Modifier.height(22.dp))
 
-        StatPills(libraryEntries = libraryEntries, alertsOn = alertsOn, linksOn = linksOn)
+        StatPills(libraryEntries = libraryEntries, alertsOn = alertsOn)
 
         Spacer(modifier = Modifier.height(26.dp))
 
@@ -134,7 +132,6 @@ fun AllSetStep(
 private fun WideAllSet(
     libraryEntries: Int,
     alertsOn: Boolean,
-    linksOn: Boolean,
     widgetPinSupported: Boolean,
     onAddWidget: () -> Unit,
     onFinish: () -> Unit,
@@ -169,7 +166,7 @@ private fun WideAllSet(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(22.dp))
-            StatPills(libraryEntries = libraryEntries, alertsOn = alertsOn, linksOn = linksOn)
+            StatPills(libraryEntries = libraryEntries, alertsOn = alertsOn)
             Spacer(modifier = Modifier.height(32.dp))
             OnboardingPrimaryButton(
                 text = stringResource(R.string.onboarding_done_cta),
@@ -212,9 +209,9 @@ private fun CompletionEmblem() {
     }
 }
 
-/** What the flow actually achieved, in three readings. */
+/** What the flow actually achieved, in two readings. */
 @Composable
-private fun StatPills(libraryEntries: Int, alertsOn: Boolean, linksOn: Boolean) {
+private fun StatPills(libraryEntries: Int, alertsOn: Boolean) {
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         StatPill(
             dot = OnboardingAccents.Blue,
@@ -225,13 +222,6 @@ private fun StatPills(libraryEntries: Int, alertsOn: Boolean, linksOn: Boolean) 
             text = stringResource(
                 if (alertsOn) R.string.onboarding_done_pill_alerts_on
                 else R.string.onboarding_done_pill_alerts_off
-            )
-        )
-        StatPill(
-            dot = if (linksOn) OnboardingAccents.Amber else MaterialTheme.colorScheme.outline,
-            text = stringResource(
-                if (linksOn) R.string.onboarding_done_pill_links_on
-                else R.string.onboarding_done_pill_links_off
             )
         )
     }

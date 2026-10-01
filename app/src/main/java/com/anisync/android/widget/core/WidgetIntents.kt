@@ -79,13 +79,13 @@ object WidgetIntents {
         openDeepLink(
             context,
             appWidgetId,
-            "anisync://details/$mediaId?sourceScreen=widget",
+            "yamsync://details/$mediaId?sourceScreen=widget",
             "details/$mediaId"
         )
 
-    /** Opens the Discover tab. */
-    fun openDiscover(context: Context, appWidgetId: Int): PendingIntent =
-        openDeepLink(context, appWidgetId, "anisync://discover", "discover")
+    /** Opens the Home tab. */
+    fun openHome(context: Context, appWidgetId: Int): PendingIntent =
+        openDeepLink(context, appWidgetId, "yamsync://home", "home")
 
     /** Opens the app on its start destination. */
     fun openApp(context: Context, appWidgetId: Int): PendingIntent {
@@ -133,7 +133,7 @@ object WidgetIntents {
 
     /** The per-row half of [mediaTemplate]: which series this row opens. */
     fun openMediaFillIn(mediaId: Int): Intent =
-        Intent().setData("anisync://details/$mediaId?sourceScreen=widget".toUri())
+        Intent().setData("yamsync://details/$mediaId?sourceScreen=widget".toUri())
 
     private fun uri(path: String): Uri = "$SCHEME://$path".toUri()
 

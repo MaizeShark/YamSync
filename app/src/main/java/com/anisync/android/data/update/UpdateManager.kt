@@ -30,7 +30,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Manages the full app update lifecycle: checking for updates via the GitHub Releases API,
+ * Manages the full app update lifecycle: checking for updates via a releases API (see [RELEASES_URL]),
  * downloading APKs, and triggering installation.
  *
  * Exposes [updateState] as a [StateFlow] so both the settings screen and the main activity
@@ -45,8 +45,15 @@ class UpdateManager @Inject constructor(
 ) {
     companion object {
         private const val TAG = "UpdateManager"
-        private const val REPO_OWNER = "Marco-9456"
-        private const val REPO_NAME = "AniSync"
+        /**
+         * The release list to check, or null to never check. Not set yet: the upstream AniSync
+         * releases are the AniList app and must not be offered as an update.
+         *
+         * Forgejo answers in the GitHub shape this parser reads (`tag_name`, `prerelease`,
+         * `assets[].name` / `browser_download_url`), at
+         * `https://<host>/api/v1/repos/<owner>/<repo>/releases`.
+         */
+        private val RELEASES_URL: String? = null
         private const val CONNECT_TIMEOUT_MS = 15_000
         private const val READ_TIMEOUT_MS = 30_000
         private const val DOWNLOAD_READ_TIMEOUT_MS = 60_000
@@ -68,7 +75,7 @@ class UpdateManager @Inject constructor(
 
 
     /**
-     * Queries the GitHub Releases API and returns a typed result.
+     * Queries the releases API and returns a typed result.
      * Also updates [updateState] so observers (dialogs) react immediately.
      *
      * @param allowPrerelease Whether to include pre-release tags in the comparison.
@@ -79,7 +86,12 @@ class UpdateManager @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val url = URL(
-                    "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases"
+                    RELEASES_URL ?: run {
+                        _updateState.value = UpdateState.Idle
+                        return@withContext UpdateCheckResult.Error(
+                            IllegalStateException("No update source configured")
+                        )
+                    }
                 )
                 val connection = (url.openConnection() as HttpURLConnection).apply {
                     requestMethod = "GET"
@@ -92,7 +104,7 @@ class UpdateManager @Inject constructor(
                     if (connection.responseCode != HttpURLConnection.HTTP_OK) {
                         _updateState.value = UpdateState.Idle
                         return@withContext UpdateCheckResult.Error(
-                            Exception("GitHub API returned HTTP ${connection.responseCode}")
+                            Exception("Releases API returned HTTP ${connection.responseCode}")
                         )
                     }
 
@@ -330,7 +342,7 @@ class UpdateManager @Inject constructor(
     }
 
     /**
-     * Fetches the actual latest release from GitHub (debug builds only).
+     * Fetches the actual latest release (debug builds only).
      * Bypasses version comparison so the update dialog can be tested with real release notes.
      */
     suspend fun fetchLatestRelease(allowPrerelease: Boolean): UpdateCheckResult {
@@ -338,7 +350,12 @@ class UpdateManager @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val url = URL(
-                    "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases"
+                    RELEASES_URL ?: run {
+                        _updateState.value = UpdateState.Idle
+                        return@withContext UpdateCheckResult.Error(
+                            IllegalStateException("No update source configured")
+                        )
+                    }
                 )
                 val connection = (url.openConnection() as HttpURLConnection).apply {
                     requestMethod = "GET"
@@ -351,7 +368,7 @@ class UpdateManager @Inject constructor(
                     if (connection.responseCode != HttpURLConnection.HTTP_OK) {
                         _updateState.value = UpdateState.Idle
                         return@withContext UpdateCheckResult.Error(
-                            Exception("GitHub API returned HTTP ${connection.responseCode}")
+                            Exception("Releases API returned HTTP ${connection.responseCode}")
                         )
                     }
 

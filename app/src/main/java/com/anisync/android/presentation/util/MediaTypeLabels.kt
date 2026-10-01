@@ -1,6 +1,7 @@
 package com.anisync.android.presentation.util
 
 import androidx.annotation.StringRes
+import androidx.annotation.PluralsRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.AutoStories
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.outlined.Animation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.anisync.android.R
 import com.anisync.android.domain.model.MediaType
@@ -65,16 +67,20 @@ val MediaType.icon: ImageVector
         MediaType.BOARDGAME -> Icons.Default.Casino
     }
 
-/** The unit progress counts in, as a lowercase plural ("episodes"); null for none or play time. */
-@StringRes
+/** The unit progress counts in, as plurals ("episode"/"episodes"); null for none or play time. */
+@PluralsRes
 fun MediaType.unitRes(): Int? = when (progressUnit) {
-    ProgressUnit.EPISODE -> R.string.unit_episodes
-    ProgressUnit.CHAPTER -> R.string.unit_chapters
-    ProgressUnit.PAGE -> R.string.unit_pages
-    ProgressUnit.ISSUE -> R.string.unit_issues
-    ProgressUnit.PLAY -> R.string.unit_plays
+    ProgressUnit.EPISODE -> R.plurals.unit_episodes
+    ProgressUnit.CHAPTER -> R.plurals.unit_chapters
+    ProgressUnit.PAGE -> R.plurals.unit_pages
+    ProgressUnit.ISSUE -> R.plurals.unit_issues
+    ProgressUnit.PLAY -> R.plurals.unit_plays
     ProgressUnit.MINUTES, ProgressUnit.NONE -> null
 }
+
+/** The unit word that goes after [count] ("1 episode", "3 episodes"); null when there is none. */
+@Composable
+fun MediaType.unitLabel(count: Int): String? = unitRes()?.let { pluralStringResource(it, count) }
 
 /** Play time as hours and minutes ("12h 30m"). */
 fun formatPlayTime(minutes: Int): String {
@@ -95,7 +101,7 @@ fun formatPlayTime(minutes: Int): String {
 fun progressText(type: MediaType, progress: Int, total: Int?): String? {
     if (type.progressUnit == ProgressUnit.NONE) return null
     if (type.progressUnit == ProgressUnit.MINUTES) return formatPlayTime(progress)
-    val unit = type.unitRes()?.let { stringResource(it) }.orEmpty()
+    val unit = type.unitLabel(total?.takeIf { it > 0 } ?: progress).orEmpty()
     return if (total != null && total > 0) "$progress / $total $unit".trim() else "$progress $unit".trim()
 }
 

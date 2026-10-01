@@ -86,7 +86,7 @@ class CrashReportActivity : ComponentActivity() {
             append(stackTrace)
         }
         val clipboard = getSystemService<ClipboardManager>() ?: return
-        clipboard.setPrimaryClip(ClipData.newPlainText("AniSync crash", payload))
+        clipboard.setPrimaryClip(ClipData.newPlainText("YamSync crash", payload))
     }
 
     private fun finishAndKill() {

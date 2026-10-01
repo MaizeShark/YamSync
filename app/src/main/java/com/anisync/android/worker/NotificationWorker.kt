@@ -71,8 +71,8 @@ class NotificationWorker @AssistedInject constructor(
         /** How far back a release still counts as new; older ones are only recorded. */
         private const val RELEASE_LOOKBACK_SECONDS = 3 * 24 * 3600L
 
-        private const val GROUP_KEY_WATCHING = "com.anisync.android.WATCHING_GROUP"
-        private const val GROUP_KEY_PLANNING = "com.anisync.android.PLANNING_GROUP"
+        private const val GROUP_KEY_WATCHING = "com.maizeshark.yamsync.WATCHING_GROUP"
+        private const val GROUP_KEY_PLANNING = "com.maizeshark.yamsync.PLANNING_GROUP"
 
         // Tray slot = (tag "acct_<accountId>_<category>", id stable per target). A newer event for
         // the same target replaces its stale tray entry instead of piling up next to it.
@@ -185,7 +185,7 @@ class NotificationWorker @AssistedInject constructor(
             .setWhen(release.airingAt * 1000L)
             .setShowWhen(true)
             .setGroup(groupKey(GROUP_KEY_WATCHING, ctx))
-            .setContentIntent(deepLinkIntent("anisync://details/${release.mediaId}", ctx, release.id))
+            .setContentIntent(deepLinkIntent("yamsync://details/${release.mediaId}", ctx, release.id))
         release.coverUrl?.let { loadImage(it) }?.let(builder::setLargeIcon)
         post(ctx, CATEGORY_WATCHING, release.mediaId, builder)
     }
@@ -225,7 +225,7 @@ class NotificationWorker @AssistedInject constructor(
             .setContentText(content)
             .setAutoCancel(true)
             .setGroup(groupKey(GROUP_KEY_PLANNING, ctx))
-            .setContentIntent(deepLinkIntent("anisync://details/${release.mediaId}", ctx, release.id))
+            .setContentIntent(deepLinkIntent("yamsync://details/${release.mediaId}", ctx, release.id))
         release.coverUrl?.let { loadImage(it) }?.let(builder::setLargeIcon)
         post(ctx, CATEGORY_UPCOMING, release.id, builder)
     }
@@ -254,7 +254,7 @@ class NotificationWorker @AssistedInject constructor(
             .setWhen(release.airingAt * 1000L)
             .setShowWhen(true)
             .setGroup(groupKey(GROUP_KEY_PLANNING, ctx))
-            .setContentIntent(deepLinkIntent("anisync://details/${release.mediaId}", ctx, notificationId))
+            .setContentIntent(deepLinkIntent("yamsync://details/${release.mediaId}", ctx, notificationId))
             .addAction(
                 R.drawable.ic_notification,
                 string(R.string.notification_action_add_to_watching),

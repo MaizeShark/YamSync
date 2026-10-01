@@ -63,7 +63,7 @@ import com.anisync.android.presentation.util.icon
 import com.anisync.android.presentation.util.pluralLabel
 import com.anisync.android.presentation.util.toColor
 import com.anisync.android.presentation.util.toLabel
-import com.anisync.android.presentation.util.unitRes
+import com.anisync.android.presentation.util.unitLabel
 import java.util.Locale
 
 /** The signed-in account, its server, and what its library adds up to. */
@@ -253,7 +253,7 @@ private fun TypeRow(stats: TypeStats, modifier: Modifier = Modifier) {
                 val progress = when (stats.type.progressUnit) {
                     ProgressUnit.MINUTES -> formatPlayTime(stats.totalProgress)
                     ProgressUnit.NONE -> stringResource(R.string.profile_completed_count, stats.totalProgress)
-                    else -> "${stats.totalProgress} ${stats.type.unitRes()?.let { stringResource(it) }.orEmpty()}"
+                    else -> "${stats.totalProgress} ${stats.type.unitLabel(stats.totalProgress).orEmpty()}"
                 }
                 Text(progress, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

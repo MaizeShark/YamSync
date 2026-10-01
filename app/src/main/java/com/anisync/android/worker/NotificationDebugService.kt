@@ -49,8 +49,8 @@ class NotificationDebugService @Inject constructor(
         private const val SAMPLE_COVER_URL = "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx151807-m1gX3iwfIsLu.png"
         private const val SAMPLE_MEDIA_ID = 151807
         
-        private const val GROUP_KEY_AIRING = "com.anisync.android.AIRING_GROUP"
-        private const val GROUP_KEY_PLANNING = "com.anisync.android.PLANNING_GROUP"
+        private const val GROUP_KEY_AIRING = "com.maizeshark.yamsync.AIRING_GROUP"
+        private const val GROUP_KEY_PLANNING = "com.maizeshark.yamsync.PLANNING_GROUP"
     }
 
     /**
@@ -64,7 +64,7 @@ class NotificationDebugService @Inject constructor(
             val episode = (1..24).random()
             val content = "Episode $episode has aired"
 
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("anisync://discover"))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("yamsync://home"))
             val pendingIntent = PendingIntent.getActivity(
                 context,
                 notificationId,
@@ -101,7 +101,7 @@ class NotificationDebugService @Inject constructor(
             val title = SAMPLE_TITLE
             val content = "Episode 1 is now available"
 
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("anisync://details/$SAMPLE_MEDIA_ID"))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("yamsync://details/$SAMPLE_MEDIA_ID"))
             val pendingIntent = PendingIntent.getActivity(
                 context,
                 notificationId,
@@ -168,7 +168,7 @@ class NotificationDebugService @Inject constructor(
             val formattedTime = timeFormat.format(airingDate)
             val content = "Episode 1 airs tomorrow at $formattedTime"
 
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("anisync://details/$SAMPLE_MEDIA_ID"))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("yamsync://details/$SAMPLE_MEDIA_ID"))
             val pendingIntent = PendingIntent.getActivity(
                 context,
                 notificationId,
@@ -211,7 +211,7 @@ class NotificationDebugService @Inject constructor(
                 else -> "Episode 1 airs in about $hoursUntil hours"
             }
 
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("anisync://details/$SAMPLE_MEDIA_ID"))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("yamsync://details/$SAMPLE_MEDIA_ID"))
             val pendingIntent = PendingIntent.getActivity(
                 context,
                 notificationId,

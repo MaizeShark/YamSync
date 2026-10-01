@@ -67,13 +67,12 @@ data class SyncProgress(
 data class PermissionStates(
     val notifications: Boolean = false,
     val batteryExempt: Boolean = false,
-    val linksVerified: Boolean = false,
     val hibernationExempt: Boolean = false
 ) {
     val grantedCount: Int
-        get() = listOf(notifications, batteryExempt, linksVerified, hibernationExempt).count { it }
+        get() = listOf(notifications, batteryExempt, hibernationExempt).count { it }
 
-    val total: Int get() = 4
+    val total: Int get() = 3
 }
 
 @Immutable

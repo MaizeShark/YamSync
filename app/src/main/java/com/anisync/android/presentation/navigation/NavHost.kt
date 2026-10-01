@@ -230,15 +230,8 @@ fun AniSyncNavHost(
                     onMediaClickFullScreen = onLibraryMediaClick,
                     onNavigateToCalendar = { navController.navigate(Calendar) },
                     onNavigateToNotes = { navController.navigate(Notes) },
-                    // An empty list is a dead end without this: same options the bottom bar uses,
-                    // so the tab switch saves and restores state rather than stacking a screen.
-                    onBrowseDiscover = {
-                        navController.navigate(Home) {
-                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
+                    // An empty list is a dead end without this: search is where things get added.
+                    onBrowseDiscover = { navController.navigate(Search) },
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedVisibilityScope = this
                 )
@@ -246,7 +239,7 @@ fun AniSyncNavHost(
 
             composable<Home>(
                 deepLinks = listOf(
-                    navDeepLink { uriPattern = "anisync://home" }
+                    navDeepLink { uriPattern = "yamsync://home" }
                 ),
                 enterTransition = {
                     val forward = isForwardNavigation(
@@ -316,7 +309,7 @@ fun AniSyncNavHost(
             composable<MediaDetails>(
                 deepLinks = listOf(
                     // Custom app scheme (for widgets, notifications, internal links)
-                    navDeepLink<MediaDetails>(basePath = "anisync://details")
+                    navDeepLink<MediaDetails>(basePath = "yamsync://details")
                 ),
                 // Fade only: the shared cover/title/container morph (card → page) carries the
                 // spatial motion. A horizontal slide here competed with that morph — the page
@@ -366,7 +359,7 @@ fun AniSyncNavHost(
             // =================================================================
             composable<Calendar>(
                 deepLinks = listOf(
-                    navDeepLink { uriPattern = "anisync://calendar" }
+                    navDeepLink { uriPattern = "yamsync://calendar" }
                 ),
                 enterTransition = { sharedAxisZEnter() },
                 exitTransition = { sharedAxisZExit() },

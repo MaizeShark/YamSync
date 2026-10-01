@@ -268,7 +268,6 @@ class OnboardingViewModel @Inject constructor(
                     notifications = NotificationPermissionHelper.hasNotificationPermission(context) &&
                         appSettings.notificationsEnabled.value,
                     batteryExempt = BackgroundWorkUtil.isIgnoringBatteryOptimizations(context),
-                    linksVerified = AppLinksUtil.opensLinksFor(context),
                     hibernationExempt = BackgroundWorkUtil.isHibernationExempt(context)
                 )
             )

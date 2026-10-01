@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AniSync"
+rootProject.name = "YamSync"
 include(":app")

@@ -36,19 +36,34 @@
         <item quantity="other">%dMin</item>
     </plurals>
 
-    <!-- Days unit for profile: "Day" / "Days" -->
-    <plurals name="days_unit">
-        <item quantity="one">Tag</item>
-        <item quantity="other">Tage</item>
-    </plurals>
-
     <!-- Plurals for episodes/chapters -->
-    <plurals name="episodes_format">
-        <item quantity="one">%d Episode</item>
-        <item quantity="other">%d Episoden</item>
+    <plurals name="toast_more_fields">
+        <item quantity="one">%1$d weiteres Feld</item>
+        <item quantity="other">%1$d weitere Felder</item>
     </plurals>
-    <plurals name="chapters_format">
-        <item quantity="one">%d Kapitel</item>
-        <item quantity="other">%d Kapitel</item>
+    <!-- A progress unit after a number; the number is printed separately. -->
+    <plurals name="unit_episodes">
+        <item quantity="one">Episode</item>
+        <item quantity="other">Episoden</item>
+    </plurals>
+    <!-- A progress unit after a number; the number is printed separately. -->
+    <plurals name="unit_chapters">
+        <item quantity="one">Kapitel</item>
+        <item quantity="other">Kapitel</item>
+    </plurals>
+    <!-- A progress unit after a number; the number is printed separately. -->
+    <plurals name="unit_pages">
+        <item quantity="one">Seite</item>
+        <item quantity="other">Seiten</item>
+    </plurals>
+    <!-- A progress unit after a number; the number is printed separately. -->
+    <plurals name="unit_issues">
+        <item quantity="one">Ausgabe</item>
+        <item quantity="other">Ausgaben</item>
+    </plurals>
+    <!-- A progress unit after a number; the number is printed separately. -->
+    <plurals name="unit_plays">
+        <item quantity="one">Partie</item>
+        <item quantity="other">Partien</item>
     </plurals>
 </resources>

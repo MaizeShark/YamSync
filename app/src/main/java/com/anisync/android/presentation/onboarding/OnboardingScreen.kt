@@ -48,7 +48,8 @@ import com.anisync.android.util.BackgroundWorkUtil
 import com.anisync.android.util.NotificationPermissionHelper
 import com.anisync.android.widget.core.WidgetPin
 
-private const val ANILIST_REGISTER_URL = "https://anilist.co/signup"
+/** Where someone without a server learns to run one. */
+private const val YAMTRACK_SETUP_URL = "https://github.com/FuzzyGrim/Yamtrack"
 
 /**
  * Host for the first-run flow. Owns everything that needs an Activity — the browser handoff, the
@@ -103,11 +104,6 @@ fun OnboardingScreen(
 
                 PermissionRow.Battery -> BackgroundWorkUtil.requestIgnoreBatteryOptimizations(context)
 
-                PermissionRow.Links ->
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        AppLinksUtil.openAppLinksSettings(context)
-                    }
-
                 PermissionRow.Hibernation -> BackgroundWorkUtil.openHibernationSettings(context)
             }
         }
@@ -152,7 +148,7 @@ fun OnboardingScreen(
                     covers = uiState.heroCovers,
                     onContinue = { viewModel.onAction(OnboardingAction.ContinueWithAniList) },
                     onCreateAccount = {
-                        AppLinksUtil.openInBrowser(context, ANILIST_REGISTER_URL)
+                        AppLinksUtil.openInBrowser(context, YAMTRACK_SETUP_URL)
                     }
                 )
 
@@ -196,7 +192,6 @@ fun OnboardingScreen(
                 OnboardingStep.DONE -> AllSetStep(
                     libraryEntries = uiState.sync.libraryEntries,
                     alertsOn = uiState.permissions.notifications,
-                    linksOn = uiState.permissions.linksVerified,
                     widgetPinSupported = uiState.widgetPinSupported,
                     onAddWidget = { WidgetPin.requestUpNext(context) },
                     onFinish = { viewModel.onAction(OnboardingAction.Finish) },

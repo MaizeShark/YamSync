@@ -434,19 +434,13 @@ fun AboutScreen(
             SettingsItem(
                 title = stringResource(R.string.settings_anilist_api),
                 subtitle = stringResource(R.string.settings_anilist_api_desc),
-                onClick = { context.launchUrl("https://anilist.co") }
+                onClick = { context.launchUrl("https://github.com/FuzzyGrim/Yamtrack") }
             )
             SettingsDivider()
             SettingsItem(
                 title = stringResource(R.string.settings_links),
                 subtitle = stringResource(R.string.settings_links_desc),
                 onClick = onNavigateToLinks
-            )
-            SettingsDivider()
-            SettingsItem(
-                title = stringResource(R.string.about_improve_translations),
-                subtitle = stringResource(R.string.about_improve_translations_desc, stringResource(R.string.app_name)),
-                onClick = { context.launchUrl("https://hosted.weblate.org/engage/anisync/") }
             )
         }
 
@@ -467,5 +461,5 @@ fun AboutScreen(
 
 private fun Context.copyAppInfo() {
     val clipboard = getSystemService<ClipboardManager>() ?: return
-    clipboard.setPrimaryClip(ClipData.newPlainText("AniSync app info", AppInfo.formatted()))
+    clipboard.setPrimaryClip(ClipData.newPlainText("YamSync app info", AppInfo.formatted()))
 }

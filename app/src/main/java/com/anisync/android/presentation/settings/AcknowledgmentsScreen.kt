@@ -37,7 +37,7 @@ fun AcknowledgmentsScreen(
         AcknowledgmentItem(
             nameResId = R.string.acknowledgments_anilist,
             descriptionResId = R.string.acknowledgments_anilist_desc,
-            url = "https://anilist.co"
+            url = "https://github.com/FuzzyGrim/Yamtrack"
         )
     )
 

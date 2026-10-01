@@ -323,7 +323,7 @@ class SettingsViewModel @Inject constructor(
             ToastType.SESSION_EXPIRED -> toastManager.showToast(
                 type = type,
                 title = toastManager.titleFor(type),
-                message = "AniList no longer accepts this session.",
+                message = "The server no longer accepts this session.",
                 action = ToastAction("Sign in", filled = true) { toastManager.clearToast() },
                 secondaryAction = ToastAction("Later") { toastManager.dismissToast() },
             )

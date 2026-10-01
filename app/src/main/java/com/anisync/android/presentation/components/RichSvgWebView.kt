@@ -102,7 +102,7 @@ internal sealed interface RichImgKind {
 
 internal object RichSvgResolver {
 
-    private const val USER_AGENT = "Mozilla/5.0 (Android; AniSync) AppleWebKit/537.36"
+    private const val USER_AGENT = "Mozilla/5.0 (Android; YamSync) AppleWebKit/537.36"
     private const val TIMEOUT_MS = 8_000
 
     private val RASTER_EXTENSIONS = listOf(

@@ -33,7 +33,7 @@ class AddToWatchingReceiver : BroadcastReceiver() {
     lateinit var registry: MediaKeyRegistry
 
     companion object {
-        const val ACTION_ADD_TO_WATCHING = "com.anisync.android.ACTION_ADD_TO_WATCHING"
+        const val ACTION_ADD_TO_WATCHING = "com.maizeshark.yamsync.ACTION_ADD_TO_WATCHING"
         const val EXTRA_MEDIA_ID = "extra_media_id"
         const val EXTRA_NOTIFICATION_ID = "extra_notification_id"
         const val EXTRA_NOTIFICATION_TAG = "extra_notification_tag"

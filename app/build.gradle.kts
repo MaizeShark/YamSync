@@ -65,7 +65,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.anisync.android"
+        applicationId = "com.maizeshark.yamsync"
         minSdk = 26
         targetSdk = 36
         versionCode = 21
@@ -76,7 +76,7 @@ android {
             useSupportLibrary = true
         }
 
-        resValue("string", "app_name", "AniSync")
+        resValue("string", "app_name", "YamSync")
     }
 
     // Strip AGP-injected dependency-metadata signing block so F-Droid's
@@ -122,7 +122,7 @@ android {
                 variant.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
 
             val renameApksTask = tasks.register<RenameApksTask>("rename${variantNameTitle}Apks") {
-                appName.set("AniSync")
+                appName.set("YamSync")
                 flavorSuffix.set(flavorSuffixValue)
                 buildTypeName.set(variant.buildType)
                 fallbackVersionName.set(versionNameFallback)
@@ -177,7 +177,7 @@ android {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
             isDebuggable = true
-            resValue("string", "app_name", "AniSync Debug")
+            resValue("string", "app_name", "YamSync Debug")
             buildConfigField("Boolean", "IS_DEBUG_BUILD", "true")
         }
     }
@@ -196,7 +196,7 @@ android {
             applicationIdSuffix = ".preview"
             versionNameSuffix = "-preview"
             // This renames the app on the phone's home screen so you can tell them apart!
-            resValue("string", "app_name", "AniSync Preview")
+            resValue("string", "app_name", "YamSync Preview")
         }
     }
 

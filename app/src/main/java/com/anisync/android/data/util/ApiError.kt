@@ -104,6 +104,21 @@ sealed class ApiError(
         val statusCode: Int? = null,
     ) : ApiError(errors.firstOrNull() ?: "API error")
 
+    /**
+     * A Yamtrack page did not have the shape the client parses, usually because the server runs a
+     * version whose templates changed. Raised instead of returning empty data, so a broken parser
+     * is visible rather than looking like an empty library.
+     */
+    class ParseError(
+        val page: String,
+        val detail: String,
+    ) : ApiError("Could not read Yamtrack's $page page: $detail")
+
+    /** The server refused the username and password. */
+    class LoginFailed(
+        val reason: String? = null,
+    ) : ApiError(reason ?: "Login failed")
+
     /** Nothing above matched. */
     class Unknown(
         message: String,

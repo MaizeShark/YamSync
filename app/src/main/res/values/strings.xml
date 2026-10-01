@@ -2203,6 +2203,8 @@
     <string name="api_error_offline">No internet connection. Check your network and try again.</string>
     <string name="api_error_timeout">The request took too long. Please try again.</string>
     <string name="api_error_unknown">An unexpected error occurred.</string>
+    <string name="api_error_parse">Your Yamtrack server sent a page AniSync could not read. It may be running a version AniSync does not support yet.</string>
+    <string name="api_error_login_failed">The username or password is wrong.</string>
     <string name="toast_title_validation">That edit was rejected</string>
     <string name="toast_title_unauthorized">Signed out</string>
     <string name="toast_title_not_found">Not found</string>

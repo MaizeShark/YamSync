@@ -64,7 +64,8 @@ private fun ApiError.statusCode(): Int? = when (this) {
     is ApiError.ServerError -> statusCode
     is ApiError.Validation -> 400
     is ApiError.GraphQLError -> statusCode
-    is ApiError.Offline, is ApiError.Timeout, is ApiError.Unknown -> null
+    is ApiError.LoginFailed -> 401
+    is ApiError.Offline, is ApiError.Timeout, is ApiError.ParseError, is ApiError.Unknown -> null
 }
 
 private fun ApiError.countdownSeconds(): Long? = when (this) {

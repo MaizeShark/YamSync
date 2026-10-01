@@ -1,0 +1,224 @@
+
+
+<div class="bg-[#2a2f35] p-6 rounded-lg max-h-[70svh] overflow-y-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold text-white line-clamp-1">Sousou no Frieren</h2>
+    <button class="text-gray-400 hover:text-white cursor-pointer"
+            @click="trackOpen = false; createOpen = false">
+      <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-6 h-6">
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 12 12"/>
+</svg>
+
+    </button>
+  </div>
+
+  <form hx-post="/media_save?next=/"
+        hx-swap="none"
+        x-data="mediaForm"
+        x-init="init">
+    <input type="hidden" name="csrfmiddlewaretoken" value="V9l49IDXjaEoOANy9uSM9wdNEumK95AJ7oABUJKvhMJjfe8FYcZzDo6Qy663RTRr">
+    <input type="hidden" name="instance_id" value="1" id="id_instance_id">
+    <input type="hidden" name="media_type" value="anime" id="id_media_type">
+    <input type="hidden" name="source" value="mal" id="id_source">
+    <input type="hidden" name="media_id" value="52991" id="id_media_id">
+    
+
+    
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+
+        
+          
+            <div class="mb-5 ">
+              <label class="block text-sm font-medium mb-1 text-gray-300"
+                     for="id_score">Score</label>
+              <div class="relative">
+                
+                  <input type="number" name="score" value="9.0" min="0" max="10" step="0.1" placeholder="0-10" class="w-full p-2 pr-12 bg-[#39404b] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] [appearance:textfield] [&amp;::-webkit-outer-spin-button]:appearance-none [&amp;::-webkit-inner-spin-button]:appearance-none" id="id_score">
+                  <div class="absolute inset-y-0 right-0 flex flex-col border-l border-gray-600">
+                    <button type="button"
+                            class="flex-1 px-2 hover:bg-gray-700 transition-colors rounded-tr-md border-t border-r border-gray-600"
+                            onclick="this.parentElement.previousElementSibling.stepUp()">
+                      <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-3.5 h-3.5">
+    <path d="m18 15-6-6-6 6"/>
+</svg>
+
+                    </button>
+                    <button type="button"
+                            class="flex-1 px-2 hover:bg-gray-700 transition-colors rounded-br-md border-b border-r border-gray-600"
+                            onclick="this.parentElement.previousElementSibling.stepDown()">
+                      <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-3.5 h-3.5">
+    <path d="m6 9 6 6 6-6"/>
+</svg>
+
+                    </button>
+                  </div>
+                
+              </div>
+            </div>
+          
+        
+          
+            <div class="mb-5 ">
+              <label class="block text-sm font-medium mb-1 text-gray-300"
+                     for="id_progress">Progress</label>
+              <div class="relative">
+                
+                  <input type="number" name="progress" value="5" min="0" class="w-full p-2 pr-12 bg-[#39404b] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] [appearance:textfield] [&amp;::-webkit-outer-spin-button]:appearance-none [&amp;::-webkit-inner-spin-button]:appearance-none" required id="id_progress">
+                  <div class="absolute inset-y-0 right-0 flex flex-col border-l border-gray-600">
+                    <button type="button"
+                            class="flex-1 px-2 hover:bg-gray-700 transition-colors rounded-tr-md border-t border-r border-gray-600"
+                            onclick="this.parentElement.previousElementSibling.stepUp()">
+                      <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-3.5 h-3.5">
+    <path d="m18 15-6-6-6 6"/>
+</svg>
+
+                    </button>
+                    <button type="button"
+                            class="flex-1 px-2 hover:bg-gray-700 transition-colors rounded-br-md border-b border-r border-gray-600"
+                            onclick="this.parentElement.previousElementSibling.stepDown()">
+                      <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-3.5 h-3.5">
+    <path d="m6 9 6 6 6-6"/>
+</svg>
+
+                    </button>
+                  </div>
+                
+              </div>
+            </div>
+          
+        
+          
+            <div class="mb-5 sm:col-span-2">
+              <label class="block text-sm font-medium mb-1 text-gray-300"
+                     for="id_status">Status</label>
+              <div class="relative">
+                
+                  <select name="status" class="w-full p-2 bg-[#39404b] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] appearance-none" id="id_status">
+  <option value="Completed">Completed</option>
+
+  <option value="In progress" selected>In Progress</option>
+
+  <option value="Planning">Planning</option>
+
+  <option value="Paused">Paused</option>
+
+  <option value="Dropped">Dropped</option>
+
+</select>
+                  <div class="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="m6 9 6 6 6-6"/>
+</svg>
+
+                  </div>
+                
+              </div>
+            </div>
+          
+        
+          
+            <div class="mb-5 ">
+              <label class="block text-sm font-medium mb-1 text-gray-300"
+                     for="id_start_date">Start date</label>
+              <div class="relative">
+                
+                  <input type="datetime-local" name="start_date" class="w-full p-2 bg-[#39404b] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff]" id="id_start_date">
+                
+              </div>
+            </div>
+          
+        
+          
+            <div class="mb-5 ">
+              <label class="block text-sm font-medium mb-1 text-gray-300"
+                     for="id_end_date">End date</label>
+              <div class="relative">
+                
+                  <input type="datetime-local" name="end_date" class="w-full p-2 bg-[#39404b] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff]" id="id_end_date">
+                
+              </div>
+            </div>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+
+        </div>
+    
+
+    
+      <div class="mb-5">
+        <label class="block text-sm font-medium mb-1 text-gray-300"
+               for="id_notes">Notes</label>
+        <textarea name="notes" cols="40" rows="5" placeholder="Add any notes or comments..." class="w-full p-2 bg-[#39404b] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff]" id="id_notes">
+</textarea>
+      </div>
+    
+
+    <div class="flex flex-row-reverse justify-between mt-6">
+      <button type="submit"
+              class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 cursor-pointer">
+        
+          Update
+        
+      </button>
+      <button type="submit"
+              hx-post="/media_delete?next=/"
+              hx-include="closest form"
+              hx-swap="none"
+              class="px-4 py-2 rounded-md transition duration-300 bg-red-700 text-white hover:bg-red-800 cursor-pointer"
+              >Delete</button>
+    </div>
+  </form>
+</div>

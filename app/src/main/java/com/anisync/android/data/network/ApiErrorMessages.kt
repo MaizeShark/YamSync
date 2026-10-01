@@ -65,6 +65,11 @@ class ApiErrorMessages @Inject constructor(
             is ApiError.GraphQLError ->
                 error.errors.firstOrNull() ?: context.getString(R.string.api_error_unknown)
 
+            is ApiError.ParseError -> context.getString(R.string.api_error_parse)
+
+            is ApiError.LoginFailed ->
+                error.reason ?: context.getString(R.string.api_error_login_failed)
+
             is ApiError.Unknown -> error.message ?: context.getString(R.string.api_error_unknown)
         }
     }

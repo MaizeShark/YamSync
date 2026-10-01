@@ -1,0 +1,4174 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en" class="scheme-dark bg-[#212529]">
+  <head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="Yamtrack, Media Tracker">
+    <meta name="description" content="Search and track media on Yamtrack.">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-title" content="Yamtrack">
+
+    <title>
+      
+  Severance
+  S1
+  - Yamtrack
+
+    </title>
+
+    
+    
+
+    <link rel="stylesheet"
+          type="text/css"
+          href="/static/css/main.css?1790860493">
+
+    <script src="/static/js/libraries/htmx-2.0.4.min.js"></script>
+    <script defer src="/static/js/libraries/alpinejs-3.14.9.min.js"></script>
+    <script src="/static/js/libraries/lazysizes-5.3.2.min.js" async></script>
+
+    <link rel="apple-touch-icon"
+          sizes="180x180"
+          href="/static/favicon/apple-touch-icon.png">
+    <link rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/static/favicon/favicon-32x32.png">
+    <link rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="/static/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon/site.webmanifest">
+    <link rel="mask-icon"
+          href="/static/favicon/safari-pinned-tab.svg">
+    <link rel="shortcut icon" href="/static/favicon/favicon.ico">
+    <meta name="msapplication-TileColor" content="#181a1b">
+    <meta name="msapplication-config"
+          content="/static/favicon/browserconfig.xml">
+    <meta name="theme-color" content="#181a1b">
+
+  </head>
+
+  <body>
+    
+      
+      <div class="flex min-h-screen bg-[#212529] text-gray-100"
+           x-data="{ isMobileMenuOpen: false }">
+
+        
+        <div x-show="isMobileMenuOpen"
+             class="fixed inset-0 bg-black/50 z-30 lg:hidden"
+             @click="isMobileMenuOpen = false"></div>
+
+        
+        <aside class="fixed top-0 left-0 z-40 h-screen w-64 bg-[#1a1d20] transform transition-transform duration-300 ease-in-out border-r border-[#2c3136] -translate-x-full lg:translate-x-0 lg:sticky flex flex-col"
+               :class="isMobileMenuOpen ? 'translate-x-0' : ''">
+          <div class="h-16 border-b border-[#2c3136] flex items-center px-6">
+            <h1 class="text-2xl font-semibold text-gray-100">Yamtrack</h1>
+          </div>
+          <nav class="p-4 flex-1 overflow-y-auto">
+            
+              <ul class="space-y-1 mb-6">
+                <li>
+                  <a href="/"
+                     class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                    
+                      <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+</svg>
+
+
+                    
+                    <span>Home</span>
+                  </a>
+                </li>
+
+                
+                
+                  <li>
+                    
+                      <a href="/demo/tv"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <rect width="20" height="15" x="2" y="7" rx="2" ry="2"/>
+            <polyline points="17 2 12 7 7 2"/>
+                 </svg>
+                        <span>TV Shows</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/season"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-white bg-[#2c3136]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="text-indigo-400 w-5 h-5">
+                      
+            <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0
+            1.83l8.58 3.91 a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/>
+            <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/>
+            <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>
+                 </svg>
+                        <span>TV Seasons</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/movie"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <rect width="18" height="18" x="3" y="3" rx="2"/>
+            <path d="M7 3v18"/>
+            <path d="M3 7.5h4"/>
+            <path d="M3 12h18"/>
+            <path d="M3 16.5h4"/>
+            <path d="M17 3v18"/>
+            <path d="M17 7.5h4"/>
+            <path d="M17 16.5h4"/>
+                 </svg>
+                        <span>Movies</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/anime"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="10 8 16 12 10 16 10 8"/>
+                 </svg>
+                        <span>Anime</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/manga"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2
+            0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+            <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+            <path d="M10 9H8"/>
+            <path d="M16 13H8"/>
+            <path d="M16 17H8"/>
+                 </svg>
+                        <span>Manga</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/game"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <line x1="6" x2="10" y1="11" y2="11"/>
+            <line x1="8" x2="8" y1="9" y2="13"/>
+            <line x1="15" x2="15.01" y1="12" y2="12"/>
+            <line x1="18" x2="18.01" y1="10" y2="10"/>
+            <path d="M17.32 5H6.68a4 4 0 0 0-3.978
+            3.59c-.006.052-.01.101-.017.152C2.6049.416
+            2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5
+            2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2
+            2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0
+            3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4
+            4 0 0 0 17.32 5z"/>
+                 </svg>
+                        <span>Games</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/book"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5
+            2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+                 </svg>
+                        <span>Books</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/comic"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <rect width="8" height="18" x="3" y="3" rx="1"/>
+            <path d="M7 3v18"/>
+            <path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1
+            5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/>
+                 </svg>
+                        <span>Comics</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/boardgame"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+            <circle cx="8" cy="8" r="2"/>
+            <path d="M16 8h-2"/>
+            <circle cx="16" cy="16" r="2"/>
+            <path d="M8 16v-2"/>
+                 </svg>
+                        <span>Boardgames</span>
+                      </a>
+                    
+                  </li>
+                
+              </ul>
+            
+
+            
+            
+
+            
+              <div class="border-t border-[#2c3136] pt-4">
+                <ul class="space-y-1">
+                  
+                  <li>
+                    <a href="/create"
+                       class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                      
+                        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M8 12h8"/>
+    <path d="M12 8v8"/>
+</svg>
+
+
+                      
+                      <span>Create Custom</span>
+                    </a>
+                  </li>
+
+                  
+                  <li>
+                    <a href="/statistics"
+                       class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                      
+                        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <line x1="18" x2="18" y1="20" y2="10"/>
+    <line x1="12" x2="12" y1="20" y2="4"/>
+    <line x1="6" x2="6" y1="20" y2="14"/>
+</svg>
+
+
+                      
+                      <span>Statistics</span>
+                    </a>
+                  </li>
+
+                  
+                  <li>
+                    <a href="/journal"
+                       class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                      
+                        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/>
+    <path d="M16 2v4"/>
+    <path d="M8 2v4"/>
+    <path d="M3 10h5"/>
+    <path d="M17.5 17.5 16 16.3V14"/>
+    <circle cx="16" cy="16" r="6"/>
+</svg>
+
+
+                      
+                      <span>Journal</span>
+                    </a>
+                  </li>
+
+                  
+                  <li>
+                    <a href="/lists"
+                       class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                      
+                        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M12 10v6"/>
+    <path d="M9 13h6"/>
+    <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9
+             L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
+</svg>
+
+
+                      
+                      <span>Lists</span>
+                    </a>
+                  </li>
+
+                  
+                  <li>
+                    <a href="/calendar"
+                       class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                      
+                        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M8 2v4"/>
+    <path d="M16 2v4"/>
+    <rect width="18" height="18" x="3" y="4" rx="2"/>
+    <path d="M3 10h18"/>
+</svg>
+
+
+                      
+                      <span>Calendar</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            
+          </nav>
+
+          
+            <div class="p-4 border-t border-[#2c3136] mt-auto">
+              <div class="space-y-2">
+                
+                
+                
+                
+                
+                
+                <a href="/settings/account"
+                   class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                  
+                    <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2
+               2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73
+               2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0
+               0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2
+               2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1
+               1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2
+               0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2
+               2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0
+               1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+    <circle cx="12" cy="12" r="3"/>
+</svg>
+
+
+                  
+                  <span>Settings</span>
+                </a>
+
+                <form method="post" action="/accounts/logout/" class="w-full">
+                  <input type="hidden" name="csrfmiddlewaretoken" value="KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ">
+                  <button type="submit"
+                          class="w-full flex items-center space-x-3 px-4 py-2 rounded-md text-gray-400 hover:bg-[#23272b] hover:text-white transition-colors duration-200 text-sm cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+    <polyline points="16 17 21 12 16 7"/>
+    <line x1="21" x2="9" y1="12" y2="12"/>
+</svg>
+
+
+                    <span>Logout</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          
+
+          
+          
+        </aside>
+
+        
+        <div class="flex-1 min-w-0 flex flex-col min-h-screen">
+          
+          <div class="sticky top-0 z-10 bg-[#1a1d20] border-b border-[#2c3136] shadow-md">
+            <div class="container mx-auto px-4">
+              <div class="flex items-center justify-between lg:justify-center h-16">
+                
+                <button @click="isMobileMenuOpen = !isMobileMenuOpen"
+                        class="lg:hidden pe-3 text-gray-400 hover:text-white transition-colors duration-200">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-6 h-6">
+    <line x1="4" x2="20" y1="12" y2="12"/>
+    <line x1="4" x2="20" y1="6" y2="6"/>
+    <line x1="4" x2="20" y1="18" y2="18"/>
+</svg>
+
+
+                </button>
+
+                
+                
+                  
+                
+
+                
+                
+                  <div class="relative w-full max-w-2xl">
+                    <form method="get"
+                          action="/search"
+                          x-data=" { isOpen: false, selectedType: { display: 'TV Shows', value: 'tv' }, mediaTypes: [{&#x27;display&#x27;: &#x27;TV Shows&#x27;, &#x27;value&#x27;: &#x27;tv&#x27;}, {&#x27;display&#x27;: &#x27;Movies&#x27;, &#x27;value&#x27;: &#x27;movie&#x27;}, {&#x27;display&#x27;: &#x27;Anime&#x27;, &#x27;value&#x27;: &#x27;anime&#x27;}, {&#x27;display&#x27;: &#x27;Manga&#x27;, &#x27;value&#x27;: &#x27;manga&#x27;}, {&#x27;display&#x27;: &#x27;Games&#x27;, &#x27;value&#x27;: &#x27;game&#x27;}, {&#x27;display&#x27;: &#x27;Books&#x27;, &#x27;value&#x27;: &#x27;book&#x27;}, {&#x27;display&#x27;: &#x27;Comics&#x27;, &#x27;value&#x27;: &#x27;comic&#x27;}, {&#x27;display&#x27;: &#x27;Boardgames&#x27;, &#x27;value&#x27;: &#x27;boardgame&#x27;}], getPlaceholder() { return `Search ${this.selectedType.display.toLowerCase()}...` } }">
+                      <div class="flex">
+                        <div class="relative grow">
+                          
+                          <input type="search"
+                                 id="global-search"
+                                 name="q"
+                                 value=""
+                                 :placeholder="getPlaceholder()"
+                                 class="w-full py-2 pl-10 pr-4 text-sm text-gray-300 bg-[#272c31] rounded-l-md focus:outline-none focus:ring-2 focus:ring-[#4a9eff] focus:ring-inset placeholder-gray-500">
+                          <button type="submit"
+                                  class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200 focus:outline-none cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <circle cx="11" cy="11" r="8"/>
+    <path d="m21 21-4.3-4.3"/>
+</svg>
+
+
+                          </button>
+                        </div>
+
+                        <input type="hidden" name="media_type" :value="selectedType.value">
+
+                        
+                        <button type="button"
+                                @click="isOpen = !isOpen"
+                                @click.away="isOpen = false"
+                                class="flex items-center justify-between max-w-27.5 sm:max-w-none sm:w-32 px-2 sm:px-4 py-2 text-sm text-gray-300 bg-[#272c31] rounded-r-md focus:outline-none focus:ring-2 focus:ring-[#4a9eff] focus:ring-inset hover:bg-[#2a2e33] transition-colors duration-200 cursor-pointer">
+                          <span class="truncate sm:whitespace-normal" x-text="selectedType.display"></span>
+                          <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4 ml-2">
+    <path d="m6 9 6 6 6-6"/>
+</svg>
+
+
+                        </button>
+                        <ul x-cloak
+                            x-show="isOpen"
+                            @keydown.escape.window="isOpen = false"
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="transform opacity-0 scale-95"
+                            x-transition:enter-end="transform opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-75"
+                            x-transition:leave-start="transform opacity-100 scale-100"
+                            x-transition:leave-end="transform opacity-0 scale-95"
+                            class="absolute z-20 py-1 mt-12 overflow-auto text-sm text-gray-300 bg-[#2a2e33] rounded-md shadow-lg right-0 w-32">
+                          <template x-for="type in mediaTypes" :key="type.value">
+                            <li @click="selectedType = type; isOpen = false"
+                                class="px-4 py-2 cursor-pointer hover:bg-[#343a40] transition duration-150 ease-in-out"
+                                x-text="type.display"></li>
+                          </template>
+                        </ul>
+                      </div>
+                    </form>
+                  </div>
+                
+              </div>
+            </div>
+          </div>
+
+          <main class="flex-1 relative bg-[#212529]">
+            <div class="container mx-auto px-8 py-12">
+              
+  <div x-data="{ tab: 'overview' }">
+    
+    <div class="flex flex-col md:flex-row gap-8 md:gap-10 mb-12 md:mb-8">
+      
+      <div class="w-full md:w-1/4 max-w-62.5 mx-auto md:mx-0">
+        <img alt="Severance"
+             class="w-full rounded-lg shadow-lg bg-[#2a2f35] object-cover"
+             src="https://image.tmdb.org/t/p/w500/lFf6LLrQjYldcZItzOkGmMMigP7.jpg">
+
+        <div class="mt-4 relative flex items-stretch"
+             x-data="{ trackOpen: false, createOpen: false, menuOpen: false }"
+             @click.away="menuOpen = false"
+             @keydown.escape.window="trackOpen = false; createOpen = false; menuOpen = false">
+          <button class="p-3 flex-1 text-center font-medium text-white transition duration-300 cursor-pointer bg-indigo-600 hover:bg-indigo-700 rounded-lg"
+                  hx-get="/track_modal/tmdb/season/95396/1"
+                  hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1", "instance_id": "1"}'
+                  hx-target="#track-season-95396-1-1"
+                  hx-trigger="click"
+                  @click="trackOpen = true">
+            
+              In Progress
+            
+          </button>
+
+          
+
+          
+          <div x-show="trackOpen"
+               class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div class="w-152 max-h-[90vh] px-4 md:px-0 relative z-60"
+                 @click.outside="trackOpen = false"
+                 @click.stop>
+              
+              <div id="track-season-95396-1-1"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      
+      <div class="md:w-3/4 flex flex-col">
+        
+          <h2 class="text-xl font-semibold cursor-pointer hover:text-indigo-500 transition-colors duration-200 mb-2 text-gray-400 text-center md:text-start">
+            <a href="/details/tmdb/tv/95396/severance">Severance</a>
+          </h2>
+
+          <div class="flex flex-col md:flex-row gap-y-4 md:gap-y-0 items-center justify-between mb-6">
+            <h1 class="text-3xl font-bold">Season 1</h1>
+
+            
+            <div class="relative"
+                 x-data="{ open: false }"
+                 @click.away="open = false"
+                 @keydown.escape.window="open = false">
+              <button @click="open = !open"
+                      class="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors duration-200 cursor-pointer">
+                <span class="text-sm font-medium">Season 1</span>
+                <div class="w-4 h-4" :class="{ 'rotate-180': open }"><svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="">
+    <path d="m6 9 6 6 6-6"/>
+</svg>
+</div>
+              </button>
+              <div x-show="open"
+                   x-transition:enter="transition ease-out duration-200"
+                   x-transition:enter-start="opacity-0 transform scale-95"
+                   x-transition:enter-end="opacity-100 transform scale-100"
+                   x-transition:leave="transition ease-in duration-150"
+                   x-transition:leave-start="opacity-100 transform scale-100"
+                   x-transition:leave-end="opacity-0 transform scale-95"
+                   class="absolute right-1/2 md:right-0 translate-x-1/2 md:translate-x-0 mt-2 w-64 bg-[#2a2f35] rounded-md shadow-lg overflow-hidden z-10">
+                <div class="max-h-75 overflow-y-auto">
+                  
+                    <a href="/details/tmdb/tv/95396/severance/season/0"
+                       class="w-full px-4 py-3 flex items-center space-x-3 hover:bg-gray-700 transition-colors duration-200 cursor-pointer ">
+                      <div class="w-8 h-8 rounded-full flex items-center justify-center bg-indigo-600 text-white">
+                        0
+                      </div>
+                      <div class="flex-1 text-left">
+                        <div class="text-sm font-medium">Specials</div>
+                        <div class="text-xs text-gray-400">
+                          1 Episode
+                          • 2021-12-15
+                        </div>
+                      </div>
+                    </a>
+                  
+                    <a href="/details/tmdb/tv/95396/severance/season/1"
+                       class="w-full px-4 py-3 flex items-center space-x-3 hover:bg-gray-700 transition-colors duration-200 cursor-pointer bg-[#343a40]">
+                      <div class="w-8 h-8 rounded-full flex items-center justify-center bg-indigo-600 text-white">
+                        1
+                      </div>
+                      <div class="flex-1 text-left">
+                        <div class="text-sm font-medium">Season 1</div>
+                        <div class="text-xs text-gray-400">
+                          9 Episodes
+                          • 2022-02-17
+                        </div>
+                      </div>
+                    </a>
+                  
+                    <a href="/details/tmdb/tv/95396/severance/season/2"
+                       class="w-full px-4 py-3 flex items-center space-x-3 hover:bg-gray-700 transition-colors duration-200 cursor-pointer ">
+                      <div class="w-8 h-8 rounded-full flex items-center justify-center bg-indigo-600 text-white">
+                        2
+                      </div>
+                      <div class="flex-1 text-left">
+                        <div class="text-sm font-medium">Season 2</div>
+                        <div class="text-xs text-gray-400">
+                          10 Episodes
+                          • 2025-01-16
+                        </div>
+                      </div>
+                    </a>
+                  
+                    <a href="/details/tmdb/tv/95396/severance/season/3"
+                       class="w-full px-4 py-3 flex items-center space-x-3 hover:bg-gray-700 transition-colors duration-200 cursor-pointer ">
+                      <div class="w-8 h-8 rounded-full flex items-center justify-center bg-indigo-600 text-white">
+                        3
+                      </div>
+                      <div class="flex-1 text-left">
+                        <div class="text-sm font-medium">Season 3</div>
+                        <div class="text-xs text-gray-400">
+                          0 Episodes
+                          
+                        </div>
+                      </div>
+                    </a>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+        
+
+        
+        <div class="flex flex-wrap gap-2 mb-4">
+          
+            <span class="px-3 py-1 bg-violet-600 text-white rounded-full text-sm">Drama</span>
+          
+            <span class="px-3 py-1 bg-violet-600 text-white rounded-full text-sm">Mystery</span>
+          
+            <span class="px-3 py-1 bg-violet-600 text-white rounded-full text-sm">Sci-Fi &amp; Fantasy</span>
+          
+        </div>
+
+        
+        <div class="mb-6">
+          <div x-data="{ isExpanded: false, isClamped: false, checkClamp() { const element = this.$refs.synopsisText; this.isClamped = element.scrollHeight > element.clientHeight; } }"
+               x-init="$nextTick(() => checkClamp())">
+            <p x-ref="synopsisText"
+               :class="isExpanded ? '' : 'line-clamp-4'"
+               class="text-gray-300 text-pretty">At Lumon Industries, employees undergo &quot;severance,&quot; a procedure dividing their work and personal memories. Mark, a grieving team leader, begins to uncover the dark secrets of the company, forcing him and his coworkers to confront questions of identity, free will, and corporate control.</p>
+            <button x-show="isClamped"
+                    @click="isExpanded = !isExpanded"
+                    class="text-indigo-400 hover:text-indigo-300 text-sm mt-2 focus:outline-none transition-colors cursor-pointer">
+              <span x-text="isExpanded ? 'Show less' : 'Read more'"></span>
+            </button>
+          </div>
+
+        </div>
+
+        
+        <div class="flex flex-wrap gap-4">
+          
+            <div class="bg-[#2a2f35] p-3 rounded-lg w-30">
+              <h3 class="text-xs font-semibold text-gray-400 mb-1 text-center">TMDB SCORE</h3>
+              <div class="flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="currentColor"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 mr-1.5 text-yellow-400 fill-yellow-400">
+    <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+</svg>
+
+                
+                  <span class="text-lg font-bold text-white">8.4</span><span class="text-gray-400 ml-0.5 text-sm">/10</span>
+                
+              </div>
+              <p class="text-xs text-gray-400 mt-0.5 text-center">
+                1,306 votes
+              </p>
+            </div>
+          
+
+          
+          
+            <div x-data="{ showRatingPopup: false, rating: null, hoverRating: null, isHovering: false }"
+                 class="relative">
+              <!-- Rating display -->
+              <div @click="showRatingPopup = !showRatingPopup"
+                   class="bg-[#2a2f35] p-3 rounded-lg w-30 cursor-pointer">
+                <h3 class="text-xs font-semibold text-gray-400 mb-1 text-center">YOUR SCORE</h3>
+                <div class="flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="currentColor"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 mr-1.5 text-yellow-400 fill-yellow-400">
+    <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+</svg>
+
+                  <template x-if="rating">
+                    <div class="flex items-baseline">
+                      <span class="text-lg font-bold text-white" x-text="rating"></span>
+                      <span class="text-gray-400 ml-0.5 text-sm">/10</span>
+                    </div>
+                  </template>
+                  <template x-if="!rating">
+                    <span class="text-lg font-bold text-gray-400">-</span>
+                  </template>
+                </div>
+                <p class="text-xs text-gray-400 mt-0.5 text-center">Click to edit</p>
+              </div>
+
+              <!-- Rating popup -->
+              <div x-show="showRatingPopup"
+                   @click.outside="showRatingPopup = false; isHovering = false"
+                   class="absolute left-0 top-full mt-2 p-3 bg-[#2a2f35] rounded-lg shadow-lg z-10 w-62.5 border border-gray-700"
+                   @mouseenter="isHovering = true"
+                   @mouseleave="isHovering = false; hoverRating = null">
+                <div class="flex justify-between mb-1">
+                  
+                    
+                      <button @click="rating = 1; showRatingPopup = false; isHovering = false"
+                              @mouseenter="hoverRating = 1"
+                              hx-post="/update-score/season/1"
+                              hx-headers='{"X-CSRFToken": "KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ"}'
+                              hx-vals='{"score": 1 }'
+                              hx-trigger="click"
+                              hx-swap="none"
+                              class="focus:outline-none flex flex-col items-center cursor-pointer">
+                        <div :class="{ 'text-yellow-400': 1 <= (isHovering ? hoverRating : rating), 'text-gray-600': 1 > (isHovering ? hoverRating : rating) }">
+                          <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="currentColor"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 hover:scale-110 transition-transform">
+    <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+</svg>
+
+                        </div>
+                        <span class="text-xs mt-1 text-gray-400">1</span>
+                      </button>
+                    
+                      <button @click="rating = 2; showRatingPopup = false; isHovering = false"
+                              @mouseenter="hoverRating = 2"
+                              hx-post="/update-score/season/1"
+                              hx-headers='{"X-CSRFToken": "KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ"}'
+                              hx-vals='{"score": 2 }'
+                              hx-trigger="click"
+                              hx-swap="none"
+                              class="focus:outline-none flex flex-col items-center cursor-pointer">
+                        <div :class="{ 'text-yellow-400': 2 <= (isHovering ? hoverRating : rating), 'text-gray-600': 2 > (isHovering ? hoverRating : rating) }">
+                          <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="currentColor"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 hover:scale-110 transition-transform">
+    <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+</svg>
+
+                        </div>
+                        <span class="text-xs mt-1 text-gray-400">2</span>
+                      </button>
+                    
+                      <button @click="rating = 3; showRatingPopup = false; isHovering = false"
+                              @mouseenter="hoverRating = 3"
+                              hx-post="/update-score/season/1"
+                              hx-headers='{"X-CSRFToken": "KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ"}'
+                              hx-vals='{"score": 3 }'
+                              hx-trigger="click"
+                              hx-swap="none"
+                              class="focus:outline-none flex flex-col items-center cursor-pointer">
+                        <div :class="{ 'text-yellow-400': 3 <= (isHovering ? hoverRating : rating), 'text-gray-600': 3 > (isHovering ? hoverRating : rating) }">
+                          <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="currentColor"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 hover:scale-110 transition-transform">
+    <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+</svg>
+
+                        </div>
+                        <span class="text-xs mt-1 text-gray-400">3</span>
+                      </button>
+                    
+                      <button @click="rating = 4; showRatingPopup = false; isHovering = false"
+                              @mouseenter="hoverRating = 4"
+                              hx-post="/update-score/season/1"
+                              hx-headers='{"X-CSRFToken": "KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ"}'
+                              hx-vals='{"score": 4 }'
+                              hx-trigger="click"
+                              hx-swap="none"
+                              class="focus:outline-none flex flex-col items-center cursor-pointer">
+                        <div :class="{ 'text-yellow-400': 4 <= (isHovering ? hoverRating : rating), 'text-gray-600': 4 > (isHovering ? hoverRating : rating) }">
+                          <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="currentColor"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 hover:scale-110 transition-transform">
+    <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+</svg>
+
+                        </div>
+                        <span class="text-xs mt-1 text-gray-400">4</span>
+                      </button>
+                    
+                      <button @click="rating = 5; showRatingPopup = false; isHovering = false"
+                              @mouseenter="hoverRating = 5"
+                              hx-post="/update-score/season/1"
+                              hx-headers='{"X-CSRFToken": "KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ"}'
+                              hx-vals='{"score": 5 }'
+                              hx-trigger="click"
+                              hx-swap="none"
+                              class="focus:outline-none flex flex-col items-center cursor-pointer">
+                        <div :class="{ 'text-yellow-400': 5 <= (isHovering ? hoverRating : rating), 'text-gray-600': 5 > (isHovering ? hoverRating : rating) }">
+                          <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="currentColor"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 hover:scale-110 transition-transform">
+    <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+</svg>
+
+                        </div>
+                        <span class="text-xs mt-1 text-gray-400">5</span>
+                      </button>
+                    
+                      <button @click="rating = 6; showRatingPopup = false; isHovering = false"
+                              @mouseenter="hoverRating = 6"
+                              hx-post="/update-score/season/1"
+                              hx-headers='{"X-CSRFToken": "KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ"}'
+                              hx-vals='{"score": 6 }'
+                              hx-trigger="click"
+                              hx-swap="none"
+                              class="focus:outline-none flex flex-col items-center cursor-pointer">
+                        <div :class="{ 'text-yellow-400': 6 <= (isHovering ? hoverRating : rating), 'text-gray-600': 6 > (isHovering ? hoverRating : rating) }">
+                          <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="currentColor"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 hover:scale-110 transition-transform">
+    <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+</svg>
+
+                        </div>
+                        <span class="text-xs mt-1 text-gray-400">6</span>
+                      </button>
+                    
+                      <button @click="rating = 7; showRatingPopup = false; isHovering = false"
+                              @mouseenter="hoverRating = 7"
+                              hx-post="/update-score/season/1"
+                              hx-headers='{"X-CSRFToken": "KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ"}'
+                              hx-vals='{"score": 7 }'
+                              hx-trigger="click"
+                              hx-swap="none"
+                              class="focus:outline-none flex flex-col items-center cursor-pointer">
+                        <div :class="{ 'text-yellow-400': 7 <= (isHovering ? hoverRating : rating), 'text-gray-600': 7 > (isHovering ? hoverRating : rating) }">
+                          <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="currentColor"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 hover:scale-110 transition-transform">
+    <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+</svg>
+
+                        </div>
+                        <span class="text-xs mt-1 text-gray-400">7</span>
+                      </button>
+                    
+                      <button @click="rating = 8; showRatingPopup = false; isHovering = false"
+                              @mouseenter="hoverRating = 8"
+                              hx-post="/update-score/season/1"
+                              hx-headers='{"X-CSRFToken": "KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ"}'
+                              hx-vals='{"score": 8 }'
+                              hx-trigger="click"
+                              hx-swap="none"
+                              class="focus:outline-none flex flex-col items-center cursor-pointer">
+                        <div :class="{ 'text-yellow-400': 8 <= (isHovering ? hoverRating : rating), 'text-gray-600': 8 > (isHovering ? hoverRating : rating) }">
+                          <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="currentColor"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 hover:scale-110 transition-transform">
+    <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+</svg>
+
+                        </div>
+                        <span class="text-xs mt-1 text-gray-400">8</span>
+                      </button>
+                    
+                      <button @click="rating = 9; showRatingPopup = false; isHovering = false"
+                              @mouseenter="hoverRating = 9"
+                              hx-post="/update-score/season/1"
+                              hx-headers='{"X-CSRFToken": "KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ"}'
+                              hx-vals='{"score": 9 }'
+                              hx-trigger="click"
+                              hx-swap="none"
+                              class="focus:outline-none flex flex-col items-center cursor-pointer">
+                        <div :class="{ 'text-yellow-400': 9 <= (isHovering ? hoverRating : rating), 'text-gray-600': 9 > (isHovering ? hoverRating : rating) }">
+                          <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="currentColor"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 hover:scale-110 transition-transform">
+    <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+</svg>
+
+                        </div>
+                        <span class="text-xs mt-1 text-gray-400">9</span>
+                      </button>
+                    
+                      <button @click="rating = 10; showRatingPopup = false; isHovering = false"
+                              @mouseenter="hoverRating = 10"
+                              hx-post="/update-score/season/1"
+                              hx-headers='{"X-CSRFToken": "KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ"}'
+                              hx-vals='{"score": 10 }'
+                              hx-trigger="click"
+                              hx-swap="none"
+                              class="focus:outline-none flex flex-col items-center cursor-pointer">
+                        <div :class="{ 'text-yellow-400': 10 <= (isHovering ? hoverRating : rating), 'text-gray-600': 10 > (isHovering ? hoverRating : rating) }">
+                          <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="currentColor"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 hover:scale-110 transition-transform">
+    <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+</svg>
+
+                        </div>
+                        <span class="text-xs mt-1 text-gray-400">10</span>
+                      </button>
+                    
+                  
+                </div>
+              </div>
+            </div>
+          
+        </div>
+
+        
+        
+
+
+
+
+      </div>
+    </div>
+
+    
+    <div class="flex flex-col md:flex-row gap-12 md:gap-10">
+      
+      <div class="w-full md:w-1/4 md:max-w-62.5 mx-auto lg:mx-0">
+        
+        
+          <h2 class="text-xl font-bold mb-4">Your History</h2>
+
+          <div class="bg-[#2a2f35] p-4 rounded-lg mb-6 text-center md:text-start">
+            <div class="@container flex flex-col gap-y-1">
+              
+
+              
+
+              
+                <div class="flex @max-[210px]:flex-col justify-between text-sm">
+                  <span class="text-gray-400">Progress:</span>
+                  <span class="text-gray-200">
+                    1
+                    
+                  </span>
+                </div>
+              
+            </div>
+
+            
+            
+          </div>
+        
+
+        
+        <h2 class="text-xl font-bold mb-4">Actions</h2>
+        <div class="bg-[#2a2f35] rounded-lg overflow-hidden divide-y divide-white/5 mb-6">
+          
+          <div x-data="{ listsOpen: false }">
+            <button class="w-full flex items-center gap-x-3 px-4 py-3 text-sm text-gray-200 hover:bg-[#343a40] transition-colors duration-200 cursor-pointer"
+                    title="Add to custom lists"
+                    hx-get="/lists_modal/tmdb/season/95396/1"
+                    hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                    hx-target="#lists-season-95396-1"
+                    hx-trigger="click once"
+                    @click="listsOpen = true">
+              <span class="flex items-center justify-center w-8 h-8 rounded-md bg-emerald-600/15 text-emerald-400 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M11 12H3"/>
+    <path d="M16 6H3"/>
+    <path d="M16 18H3"/>
+    <path d="M18 9v6"/>
+    <path d="M21 12h-6"/>
+</svg>
+
+              </span>
+              <span class="font-medium">Add to lists</span>
+            </button>
+
+            <div x-show="listsOpen"
+                 @keydown.escape.window="listsOpen = false"
+                 class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                   @click.outside="listsOpen = false">
+                <div id="lists-season-95396-1"></div>
+              </div>
+            </div>
+          </div>
+
+          
+          <div x-data="{ historyOpen: false }">
+            <button class="w-full flex items-center gap-x-3 px-4 py-3 text-sm text-gray-200 hover:bg-[#343a40] transition-colors duration-200 cursor-pointer"
+                    title="View your activity history"
+                    hx-get="/history_modal/tmdb/season/95396/1"
+                    hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                    hx-target="#history-season-95396-1"
+                    hx-trigger="click once"
+                    @click="historyOpen = true">
+              <span class="flex items-center justify-center w-8 h-8 rounded-md bg-amber-600/15 text-amber-400 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/>
+    <path d="M16 2v4"/>
+    <path d="M8 2v4"/>
+    <path d="M3 10h5"/>
+    <path d="M17.5 17.5 16 16.3V14"/>
+    <circle cx="16" cy="16" r="6"/>
+</svg>
+
+              </span>
+              <span class="font-medium">Activity history</span>
+            </button>
+
+            <div x-show="historyOpen"
+                 @keydown.escape.window="historyOpen = false"
+                 class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                   @click.outside="historyOpen = false">
+                <div id="history-season-95396-1"></div>
+              </div>
+            </div>
+          </div>
+
+          
+          <button type="button"
+                  title="Sync metadata with provider"
+                  class="w-full flex items-center gap-x-3 px-4 py-3 text-sm text-gray-200 hover:bg-[#343a40] transition-colors duration-200 cursor-pointer disabled:opacity-75"
+                  hx-post="/details/sync/tmdb/season/95396/1"
+                  hx-headers='{"X-CSRFToken": "KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ"}'
+                  hx-vals='{"next": "/details/tmdb/tv/95396/severance/season/1"}'
+                  hx-target="body"
+                  hx-swap="none"
+                  x-data="{ loading: false }"
+                  @click="loading = true"
+                  :disabled="loading">
+            <span class="flex items-center justify-center w-8 h-8 rounded-md bg-fuchsia-600/15 text-fuchsia-400 shrink-0">
+              <span class="flex" :class="{ 'animate-spin': loading }">
+                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+    <path d="M21 3v5h-5"/>
+    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+    <path d="M8 16H3v5"/>
+</svg>
+
+              </span>
+            </span>
+            <span class="font-medium">Sync metadata</span>
+          </button>
+        </div>
+
+        
+        <h2 class="text-xl font-bold mb-4">Details</h2>
+        <div class="bg-[#2a2f35] rounded-lg divide-y divide-white/5">
+          
+            
+              <div class="flex justify-between gap-x-4 px-4 py-2.5">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase shrink-0 mt-0.5">first air date</h3>
+                <div class="text-sm text-gray-200 text-right">
+                  
+                    <p>2022-02-17</p>
+                  
+                </div>
+              </div>
+            
+              <div class="flex justify-between gap-x-4 px-4 py-2.5">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase shrink-0 mt-0.5">last air date</h3>
+                <div class="text-sm text-gray-200 text-right">
+                  
+                    <p>2022-04-07</p>
+                  
+                </div>
+              </div>
+            
+              <div class="flex justify-between gap-x-4 px-4 py-2.5">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase shrink-0 mt-0.5">episodes</h3>
+                <div class="text-sm text-gray-200 text-right">
+                  
+                    <p>9</p>
+                  
+                </div>
+              </div>
+            
+              <div class="flex justify-between gap-x-4 px-4 py-2.5">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase shrink-0 mt-0.5">runtime</h3>
+                <div class="text-sm text-gray-200 text-right">
+                  
+                    <p>51m</p>
+                  
+                </div>
+              </div>
+            
+              <div class="flex justify-between gap-x-4 px-4 py-2.5">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase shrink-0 mt-0.5">total runtime</h3>
+                <div class="text-sm text-gray-200 text-right">
+                  
+                    <p>7h 44m</p>
+                  
+                </div>
+              </div>
+            
+            <div class="flex justify-between gap-x-4 px-4 py-2.5">
+              <h3 class="text-xs font-semibold text-gray-400 uppercase shrink-0 mt-0.5">Provider</h3>
+              <a href="https://www.themoviedb.org/tv/95396/season/1"
+                 class="text-sm text-gray-200 text-right hover:text-indigo-400 transition-colors duration-200"
+                 target="_blank">The Movie Database</a>
+            </div>
+            
+              <div class="flex justify-between gap-x-4 px-4 py-2.5">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase shrink-0 mt-0.5">Links</h3>
+                <div class="text-right">
+                  
+                    <a href="https://www.imdb.com/title/tt11280740/"
+                       class="block text-sm text-gray-200 hover:text-indigo-400 transition-colors duration-200"
+                       target="_blank">IMDb</a>
+                  
+                    <a href="https://www.thetvdb.com/dereferrer/series/371980"
+                       class="block text-sm text-gray-200 hover:text-indigo-400 transition-colors duration-200"
+                       target="_blank">TVDB</a>
+                  
+                    <a href="https://www.wikidata.org/wiki/Q101096725"
+                       class="block text-sm text-gray-200 hover:text-indigo-400 transition-colors duration-200"
+                       target="_blank">Wikidata</a>
+                  
+                </div>
+              </div>
+            
+          
+        </div>
+      </div>
+
+      
+      <div class="w-full md:w-3/4">
+        
+        
+
+
+
+
+        
+
+        
+        
+
+        
+        
+
+        
+        
+          <div class="w-full" x-show="tab === 'overview' || tab === 'episodes'">
+            <h2 class="text-xl font-bold mb-4">Episodes</h2>
+            <div class="space-y-6">
+              
+                <div class="bg-[#2a2f35] rounded-lg overflow-hidden shadow-lg">
+                  <div class="flex flex-col md:flex-row" x-data="{ obfuscated:
+                    
+                      false
+                    
+                    , hasImage:
+                    
+                      true
+                    
+                    }">
+                    <img src="https://www.themoviedb.org/assets/2/v4/glyphicons/basic/glyphicons-basic-38-picture-grey-c2ebdbb057f2a7614185931650f8cee23fa137b93812ccb132b9df511df1cfac.svg"
+                         alt="E1"
+                         data-src="https://image.tmdb.org/t/p/w500/sP3GZe9j7BY3CAyZGFuZxxnGpN1.jpg"
+                         class="lazyload md:w-64 md:h-40 shrink-0 object-cover cursor-default"
+                         :class="{ 'blur': obfuscated && hasImage, 'cursor-pointer': obfuscated && hasImage, 'cursor-default': !obfuscated || !hasImage }"
+                         @click="obfuscated = false">
+                    <div class="py-3 flex-1 flex flex-col">
+                      <div class="flex-1">
+                        <div class="flex justify-between items-start mb-2 space-x-2 px-4">
+                          <div>
+                            <h2 class="text-xl font-semibold mb-1 line-clamp-1 cursor-text"
+                                :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                                @click="obfuscated = false">Good News About Hell</h2>
+                            <p class="text-sm text-gray-400">
+                              Episode 1 • 2022-02-17
+                              • 59m
+                            </p>
+                          </div>
+                          <div class="flex space-x-2">
+                            
+                            <div x-data="{ trackOpen: false }">
+                              <button @click="trackOpen = true"
+                                      title="Track Episode"
+                                      class="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition duration-300 cursor-pointer">
+                                
+                                  <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+    <circle cx="12" cy="12" r="3"/>
+</svg>
+
+                                
+                              </button>
+
+                              
+
+
+<div x-show="trackOpen"
+     @keydown.escape.window="trackOpen = false"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="w-100 max-h-[90vh] px-4 md:px-0 relative z-60"
+       @click.outside="trackOpen = false">
+    <div class="bg-[#2a2f35] p-6 rounded-lg max-h-[70svh] overflow-y-auto">
+
+      
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-white">Track Episode</h2>
+        <button class="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                @click="trackOpen = false"><svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 12 12"/>
+</svg>
+</button>
+      </div>
+
+      
+      <div class="bg-[#343a40] rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-4">
+          <img alt="Good News About Hell"
+               class="w-20 h-20 rounded object-cover shrink-0"
+               src="https://image.tmdb.org/t/p/w500/sP3GZe9j7BY3CAyZGFuZxxnGpN1.jpg">
+          <div>
+            <h3 class="text-lg font-semibold mb-1 line-clamp-1">Good News About Hell</h3>
+            <p class="text-sm text-gray-400">Episode 1</p>
+            
+              
+                <p class="text-sm text-gray-400 mt-1">Watched once</p>
+              
+            
+          </div>
+        </div>
+      </div>
+
+      
+      
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-300 mb-3">Previous Watches</label>
+          <div class="max-h-50 overflow-y-auto space-y-2">
+            
+              <div class="flex items-center justify-between bg-[#343a40] rounded-md p-3 border border-gray-600">
+                <div class="text-sm text-white">
+                  
+                    No date provided
+                  
+                </div>
+                <form hx-post="/media_delete?next=/details/tmdb/tv/95396/severance/season/1"
+                      hx-swap="none">
+                  <input type="hidden" name="csrfmiddlewaretoken" value="KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ">
+                  <input type="hidden" name="instance_id" value="1">
+                  <input type="hidden" name="media_type" value="episode">
+                  <button type="submit"
+                          class="text-red-400 hover:text-red-300 transition-colors text-sm px-2 py-1 hover:bg-red-600/20 rounded-md cursor-pointer">
+                    Delete
+                  </button>
+                </form>
+              </div>
+            
+          </div>
+        </div>
+        <div class="border-t border-gray-600 mb-6"></div>
+      
+
+      
+      
+      <form hx-post="/episode_save?next=/details/tmdb/tv/95396/severance/season/1"
+            hx-swap="none"
+            x-data="{
+              trackTime: true,
+              inputType: 'datetime-local',
+              inputDateTime: '',
+              dropdownOpen: false,
+              pointerOnPickerIcon: false,
+              localNow(offsetMs = 0) {
+                const iso = new Date(Date.now() + offsetMs - new Date().getTimezoneOffset() * 60000).toISOString();
+                return this.trackTime ? iso.slice(0, 16) : iso.slice(0, 10);
+              },
+              init() { this.inputDateTime = this.localNow(); }
+            }">
+        <input type="hidden" name="csrfmiddlewaretoken" value="KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ">
+        <input type="hidden" name="media_id" value="95396">
+        <input type="hidden" name="season_number" value="1">
+        <input type="hidden" name="source" value="tmdb">
+        <input type="hidden"
+               name="episode_number"
+               value="1">
+
+        <label class="block text-sm font-medium text-gray-300 mb-2">Watch Date</label>
+
+        
+        <div class="relative">
+          <input class="w-full p-3 bg-[#343a40] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] appearance-none"
+                 x-bind:type="inputType"
+                 name="end_date"
+                 @pointerdown="pointerOnPickerIcon = $event.clientX >= $el.getBoundingClientRect().right - 40"
+                 @focus="if (!pointerOnPickerIcon) { $el.showPicker?.() }"
+                 @click="pointerOnPickerIcon = false"
+                 x-model="inputDateTime">
+        </div>
+
+        
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <div class="relative inline-flex shadow-sm rounded-md"
+               @click.outside="dropdownOpen = false">
+
+            
+            <button type="submit"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-md transition duration-300 cursor-pointer font-medium"
+                    title="Add watched entry with current settings">Add watch</button>
+
+            
+            <button type="button"
+                    @click="dropdownOpen = !dropdownOpen"
+                    :style="dropdownOpen ? 'background-color: #4338ca;' : 'background-color: #4f46e5;'"
+                    class="px-2 py-2 text-white rounded-r-md border-l border-indigo-500 transition duration-300 cursor-pointer flex items-center justify-center">
+              <svg class="w-4 h-4 transition-transform duration-200"
+                   :class="{'rotate-180': dropdownOpen}"
+                   fill="none"
+                   stroke="currentColor"
+                   viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+              </svg>
+            </button>
+
+            
+            <div x-show="dropdownOpen"
+                 style="display: none"
+                 x-transition
+                 class="absolute right-0 bottom-full mb-2 w-48 bg-[#2a2f35] border border-gray-600 rounded-md shadow-2xl overflow-hidden">
+
+              
+              <button type="button"
+                      @click="inputDateTime = localNow(); dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Fills in the current date and time">Fill in current time</button>
+
+              
+                
+                <button type="button"
+                        @click="inputDateTime = localNow(59 * 60000); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the date and time the episode will be finished if started now">
+                  Fill in end time
+                </button>
+              
+
+              
+              
+                <button type="button"
+                        @click="inputDateTime = '2022\u002D02\u002D17T' + localNow().slice(11, 16); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the air date of the episode, if available">Fill in air date</button>
+              
+
+              
+              <button type="button"
+                      @click="inputDateTime = ''; dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Clears the watch date and time">Fill in no date</button>
+            </div>
+
+          </div>
+        </div>
+      </form>
+      
+    </div>
+  </div>
+</div>
+
+
+                            </div>
+
+                            
+                            <div x-data="{ listsOpen: false }">
+                              <button class="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="Add to custom lists"
+                                      hx-get="/lists_modal/tmdb/episode/95396/1/1"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#lists-episode-95396-1-1"
+                                      hx-trigger="click once"
+                                      @click="listsOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M11 12H3"/>
+    <path d="M16 6H3"/>
+    <path d="M16 18H3"/>
+    <path d="M18 9v6"/>
+    <path d="M21 12h-6"/>
+</svg>
+
+                              </button>
+
+                              <div x-show="listsOpen"
+                                   @keydown.escape.window="listsOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="listsOpen = false">
+                                  <div id="lists-episode-95396-1-1"></div>
+                                </div>
+                              </div>
+                            </div>
+
+                            
+                            <div x-data="{ historyOpen: false }">
+                              <button class="p-2 bg-amber-600 hover:bg-amber-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="View your activity history"
+                                      hx-get="/history_modal/tmdb/episode/95396/1/1"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#history-episode-95396-1-1"
+                                      hx-trigger="click once"
+                                      @click="historyOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/>
+    <path d="M16 2v4"/>
+    <path d="M8 2v4"/>
+    <path d="M3 10h5"/>
+    <path d="M17.5 17.5 16 16.3V14"/>
+    <circle cx="16" cy="16" r="6"/>
+</svg>
+
+                              </button>
+                              <div x-show="historyOpen"
+                                   @keydown.escape.window="historyOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="historyOpen = false">
+                                  <div id="history-episode-95396-1-1"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="md:h-[calc(2*1.5rem)] md:overflow-y-auto px-4">
+                          <p class="text-sm text-gray-300 leading-relaxed text-pretty cursor-text"
+                             :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                             @click="obfuscated = false">Mark is promoted to lead a team who&#x27;ve had their memories surgically divided between their work and personal lives.</p>
+                        </div>
+                      </div>
+                      
+                        <p class="text-xs text-gray-400 mt-2 px-4">
+                          Last watched:
+                          
+                            No date provided
+                          
+                          
+                        </p>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+                <div class="bg-[#2a2f35] rounded-lg overflow-hidden shadow-lg">
+                  <div class="flex flex-col md:flex-row" x-data="{ obfuscated:
+                    
+                      false
+                    
+                    , hasImage:
+                    
+                      true
+                    
+                    }">
+                    <img src="https://www.themoviedb.org/assets/2/v4/glyphicons/basic/glyphicons-basic-38-picture-grey-c2ebdbb057f2a7614185931650f8cee23fa137b93812ccb132b9df511df1cfac.svg"
+                         alt="E2"
+                         data-src="https://image.tmdb.org/t/p/w500/wIQP0P2tyE7VRIN3xR8Efq7UgKt.jpg"
+                         class="lazyload md:w-64 md:h-40 shrink-0 object-cover cursor-default"
+                         :class="{ 'blur': obfuscated && hasImage, 'cursor-pointer': obfuscated && hasImage, 'cursor-default': !obfuscated || !hasImage }"
+                         @click="obfuscated = false">
+                    <div class="py-3 flex-1 flex flex-col">
+                      <div class="flex-1">
+                        <div class="flex justify-between items-start mb-2 space-x-2 px-4">
+                          <div>
+                            <h2 class="text-xl font-semibold mb-1 line-clamp-1 cursor-text"
+                                :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                                @click="obfuscated = false">Half Loop</h2>
+                            <p class="text-sm text-gray-400">
+                              Episode 2 • 2022-02-17
+                              • 57m
+                            </p>
+                          </div>
+                          <div class="flex space-x-2">
+                            
+                            <div x-data="{ trackOpen: false }">
+                              <button @click="trackOpen = true"
+                                      title="Track Episode"
+                                      class="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition duration-300 cursor-pointer">
+                                
+                                  <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+    <line x1="2" x2="22" y1="2" y2="22"/>
+</svg>
+
+                                
+                              </button>
+
+                              
+
+
+<div x-show="trackOpen"
+     @keydown.escape.window="trackOpen = false"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="w-100 max-h-[90vh] px-4 md:px-0 relative z-60"
+       @click.outside="trackOpen = false">
+    <div class="bg-[#2a2f35] p-6 rounded-lg max-h-[70svh] overflow-y-auto">
+
+      
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-white">Track Episode</h2>
+        <button class="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                @click="trackOpen = false"><svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 12 12"/>
+</svg>
+</button>
+      </div>
+
+      
+      <div class="bg-[#343a40] rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-4">
+          <img alt="Half Loop"
+               class="w-20 h-20 rounded object-cover shrink-0"
+               src="https://image.tmdb.org/t/p/w500/wIQP0P2tyE7VRIN3xR8Efq7UgKt.jpg">
+          <div>
+            <h3 class="text-lg font-semibold mb-1 line-clamp-1">Half Loop</h3>
+            <p class="text-sm text-gray-400">Episode 2</p>
+            
+              <p class="text-sm text-gray-400 mt-1">Not watched yet</p>
+            
+          </div>
+        </div>
+      </div>
+
+      
+      
+
+      
+      
+      <form hx-post="/episode_save?next=/details/tmdb/tv/95396/severance/season/1"
+            hx-swap="none"
+            x-data="{
+              trackTime: true,
+              inputType: 'datetime-local',
+              inputDateTime: '',
+              dropdownOpen: false,
+              pointerOnPickerIcon: false,
+              localNow(offsetMs = 0) {
+                const iso = new Date(Date.now() + offsetMs - new Date().getTimezoneOffset() * 60000).toISOString();
+                return this.trackTime ? iso.slice(0, 16) : iso.slice(0, 10);
+              },
+              init() { this.inputDateTime = this.localNow(); }
+            }">
+        <input type="hidden" name="csrfmiddlewaretoken" value="KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ">
+        <input type="hidden" name="media_id" value="95396">
+        <input type="hidden" name="season_number" value="1">
+        <input type="hidden" name="source" value="tmdb">
+        <input type="hidden"
+               name="episode_number"
+               value="2">
+
+        <label class="block text-sm font-medium text-gray-300 mb-2">Watch Date</label>
+
+        
+        <div class="relative">
+          <input class="w-full p-3 bg-[#343a40] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] appearance-none"
+                 x-bind:type="inputType"
+                 name="end_date"
+                 @pointerdown="pointerOnPickerIcon = $event.clientX >= $el.getBoundingClientRect().right - 40"
+                 @focus="if (!pointerOnPickerIcon) { $el.showPicker?.() }"
+                 @click="pointerOnPickerIcon = false"
+                 x-model="inputDateTime">
+        </div>
+
+        
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <div class="relative inline-flex shadow-sm rounded-md"
+               @click.outside="dropdownOpen = false">
+
+            
+            <button type="submit"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-md transition duration-300 cursor-pointer font-medium"
+                    title="Add watched entry with current settings">Add watch</button>
+
+            
+            <button type="button"
+                    @click="dropdownOpen = !dropdownOpen"
+                    :style="dropdownOpen ? 'background-color: #4338ca;' : 'background-color: #4f46e5;'"
+                    class="px-2 py-2 text-white rounded-r-md border-l border-indigo-500 transition duration-300 cursor-pointer flex items-center justify-center">
+              <svg class="w-4 h-4 transition-transform duration-200"
+                   :class="{'rotate-180': dropdownOpen}"
+                   fill="none"
+                   stroke="currentColor"
+                   viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+              </svg>
+            </button>
+
+            
+            <div x-show="dropdownOpen"
+                 style="display: none"
+                 x-transition
+                 class="absolute right-0 bottom-full mb-2 w-48 bg-[#2a2f35] border border-gray-600 rounded-md shadow-2xl overflow-hidden">
+
+              
+              <button type="button"
+                      @click="inputDateTime = localNow(); dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Fills in the current date and time">Fill in current time</button>
+
+              
+                
+                <button type="button"
+                        @click="inputDateTime = localNow(57 * 60000); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the date and time the episode will be finished if started now">
+                  Fill in end time
+                </button>
+              
+
+              
+              
+                <button type="button"
+                        @click="inputDateTime = '2022\u002D02\u002D17T' + localNow().slice(11, 16); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the air date of the episode, if available">Fill in air date</button>
+              
+
+              
+              <button type="button"
+                      @click="inputDateTime = ''; dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Clears the watch date and time">Fill in no date</button>
+            </div>
+
+          </div>
+        </div>
+      </form>
+      
+    </div>
+  </div>
+</div>
+
+
+                            </div>
+
+                            
+                            <div x-data="{ listsOpen: false }">
+                              <button class="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="Add to custom lists"
+                                      hx-get="/lists_modal/tmdb/episode/95396/1/2"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#lists-episode-95396-1-2"
+                                      hx-trigger="click once"
+                                      @click="listsOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M11 12H3"/>
+    <path d="M16 6H3"/>
+    <path d="M16 18H3"/>
+    <path d="M18 9v6"/>
+    <path d="M21 12h-6"/>
+</svg>
+
+                              </button>
+
+                              <div x-show="listsOpen"
+                                   @keydown.escape.window="listsOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="listsOpen = false">
+                                  <div id="lists-episode-95396-1-2"></div>
+                                </div>
+                              </div>
+                            </div>
+
+                            
+                            <div x-data="{ historyOpen: false }">
+                              <button class="p-2 bg-amber-600 hover:bg-amber-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="View your activity history"
+                                      hx-get="/history_modal/tmdb/episode/95396/1/2"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#history-episode-95396-1-2"
+                                      hx-trigger="click once"
+                                      @click="historyOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/>
+    <path d="M16 2v4"/>
+    <path d="M8 2v4"/>
+    <path d="M3 10h5"/>
+    <path d="M17.5 17.5 16 16.3V14"/>
+    <circle cx="16" cy="16" r="6"/>
+</svg>
+
+                              </button>
+                              <div x-show="historyOpen"
+                                   @keydown.escape.window="historyOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="historyOpen = false">
+                                  <div id="history-episode-95396-1-2"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="md:h-[calc(3*1.5rem)] md:overflow-y-auto px-4">
+                          <p class="text-sm text-gray-300 leading-relaxed text-pretty cursor-text"
+                             :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                             @click="obfuscated = false">The team train new hire Helly on macrodata refinement. Mark takes a day off to meet with a mysterious former colleague.</p>
+                        </div>
+                      </div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+                <div class="bg-[#2a2f35] rounded-lg overflow-hidden shadow-lg">
+                  <div class="flex flex-col md:flex-row" x-data="{ obfuscated:
+                    
+                      false
+                    
+                    , hasImage:
+                    
+                      true
+                    
+                    }">
+                    <img src="https://www.themoviedb.org/assets/2/v4/glyphicons/basic/glyphicons-basic-38-picture-grey-c2ebdbb057f2a7614185931650f8cee23fa137b93812ccb132b9df511df1cfac.svg"
+                         alt="E3"
+                         data-src="https://image.tmdb.org/t/p/w500/yezUFOqLt0U3haSYc5gIBzfsPvo.jpg"
+                         class="lazyload md:w-64 md:h-40 shrink-0 object-cover cursor-default"
+                         :class="{ 'blur': obfuscated && hasImage, 'cursor-pointer': obfuscated && hasImage, 'cursor-default': !obfuscated || !hasImage }"
+                         @click="obfuscated = false">
+                    <div class="py-3 flex-1 flex flex-col">
+                      <div class="flex-1">
+                        <div class="flex justify-between items-start mb-2 space-x-2 px-4">
+                          <div>
+                            <h2 class="text-xl font-semibold mb-1 line-clamp-1 cursor-text"
+                                :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                                @click="obfuscated = false">In Perpetuity</h2>
+                            <p class="text-sm text-gray-400">
+                              Episode 3 • 2022-02-24
+                              • 1h 0m
+                            </p>
+                          </div>
+                          <div class="flex space-x-2">
+                            
+                            <div x-data="{ trackOpen: false }">
+                              <button @click="trackOpen = true"
+                                      title="Track Episode"
+                                      class="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition duration-300 cursor-pointer">
+                                
+                                  <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+    <line x1="2" x2="22" y1="2" y2="22"/>
+</svg>
+
+                                
+                              </button>
+
+                              
+
+
+<div x-show="trackOpen"
+     @keydown.escape.window="trackOpen = false"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="w-100 max-h-[90vh] px-4 md:px-0 relative z-60"
+       @click.outside="trackOpen = false">
+    <div class="bg-[#2a2f35] p-6 rounded-lg max-h-[70svh] overflow-y-auto">
+
+      
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-white">Track Episode</h2>
+        <button class="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                @click="trackOpen = false"><svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 12 12"/>
+</svg>
+</button>
+      </div>
+
+      
+      <div class="bg-[#343a40] rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-4">
+          <img alt="In Perpetuity"
+               class="w-20 h-20 rounded object-cover shrink-0"
+               src="https://image.tmdb.org/t/p/w500/yezUFOqLt0U3haSYc5gIBzfsPvo.jpg">
+          <div>
+            <h3 class="text-lg font-semibold mb-1 line-clamp-1">In Perpetuity</h3>
+            <p class="text-sm text-gray-400">Episode 3</p>
+            
+              <p class="text-sm text-gray-400 mt-1">Not watched yet</p>
+            
+          </div>
+        </div>
+      </div>
+
+      
+      
+
+      
+      
+      <form hx-post="/episode_save?next=/details/tmdb/tv/95396/severance/season/1"
+            hx-swap="none"
+            x-data="{
+              trackTime: true,
+              inputType: 'datetime-local',
+              inputDateTime: '',
+              dropdownOpen: false,
+              pointerOnPickerIcon: false,
+              localNow(offsetMs = 0) {
+                const iso = new Date(Date.now() + offsetMs - new Date().getTimezoneOffset() * 60000).toISOString();
+                return this.trackTime ? iso.slice(0, 16) : iso.slice(0, 10);
+              },
+              init() { this.inputDateTime = this.localNow(); }
+            }">
+        <input type="hidden" name="csrfmiddlewaretoken" value="KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ">
+        <input type="hidden" name="media_id" value="95396">
+        <input type="hidden" name="season_number" value="1">
+        <input type="hidden" name="source" value="tmdb">
+        <input type="hidden"
+               name="episode_number"
+               value="3">
+
+        <label class="block text-sm font-medium text-gray-300 mb-2">Watch Date</label>
+
+        
+        <div class="relative">
+          <input class="w-full p-3 bg-[#343a40] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] appearance-none"
+                 x-bind:type="inputType"
+                 name="end_date"
+                 @pointerdown="pointerOnPickerIcon = $event.clientX >= $el.getBoundingClientRect().right - 40"
+                 @focus="if (!pointerOnPickerIcon) { $el.showPicker?.() }"
+                 @click="pointerOnPickerIcon = false"
+                 x-model="inputDateTime">
+        </div>
+
+        
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <div class="relative inline-flex shadow-sm rounded-md"
+               @click.outside="dropdownOpen = false">
+
+            
+            <button type="submit"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-md transition duration-300 cursor-pointer font-medium"
+                    title="Add watched entry with current settings">Add watch</button>
+
+            
+            <button type="button"
+                    @click="dropdownOpen = !dropdownOpen"
+                    :style="dropdownOpen ? 'background-color: #4338ca;' : 'background-color: #4f46e5;'"
+                    class="px-2 py-2 text-white rounded-r-md border-l border-indigo-500 transition duration-300 cursor-pointer flex items-center justify-center">
+              <svg class="w-4 h-4 transition-transform duration-200"
+                   :class="{'rotate-180': dropdownOpen}"
+                   fill="none"
+                   stroke="currentColor"
+                   viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+              </svg>
+            </button>
+
+            
+            <div x-show="dropdownOpen"
+                 style="display: none"
+                 x-transition
+                 class="absolute right-0 bottom-full mb-2 w-48 bg-[#2a2f35] border border-gray-600 rounded-md shadow-2xl overflow-hidden">
+
+              
+              <button type="button"
+                      @click="inputDateTime = localNow(); dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Fills in the current date and time">Fill in current time</button>
+
+              
+                
+                <button type="button"
+                        @click="inputDateTime = localNow(60 * 60000); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the date and time the episode will be finished if started now">
+                  Fill in end time
+                </button>
+              
+
+              
+              
+                <button type="button"
+                        @click="inputDateTime = '2022\u002D02\u002D24T' + localNow().slice(11, 16); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the air date of the episode, if available">Fill in air date</button>
+              
+
+              
+              <button type="button"
+                      @click="inputDateTime = ''; dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Clears the watch date and time">Fill in no date</button>
+            </div>
+
+          </div>
+        </div>
+      </form>
+      
+    </div>
+  </div>
+</div>
+
+
+                            </div>
+
+                            
+                            <div x-data="{ listsOpen: false }">
+                              <button class="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="Add to custom lists"
+                                      hx-get="/lists_modal/tmdb/episode/95396/1/3"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#lists-episode-95396-1-3"
+                                      hx-trigger="click once"
+                                      @click="listsOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M11 12H3"/>
+    <path d="M16 6H3"/>
+    <path d="M16 18H3"/>
+    <path d="M18 9v6"/>
+    <path d="M21 12h-6"/>
+</svg>
+
+                              </button>
+
+                              <div x-show="listsOpen"
+                                   @keydown.escape.window="listsOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="listsOpen = false">
+                                  <div id="lists-episode-95396-1-3"></div>
+                                </div>
+                              </div>
+                            </div>
+
+                            
+                            <div x-data="{ historyOpen: false }">
+                              <button class="p-2 bg-amber-600 hover:bg-amber-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="View your activity history"
+                                      hx-get="/history_modal/tmdb/episode/95396/1/3"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#history-episode-95396-1-3"
+                                      hx-trigger="click once"
+                                      @click="historyOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/>
+    <path d="M16 2v4"/>
+    <path d="M8 2v4"/>
+    <path d="M3 10h5"/>
+    <path d="M17.5 17.5 16 16.3V14"/>
+    <circle cx="16" cy="16" r="6"/>
+</svg>
+
+                              </button>
+                              <div x-show="historyOpen"
+                                   @keydown.escape.window="historyOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="historyOpen = false">
+                                  <div id="history-episode-95396-1-3"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="md:h-[calc(3*1.5rem)] md:overflow-y-auto px-4">
+                          <p class="text-sm text-gray-300 leading-relaxed text-pretty cursor-text"
+                             :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                             @click="obfuscated = false">Mark takes the team on a field trip, but Helly continues to rebel. A deteriorating Petey struggles to tell Mark about Lumon’s misdeeds.</p>
+                        </div>
+                      </div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+                <div class="bg-[#2a2f35] rounded-lg overflow-hidden shadow-lg">
+                  <div class="flex flex-col md:flex-row" x-data="{ obfuscated:
+                    
+                      false
+                    
+                    , hasImage:
+                    
+                      true
+                    
+                    }">
+                    <img src="https://www.themoviedb.org/assets/2/v4/glyphicons/basic/glyphicons-basic-38-picture-grey-c2ebdbb057f2a7614185931650f8cee23fa137b93812ccb132b9df511df1cfac.svg"
+                         alt="E4"
+                         data-src="https://image.tmdb.org/t/p/w500/dzQJeDznS0I4spAqTImiLH9p252.jpg"
+                         class="lazyload md:w-64 md:h-40 shrink-0 object-cover cursor-default"
+                         :class="{ 'blur': obfuscated && hasImage, 'cursor-pointer': obfuscated && hasImage, 'cursor-default': !obfuscated || !hasImage }"
+                         @click="obfuscated = false">
+                    <div class="py-3 flex-1 flex flex-col">
+                      <div class="flex-1">
+                        <div class="flex justify-between items-start mb-2 space-x-2 px-4">
+                          <div>
+                            <h2 class="text-xl font-semibold mb-1 line-clamp-1 cursor-text"
+                                :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                                @click="obfuscated = false">The You You Are</h2>
+                            <p class="text-sm text-gray-400">
+                              Episode 4 • 2022-03-03
+                              • 50m
+                            </p>
+                          </div>
+                          <div class="flex space-x-2">
+                            
+                            <div x-data="{ trackOpen: false }">
+                              <button @click="trackOpen = true"
+                                      title="Track Episode"
+                                      class="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition duration-300 cursor-pointer">
+                                
+                                  <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+    <line x1="2" x2="22" y1="2" y2="22"/>
+</svg>
+
+                                
+                              </button>
+
+                              
+
+
+<div x-show="trackOpen"
+     @keydown.escape.window="trackOpen = false"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="w-100 max-h-[90vh] px-4 md:px-0 relative z-60"
+       @click.outside="trackOpen = false">
+    <div class="bg-[#2a2f35] p-6 rounded-lg max-h-[70svh] overflow-y-auto">
+
+      
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-white">Track Episode</h2>
+        <button class="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                @click="trackOpen = false"><svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 12 12"/>
+</svg>
+</button>
+      </div>
+
+      
+      <div class="bg-[#343a40] rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-4">
+          <img alt="The You You Are"
+               class="w-20 h-20 rounded object-cover shrink-0"
+               src="https://image.tmdb.org/t/p/w500/dzQJeDznS0I4spAqTImiLH9p252.jpg">
+          <div>
+            <h3 class="text-lg font-semibold mb-1 line-clamp-1">The You You Are</h3>
+            <p class="text-sm text-gray-400">Episode 4</p>
+            
+              <p class="text-sm text-gray-400 mt-1">Not watched yet</p>
+            
+          </div>
+        </div>
+      </div>
+
+      
+      
+
+      
+      
+      <form hx-post="/episode_save?next=/details/tmdb/tv/95396/severance/season/1"
+            hx-swap="none"
+            x-data="{
+              trackTime: true,
+              inputType: 'datetime-local',
+              inputDateTime: '',
+              dropdownOpen: false,
+              pointerOnPickerIcon: false,
+              localNow(offsetMs = 0) {
+                const iso = new Date(Date.now() + offsetMs - new Date().getTimezoneOffset() * 60000).toISOString();
+                return this.trackTime ? iso.slice(0, 16) : iso.slice(0, 10);
+              },
+              init() { this.inputDateTime = this.localNow(); }
+            }">
+        <input type="hidden" name="csrfmiddlewaretoken" value="KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ">
+        <input type="hidden" name="media_id" value="95396">
+        <input type="hidden" name="season_number" value="1">
+        <input type="hidden" name="source" value="tmdb">
+        <input type="hidden"
+               name="episode_number"
+               value="4">
+
+        <label class="block text-sm font-medium text-gray-300 mb-2">Watch Date</label>
+
+        
+        <div class="relative">
+          <input class="w-full p-3 bg-[#343a40] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] appearance-none"
+                 x-bind:type="inputType"
+                 name="end_date"
+                 @pointerdown="pointerOnPickerIcon = $event.clientX >= $el.getBoundingClientRect().right - 40"
+                 @focus="if (!pointerOnPickerIcon) { $el.showPicker?.() }"
+                 @click="pointerOnPickerIcon = false"
+                 x-model="inputDateTime">
+        </div>
+
+        
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <div class="relative inline-flex shadow-sm rounded-md"
+               @click.outside="dropdownOpen = false">
+
+            
+            <button type="submit"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-md transition duration-300 cursor-pointer font-medium"
+                    title="Add watched entry with current settings">Add watch</button>
+
+            
+            <button type="button"
+                    @click="dropdownOpen = !dropdownOpen"
+                    :style="dropdownOpen ? 'background-color: #4338ca;' : 'background-color: #4f46e5;'"
+                    class="px-2 py-2 text-white rounded-r-md border-l border-indigo-500 transition duration-300 cursor-pointer flex items-center justify-center">
+              <svg class="w-4 h-4 transition-transform duration-200"
+                   :class="{'rotate-180': dropdownOpen}"
+                   fill="none"
+                   stroke="currentColor"
+                   viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+              </svg>
+            </button>
+
+            
+            <div x-show="dropdownOpen"
+                 style="display: none"
+                 x-transition
+                 class="absolute right-0 bottom-full mb-2 w-48 bg-[#2a2f35] border border-gray-600 rounded-md shadow-2xl overflow-hidden">
+
+              
+              <button type="button"
+                      @click="inputDateTime = localNow(); dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Fills in the current date and time">Fill in current time</button>
+
+              
+                
+                <button type="button"
+                        @click="inputDateTime = localNow(50 * 60000); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the date and time the episode will be finished if started now">
+                  Fill in end time
+                </button>
+              
+
+              
+              
+                <button type="button"
+                        @click="inputDateTime = '2022\u002D03\u002D03T' + localNow().slice(11, 16); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the air date of the episode, if available">Fill in air date</button>
+              
+
+              
+              <button type="button"
+                      @click="inputDateTime = ''; dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Clears the watch date and time">Fill in no date</button>
+            </div>
+
+          </div>
+        </div>
+      </form>
+      
+    </div>
+  </div>
+</div>
+
+
+                            </div>
+
+                            
+                            <div x-data="{ listsOpen: false }">
+                              <button class="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="Add to custom lists"
+                                      hx-get="/lists_modal/tmdb/episode/95396/1/4"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#lists-episode-95396-1-4"
+                                      hx-trigger="click once"
+                                      @click="listsOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M11 12H3"/>
+    <path d="M16 6H3"/>
+    <path d="M16 18H3"/>
+    <path d="M18 9v6"/>
+    <path d="M21 12h-6"/>
+</svg>
+
+                              </button>
+
+                              <div x-show="listsOpen"
+                                   @keydown.escape.window="listsOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="listsOpen = false">
+                                  <div id="lists-episode-95396-1-4"></div>
+                                </div>
+                              </div>
+                            </div>
+
+                            
+                            <div x-data="{ historyOpen: false }">
+                              <button class="p-2 bg-amber-600 hover:bg-amber-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="View your activity history"
+                                      hx-get="/history_modal/tmdb/episode/95396/1/4"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#history-episode-95396-1-4"
+                                      hx-trigger="click once"
+                                      @click="historyOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/>
+    <path d="M16 2v4"/>
+    <path d="M8 2v4"/>
+    <path d="M3 10h5"/>
+    <path d="M17.5 17.5 16 16.3V14"/>
+    <circle cx="16" cy="16" r="6"/>
+</svg>
+
+                              </button>
+                              <div x-show="historyOpen"
+                                   @keydown.escape.window="historyOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="historyOpen = false">
+                                  <div id="history-episode-95396-1-4"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="md:h-[calc(3*1.5rem)] md:overflow-y-auto px-4">
+                          <p class="text-sm text-gray-300 leading-relaxed text-pretty cursor-text"
+                             :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                             @click="obfuscated = false">Irving finds an intriguing book at work. Helly aggressively pursues a meeting with her Outie. Mark attends a funeral with Ms. Selvig.</p>
+                        </div>
+                      </div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+                <div class="bg-[#2a2f35] rounded-lg overflow-hidden shadow-lg">
+                  <div class="flex flex-col md:flex-row" x-data="{ obfuscated:
+                    
+                      false
+                    
+                    , hasImage:
+                    
+                      true
+                    
+                    }">
+                    <img src="https://www.themoviedb.org/assets/2/v4/glyphicons/basic/glyphicons-basic-38-picture-grey-c2ebdbb057f2a7614185931650f8cee23fa137b93812ccb132b9df511df1cfac.svg"
+                         alt="E5"
+                         data-src="https://image.tmdb.org/t/p/w500/oy4BZotFbNX5YoPkWuWF3kcdMVw.jpg"
+                         class="lazyload md:w-64 md:h-40 shrink-0 object-cover cursor-default"
+                         :class="{ 'blur': obfuscated && hasImage, 'cursor-pointer': obfuscated && hasImage, 'cursor-default': !obfuscated || !hasImage }"
+                         @click="obfuscated = false">
+                    <div class="py-3 flex-1 flex flex-col">
+                      <div class="flex-1">
+                        <div class="flex justify-between items-start mb-2 space-x-2 px-4">
+                          <div>
+                            <h2 class="text-xl font-semibold mb-1 line-clamp-1 cursor-text"
+                                :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                                @click="obfuscated = false">The Grim Barbarity of Optics and Design</h2>
+                            <p class="text-sm text-gray-400">
+                              Episode 5 • 2022-03-10
+                              • 47m
+                            </p>
+                          </div>
+                          <div class="flex space-x-2">
+                            
+                            <div x-data="{ trackOpen: false }">
+                              <button @click="trackOpen = true"
+                                      title="Track Episode"
+                                      class="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition duration-300 cursor-pointer">
+                                
+                                  <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+    <line x1="2" x2="22" y1="2" y2="22"/>
+</svg>
+
+                                
+                              </button>
+
+                              
+
+
+<div x-show="trackOpen"
+     @keydown.escape.window="trackOpen = false"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="w-100 max-h-[90vh] px-4 md:px-0 relative z-60"
+       @click.outside="trackOpen = false">
+    <div class="bg-[#2a2f35] p-6 rounded-lg max-h-[70svh] overflow-y-auto">
+
+      
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-white">Track Episode</h2>
+        <button class="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                @click="trackOpen = false"><svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 12 12"/>
+</svg>
+</button>
+      </div>
+
+      
+      <div class="bg-[#343a40] rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-4">
+          <img alt="The Grim Barbarity of Optics and Design"
+               class="w-20 h-20 rounded object-cover shrink-0"
+               src="https://image.tmdb.org/t/p/w500/oy4BZotFbNX5YoPkWuWF3kcdMVw.jpg">
+          <div>
+            <h3 class="text-lg font-semibold mb-1 line-clamp-1">The Grim Barbarity of Optics and Design</h3>
+            <p class="text-sm text-gray-400">Episode 5</p>
+            
+              <p class="text-sm text-gray-400 mt-1">Not watched yet</p>
+            
+          </div>
+        </div>
+      </div>
+
+      
+      
+
+      
+      
+      <form hx-post="/episode_save?next=/details/tmdb/tv/95396/severance/season/1"
+            hx-swap="none"
+            x-data="{
+              trackTime: true,
+              inputType: 'datetime-local',
+              inputDateTime: '',
+              dropdownOpen: false,
+              pointerOnPickerIcon: false,
+              localNow(offsetMs = 0) {
+                const iso = new Date(Date.now() + offsetMs - new Date().getTimezoneOffset() * 60000).toISOString();
+                return this.trackTime ? iso.slice(0, 16) : iso.slice(0, 10);
+              },
+              init() { this.inputDateTime = this.localNow(); }
+            }">
+        <input type="hidden" name="csrfmiddlewaretoken" value="KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ">
+        <input type="hidden" name="media_id" value="95396">
+        <input type="hidden" name="season_number" value="1">
+        <input type="hidden" name="source" value="tmdb">
+        <input type="hidden"
+               name="episode_number"
+               value="5">
+
+        <label class="block text-sm font-medium text-gray-300 mb-2">Watch Date</label>
+
+        
+        <div class="relative">
+          <input class="w-full p-3 bg-[#343a40] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] appearance-none"
+                 x-bind:type="inputType"
+                 name="end_date"
+                 @pointerdown="pointerOnPickerIcon = $event.clientX >= $el.getBoundingClientRect().right - 40"
+                 @focus="if (!pointerOnPickerIcon) { $el.showPicker?.() }"
+                 @click="pointerOnPickerIcon = false"
+                 x-model="inputDateTime">
+        </div>
+
+        
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <div class="relative inline-flex shadow-sm rounded-md"
+               @click.outside="dropdownOpen = false">
+
+            
+            <button type="submit"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-md transition duration-300 cursor-pointer font-medium"
+                    title="Add watched entry with current settings">Add watch</button>
+
+            
+            <button type="button"
+                    @click="dropdownOpen = !dropdownOpen"
+                    :style="dropdownOpen ? 'background-color: #4338ca;' : 'background-color: #4f46e5;'"
+                    class="px-2 py-2 text-white rounded-r-md border-l border-indigo-500 transition duration-300 cursor-pointer flex items-center justify-center">
+              <svg class="w-4 h-4 transition-transform duration-200"
+                   :class="{'rotate-180': dropdownOpen}"
+                   fill="none"
+                   stroke="currentColor"
+                   viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+              </svg>
+            </button>
+
+            
+            <div x-show="dropdownOpen"
+                 style="display: none"
+                 x-transition
+                 class="absolute right-0 bottom-full mb-2 w-48 bg-[#2a2f35] border border-gray-600 rounded-md shadow-2xl overflow-hidden">
+
+              
+              <button type="button"
+                      @click="inputDateTime = localNow(); dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Fills in the current date and time">Fill in current time</button>
+
+              
+                
+                <button type="button"
+                        @click="inputDateTime = localNow(47 * 60000); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the date and time the episode will be finished if started now">
+                  Fill in end time
+                </button>
+              
+
+              
+              
+                <button type="button"
+                        @click="inputDateTime = '2022\u002D03\u002D10T' + localNow().slice(11, 16); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the air date of the episode, if available">Fill in air date</button>
+              
+
+              
+              <button type="button"
+                      @click="inputDateTime = ''; dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Clears the watch date and time">Fill in no date</button>
+            </div>
+
+          </div>
+        </div>
+      </form>
+      
+    </div>
+  </div>
+</div>
+
+
+                            </div>
+
+                            
+                            <div x-data="{ listsOpen: false }">
+                              <button class="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="Add to custom lists"
+                                      hx-get="/lists_modal/tmdb/episode/95396/1/5"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#lists-episode-95396-1-5"
+                                      hx-trigger="click once"
+                                      @click="listsOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M11 12H3"/>
+    <path d="M16 6H3"/>
+    <path d="M16 18H3"/>
+    <path d="M18 9v6"/>
+    <path d="M21 12h-6"/>
+</svg>
+
+                              </button>
+
+                              <div x-show="listsOpen"
+                                   @keydown.escape.window="listsOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="listsOpen = false">
+                                  <div id="lists-episode-95396-1-5"></div>
+                                </div>
+                              </div>
+                            </div>
+
+                            
+                            <div x-data="{ historyOpen: false }">
+                              <button class="p-2 bg-amber-600 hover:bg-amber-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="View your activity history"
+                                      hx-get="/history_modal/tmdb/episode/95396/1/5"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#history-episode-95396-1-5"
+                                      hx-trigger="click once"
+                                      @click="historyOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/>
+    <path d="M16 2v4"/>
+    <path d="M8 2v4"/>
+    <path d="M3 10h5"/>
+    <path d="M17.5 17.5 16 16.3V14"/>
+    <circle cx="16" cy="16" r="6"/>
+</svg>
+
+                              </button>
+                              <div x-show="historyOpen"
+                                   @keydown.escape.window="historyOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="historyOpen = false">
+                                  <div id="history-episode-95396-1-5"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="md:h-[calc(3*1.5rem)] md:overflow-y-auto px-4">
+                          <p class="text-sm text-gray-300 leading-relaxed text-pretty cursor-text"
+                             :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                             @click="obfuscated = false">Irving and Dylan confront Burt about his lies. Mark and Helly discover a strange new department.</p>
+                        </div>
+                      </div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+                <div class="bg-[#2a2f35] rounded-lg overflow-hidden shadow-lg">
+                  <div class="flex flex-col md:flex-row" x-data="{ obfuscated:
+                    
+                      false
+                    
+                    , hasImage:
+                    
+                      true
+                    
+                    }">
+                    <img src="https://www.themoviedb.org/assets/2/v4/glyphicons/basic/glyphicons-basic-38-picture-grey-c2ebdbb057f2a7614185931650f8cee23fa137b93812ccb132b9df511df1cfac.svg"
+                         alt="E6"
+                         data-src="https://image.tmdb.org/t/p/w500/3fQp0pUtgDkqqyEbXY8KKCZPMU7.jpg"
+                         class="lazyload md:w-64 md:h-40 shrink-0 object-cover cursor-default"
+                         :class="{ 'blur': obfuscated && hasImage, 'cursor-pointer': obfuscated && hasImage, 'cursor-default': !obfuscated || !hasImage }"
+                         @click="obfuscated = false">
+                    <div class="py-3 flex-1 flex flex-col">
+                      <div class="flex-1">
+                        <div class="flex justify-between items-start mb-2 space-x-2 px-4">
+                          <div>
+                            <h2 class="text-xl font-semibold mb-1 line-clamp-1 cursor-text"
+                                :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                                @click="obfuscated = false">Hide and Seek</h2>
+                            <p class="text-sm text-gray-400">
+                              Episode 6 • 2022-03-17
+                              • 44m
+                            </p>
+                          </div>
+                          <div class="flex space-x-2">
+                            
+                            <div x-data="{ trackOpen: false }">
+                              <button @click="trackOpen = true"
+                                      title="Track Episode"
+                                      class="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition duration-300 cursor-pointer">
+                                
+                                  <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+    <line x1="2" x2="22" y1="2" y2="22"/>
+</svg>
+
+                                
+                              </button>
+
+                              
+
+
+<div x-show="trackOpen"
+     @keydown.escape.window="trackOpen = false"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="w-100 max-h-[90vh] px-4 md:px-0 relative z-60"
+       @click.outside="trackOpen = false">
+    <div class="bg-[#2a2f35] p-6 rounded-lg max-h-[70svh] overflow-y-auto">
+
+      
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-white">Track Episode</h2>
+        <button class="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                @click="trackOpen = false"><svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 12 12"/>
+</svg>
+</button>
+      </div>
+
+      
+      <div class="bg-[#343a40] rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-4">
+          <img alt="Hide and Seek"
+               class="w-20 h-20 rounded object-cover shrink-0"
+               src="https://image.tmdb.org/t/p/w500/3fQp0pUtgDkqqyEbXY8KKCZPMU7.jpg">
+          <div>
+            <h3 class="text-lg font-semibold mb-1 line-clamp-1">Hide and Seek</h3>
+            <p class="text-sm text-gray-400">Episode 6</p>
+            
+              <p class="text-sm text-gray-400 mt-1">Not watched yet</p>
+            
+          </div>
+        </div>
+      </div>
+
+      
+      
+
+      
+      
+      <form hx-post="/episode_save?next=/details/tmdb/tv/95396/severance/season/1"
+            hx-swap="none"
+            x-data="{
+              trackTime: true,
+              inputType: 'datetime-local',
+              inputDateTime: '',
+              dropdownOpen: false,
+              pointerOnPickerIcon: false,
+              localNow(offsetMs = 0) {
+                const iso = new Date(Date.now() + offsetMs - new Date().getTimezoneOffset() * 60000).toISOString();
+                return this.trackTime ? iso.slice(0, 16) : iso.slice(0, 10);
+              },
+              init() { this.inputDateTime = this.localNow(); }
+            }">
+        <input type="hidden" name="csrfmiddlewaretoken" value="KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ">
+        <input type="hidden" name="media_id" value="95396">
+        <input type="hidden" name="season_number" value="1">
+        <input type="hidden" name="source" value="tmdb">
+        <input type="hidden"
+               name="episode_number"
+               value="6">
+
+        <label class="block text-sm font-medium text-gray-300 mb-2">Watch Date</label>
+
+        
+        <div class="relative">
+          <input class="w-full p-3 bg-[#343a40] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] appearance-none"
+                 x-bind:type="inputType"
+                 name="end_date"
+                 @pointerdown="pointerOnPickerIcon = $event.clientX >= $el.getBoundingClientRect().right - 40"
+                 @focus="if (!pointerOnPickerIcon) { $el.showPicker?.() }"
+                 @click="pointerOnPickerIcon = false"
+                 x-model="inputDateTime">
+        </div>
+
+        
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <div class="relative inline-flex shadow-sm rounded-md"
+               @click.outside="dropdownOpen = false">
+
+            
+            <button type="submit"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-md transition duration-300 cursor-pointer font-medium"
+                    title="Add watched entry with current settings">Add watch</button>
+
+            
+            <button type="button"
+                    @click="dropdownOpen = !dropdownOpen"
+                    :style="dropdownOpen ? 'background-color: #4338ca;' : 'background-color: #4f46e5;'"
+                    class="px-2 py-2 text-white rounded-r-md border-l border-indigo-500 transition duration-300 cursor-pointer flex items-center justify-center">
+              <svg class="w-4 h-4 transition-transform duration-200"
+                   :class="{'rotate-180': dropdownOpen}"
+                   fill="none"
+                   stroke="currentColor"
+                   viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+              </svg>
+            </button>
+
+            
+            <div x-show="dropdownOpen"
+                 style="display: none"
+                 x-transition
+                 class="absolute right-0 bottom-full mb-2 w-48 bg-[#2a2f35] border border-gray-600 rounded-md shadow-2xl overflow-hidden">
+
+              
+              <button type="button"
+                      @click="inputDateTime = localNow(); dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Fills in the current date and time">Fill in current time</button>
+
+              
+                
+                <button type="button"
+                        @click="inputDateTime = localNow(44 * 60000); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the date and time the episode will be finished if started now">
+                  Fill in end time
+                </button>
+              
+
+              
+              
+                <button type="button"
+                        @click="inputDateTime = '2022\u002D03\u002D17T' + localNow().slice(11, 16); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the air date of the episode, if available">Fill in air date</button>
+              
+
+              
+              <button type="button"
+                      @click="inputDateTime = ''; dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Clears the watch date and time">Fill in no date</button>
+            </div>
+
+          </div>
+        </div>
+      </form>
+      
+    </div>
+  </div>
+</div>
+
+
+                            </div>
+
+                            
+                            <div x-data="{ listsOpen: false }">
+                              <button class="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="Add to custom lists"
+                                      hx-get="/lists_modal/tmdb/episode/95396/1/6"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#lists-episode-95396-1-6"
+                                      hx-trigger="click once"
+                                      @click="listsOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M11 12H3"/>
+    <path d="M16 6H3"/>
+    <path d="M16 18H3"/>
+    <path d="M18 9v6"/>
+    <path d="M21 12h-6"/>
+</svg>
+
+                              </button>
+
+                              <div x-show="listsOpen"
+                                   @keydown.escape.window="listsOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="listsOpen = false">
+                                  <div id="lists-episode-95396-1-6"></div>
+                                </div>
+                              </div>
+                            </div>
+
+                            
+                            <div x-data="{ historyOpen: false }">
+                              <button class="p-2 bg-amber-600 hover:bg-amber-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="View your activity history"
+                                      hx-get="/history_modal/tmdb/episode/95396/1/6"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#history-episode-95396-1-6"
+                                      hx-trigger="click once"
+                                      @click="historyOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/>
+    <path d="M16 2v4"/>
+    <path d="M8 2v4"/>
+    <path d="M3 10h5"/>
+    <path d="M17.5 17.5 16 16.3V14"/>
+    <circle cx="16" cy="16" r="6"/>
+</svg>
+
+                              </button>
+                              <div x-show="historyOpen"
+                                   @keydown.escape.window="historyOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="historyOpen = false">
+                                  <div id="history-episode-95396-1-6"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="md:h-[calc(3*1.5rem)] md:overflow-y-auto px-4">
+                          <p class="text-sm text-gray-300 leading-relaxed text-pretty cursor-text"
+                             :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                             @click="obfuscated = false">The team angers Cobel by forming an alliance.</p>
+                        </div>
+                      </div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+                <div class="bg-[#2a2f35] rounded-lg overflow-hidden shadow-lg">
+                  <div class="flex flex-col md:flex-row" x-data="{ obfuscated:
+                    
+                      false
+                    
+                    , hasImage:
+                    
+                      true
+                    
+                    }">
+                    <img src="https://www.themoviedb.org/assets/2/v4/glyphicons/basic/glyphicons-basic-38-picture-grey-c2ebdbb057f2a7614185931650f8cee23fa137b93812ccb132b9df511df1cfac.svg"
+                         alt="E7"
+                         data-src="https://image.tmdb.org/t/p/w500/gHoKlbC2esqq3SXm0ZCcl3bzpFZ.jpg"
+                         class="lazyload md:w-64 md:h-40 shrink-0 object-cover cursor-default"
+                         :class="{ 'blur': obfuscated && hasImage, 'cursor-pointer': obfuscated && hasImage, 'cursor-default': !obfuscated || !hasImage }"
+                         @click="obfuscated = false">
+                    <div class="py-3 flex-1 flex flex-col">
+                      <div class="flex-1">
+                        <div class="flex justify-between items-start mb-2 space-x-2 px-4">
+                          <div>
+                            <h2 class="text-xl font-semibold mb-1 line-clamp-1 cursor-text"
+                                :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                                @click="obfuscated = false">Defiant Jazz</h2>
+                            <p class="text-sm text-gray-400">
+                              Episode 7 • 2022-03-24
+                              • 53m
+                            </p>
+                          </div>
+                          <div class="flex space-x-2">
+                            
+                            <div x-data="{ trackOpen: false }">
+                              <button @click="trackOpen = true"
+                                      title="Track Episode"
+                                      class="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition duration-300 cursor-pointer">
+                                
+                                  <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+    <line x1="2" x2="22" y1="2" y2="22"/>
+</svg>
+
+                                
+                              </button>
+
+                              
+
+
+<div x-show="trackOpen"
+     @keydown.escape.window="trackOpen = false"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="w-100 max-h-[90vh] px-4 md:px-0 relative z-60"
+       @click.outside="trackOpen = false">
+    <div class="bg-[#2a2f35] p-6 rounded-lg max-h-[70svh] overflow-y-auto">
+
+      
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-white">Track Episode</h2>
+        <button class="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                @click="trackOpen = false"><svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 12 12"/>
+</svg>
+</button>
+      </div>
+
+      
+      <div class="bg-[#343a40] rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-4">
+          <img alt="Defiant Jazz"
+               class="w-20 h-20 rounded object-cover shrink-0"
+               src="https://image.tmdb.org/t/p/w500/gHoKlbC2esqq3SXm0ZCcl3bzpFZ.jpg">
+          <div>
+            <h3 class="text-lg font-semibold mb-1 line-clamp-1">Defiant Jazz</h3>
+            <p class="text-sm text-gray-400">Episode 7</p>
+            
+              <p class="text-sm text-gray-400 mt-1">Not watched yet</p>
+            
+          </div>
+        </div>
+      </div>
+
+      
+      
+
+      
+      
+      <form hx-post="/episode_save?next=/details/tmdb/tv/95396/severance/season/1"
+            hx-swap="none"
+            x-data="{
+              trackTime: true,
+              inputType: 'datetime-local',
+              inputDateTime: '',
+              dropdownOpen: false,
+              pointerOnPickerIcon: false,
+              localNow(offsetMs = 0) {
+                const iso = new Date(Date.now() + offsetMs - new Date().getTimezoneOffset() * 60000).toISOString();
+                return this.trackTime ? iso.slice(0, 16) : iso.slice(0, 10);
+              },
+              init() { this.inputDateTime = this.localNow(); }
+            }">
+        <input type="hidden" name="csrfmiddlewaretoken" value="KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ">
+        <input type="hidden" name="media_id" value="95396">
+        <input type="hidden" name="season_number" value="1">
+        <input type="hidden" name="source" value="tmdb">
+        <input type="hidden"
+               name="episode_number"
+               value="7">
+
+        <label class="block text-sm font-medium text-gray-300 mb-2">Watch Date</label>
+
+        
+        <div class="relative">
+          <input class="w-full p-3 bg-[#343a40] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] appearance-none"
+                 x-bind:type="inputType"
+                 name="end_date"
+                 @pointerdown="pointerOnPickerIcon = $event.clientX >= $el.getBoundingClientRect().right - 40"
+                 @focus="if (!pointerOnPickerIcon) { $el.showPicker?.() }"
+                 @click="pointerOnPickerIcon = false"
+                 x-model="inputDateTime">
+        </div>
+
+        
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <div class="relative inline-flex shadow-sm rounded-md"
+               @click.outside="dropdownOpen = false">
+
+            
+            <button type="submit"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-md transition duration-300 cursor-pointer font-medium"
+                    title="Add watched entry with current settings">Add watch</button>
+
+            
+            <button type="button"
+                    @click="dropdownOpen = !dropdownOpen"
+                    :style="dropdownOpen ? 'background-color: #4338ca;' : 'background-color: #4f46e5;'"
+                    class="px-2 py-2 text-white rounded-r-md border-l border-indigo-500 transition duration-300 cursor-pointer flex items-center justify-center">
+              <svg class="w-4 h-4 transition-transform duration-200"
+                   :class="{'rotate-180': dropdownOpen}"
+                   fill="none"
+                   stroke="currentColor"
+                   viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+              </svg>
+            </button>
+
+            
+            <div x-show="dropdownOpen"
+                 style="display: none"
+                 x-transition
+                 class="absolute right-0 bottom-full mb-2 w-48 bg-[#2a2f35] border border-gray-600 rounded-md shadow-2xl overflow-hidden">
+
+              
+              <button type="button"
+                      @click="inputDateTime = localNow(); dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Fills in the current date and time">Fill in current time</button>
+
+              
+                
+                <button type="button"
+                        @click="inputDateTime = localNow(53 * 60000); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the date and time the episode will be finished if started now">
+                  Fill in end time
+                </button>
+              
+
+              
+              
+                <button type="button"
+                        @click="inputDateTime = '2022\u002D03\u002D24T' + localNow().slice(11, 16); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the air date of the episode, if available">Fill in air date</button>
+              
+
+              
+              <button type="button"
+                      @click="inputDateTime = ''; dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Clears the watch date and time">Fill in no date</button>
+            </div>
+
+          </div>
+        </div>
+      </form>
+      
+    </div>
+  </div>
+</div>
+
+
+                            </div>
+
+                            
+                            <div x-data="{ listsOpen: false }">
+                              <button class="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="Add to custom lists"
+                                      hx-get="/lists_modal/tmdb/episode/95396/1/7"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#lists-episode-95396-1-7"
+                                      hx-trigger="click once"
+                                      @click="listsOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M11 12H3"/>
+    <path d="M16 6H3"/>
+    <path d="M16 18H3"/>
+    <path d="M18 9v6"/>
+    <path d="M21 12h-6"/>
+</svg>
+
+                              </button>
+
+                              <div x-show="listsOpen"
+                                   @keydown.escape.window="listsOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="listsOpen = false">
+                                  <div id="lists-episode-95396-1-7"></div>
+                                </div>
+                              </div>
+                            </div>
+
+                            
+                            <div x-data="{ historyOpen: false }">
+                              <button class="p-2 bg-amber-600 hover:bg-amber-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="View your activity history"
+                                      hx-get="/history_modal/tmdb/episode/95396/1/7"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#history-episode-95396-1-7"
+                                      hx-trigger="click once"
+                                      @click="historyOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/>
+    <path d="M16 2v4"/>
+    <path d="M8 2v4"/>
+    <path d="M3 10h5"/>
+    <path d="M17.5 17.5 16 16.3V14"/>
+    <circle cx="16" cy="16" r="6"/>
+</svg>
+
+                              </button>
+                              <div x-show="historyOpen"
+                                   @keydown.escape.window="historyOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="historyOpen = false">
+                                  <div id="history-episode-95396-1-7"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="md:h-[calc(3*1.5rem)] md:overflow-y-auto px-4">
+                          <p class="text-sm text-gray-300 leading-relaxed text-pretty cursor-text"
+                             :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                             @click="obfuscated = false">Mark and the team encounter new security measures from Cobel.</p>
+                        </div>
+                      </div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+                <div class="bg-[#2a2f35] rounded-lg overflow-hidden shadow-lg">
+                  <div class="flex flex-col md:flex-row" x-data="{ obfuscated:
+                    
+                      false
+                    
+                    , hasImage:
+                    
+                      true
+                    
+                    }">
+                    <img src="https://www.themoviedb.org/assets/2/v4/glyphicons/basic/glyphicons-basic-38-picture-grey-c2ebdbb057f2a7614185931650f8cee23fa137b93812ccb132b9df511df1cfac.svg"
+                         alt="E8"
+                         data-src="https://image.tmdb.org/t/p/w500/8Gv9ELume0jo7gz7R2h4tPmVLsD.jpg"
+                         class="lazyload md:w-64 md:h-40 shrink-0 object-cover cursor-default"
+                         :class="{ 'blur': obfuscated && hasImage, 'cursor-pointer': obfuscated && hasImage, 'cursor-default': !obfuscated || !hasImage }"
+                         @click="obfuscated = false">
+                    <div class="py-3 flex-1 flex flex-col">
+                      <div class="flex-1">
+                        <div class="flex justify-between items-start mb-2 space-x-2 px-4">
+                          <div>
+                            <h2 class="text-xl font-semibold mb-1 line-clamp-1 cursor-text"
+                                :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                                @click="obfuscated = false">What&#x27;s for Dinner?</h2>
+                            <p class="text-sm text-gray-400">
+                              Episode 8 • 2022-03-31
+                              • 50m
+                            </p>
+                          </div>
+                          <div class="flex space-x-2">
+                            
+                            <div x-data="{ trackOpen: false }">
+                              <button @click="trackOpen = true"
+                                      title="Track Episode"
+                                      class="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition duration-300 cursor-pointer">
+                                
+                                  <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+    <line x1="2" x2="22" y1="2" y2="22"/>
+</svg>
+
+                                
+                              </button>
+
+                              
+
+
+<div x-show="trackOpen"
+     @keydown.escape.window="trackOpen = false"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="w-100 max-h-[90vh] px-4 md:px-0 relative z-60"
+       @click.outside="trackOpen = false">
+    <div class="bg-[#2a2f35] p-6 rounded-lg max-h-[70svh] overflow-y-auto">
+
+      
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-white">Track Episode</h2>
+        <button class="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                @click="trackOpen = false"><svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 12 12"/>
+</svg>
+</button>
+      </div>
+
+      
+      <div class="bg-[#343a40] rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-4">
+          <img alt="What&#x27;s for Dinner?"
+               class="w-20 h-20 rounded object-cover shrink-0"
+               src="https://image.tmdb.org/t/p/w500/8Gv9ELume0jo7gz7R2h4tPmVLsD.jpg">
+          <div>
+            <h3 class="text-lg font-semibold mb-1 line-clamp-1">What&#x27;s for Dinner?</h3>
+            <p class="text-sm text-gray-400">Episode 8</p>
+            
+              <p class="text-sm text-gray-400 mt-1">Not watched yet</p>
+            
+          </div>
+        </div>
+      </div>
+
+      
+      
+
+      
+      
+      <form hx-post="/episode_save?next=/details/tmdb/tv/95396/severance/season/1"
+            hx-swap="none"
+            x-data="{
+              trackTime: true,
+              inputType: 'datetime-local',
+              inputDateTime: '',
+              dropdownOpen: false,
+              pointerOnPickerIcon: false,
+              localNow(offsetMs = 0) {
+                const iso = new Date(Date.now() + offsetMs - new Date().getTimezoneOffset() * 60000).toISOString();
+                return this.trackTime ? iso.slice(0, 16) : iso.slice(0, 10);
+              },
+              init() { this.inputDateTime = this.localNow(); }
+            }">
+        <input type="hidden" name="csrfmiddlewaretoken" value="KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ">
+        <input type="hidden" name="media_id" value="95396">
+        <input type="hidden" name="season_number" value="1">
+        <input type="hidden" name="source" value="tmdb">
+        <input type="hidden"
+               name="episode_number"
+               value="8">
+
+        <label class="block text-sm font-medium text-gray-300 mb-2">Watch Date</label>
+
+        
+        <div class="relative">
+          <input class="w-full p-3 bg-[#343a40] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] appearance-none"
+                 x-bind:type="inputType"
+                 name="end_date"
+                 @pointerdown="pointerOnPickerIcon = $event.clientX >= $el.getBoundingClientRect().right - 40"
+                 @focus="if (!pointerOnPickerIcon) { $el.showPicker?.() }"
+                 @click="pointerOnPickerIcon = false"
+                 x-model="inputDateTime">
+        </div>
+
+        
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <div class="relative inline-flex shadow-sm rounded-md"
+               @click.outside="dropdownOpen = false">
+
+            
+            <button type="submit"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-md transition duration-300 cursor-pointer font-medium"
+                    title="Add watched entry with current settings">Add watch</button>
+
+            
+            <button type="button"
+                    @click="dropdownOpen = !dropdownOpen"
+                    :style="dropdownOpen ? 'background-color: #4338ca;' : 'background-color: #4f46e5;'"
+                    class="px-2 py-2 text-white rounded-r-md border-l border-indigo-500 transition duration-300 cursor-pointer flex items-center justify-center">
+              <svg class="w-4 h-4 transition-transform duration-200"
+                   :class="{'rotate-180': dropdownOpen}"
+                   fill="none"
+                   stroke="currentColor"
+                   viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+              </svg>
+            </button>
+
+            
+            <div x-show="dropdownOpen"
+                 style="display: none"
+                 x-transition
+                 class="absolute right-0 bottom-full mb-2 w-48 bg-[#2a2f35] border border-gray-600 rounded-md shadow-2xl overflow-hidden">
+
+              
+              <button type="button"
+                      @click="inputDateTime = localNow(); dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Fills in the current date and time">Fill in current time</button>
+
+              
+                
+                <button type="button"
+                        @click="inputDateTime = localNow(50 * 60000); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the date and time the episode will be finished if started now">
+                  Fill in end time
+                </button>
+              
+
+              
+              
+                <button type="button"
+                        @click="inputDateTime = '2022\u002D03\u002D31T' + localNow().slice(11, 16); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the air date of the episode, if available">Fill in air date</button>
+              
+
+              
+              <button type="button"
+                      @click="inputDateTime = ''; dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Clears the watch date and time">Fill in no date</button>
+            </div>
+
+          </div>
+        </div>
+      </form>
+      
+    </div>
+  </div>
+</div>
+
+
+                            </div>
+
+                            
+                            <div x-data="{ listsOpen: false }">
+                              <button class="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="Add to custom lists"
+                                      hx-get="/lists_modal/tmdb/episode/95396/1/8"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#lists-episode-95396-1-8"
+                                      hx-trigger="click once"
+                                      @click="listsOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M11 12H3"/>
+    <path d="M16 6H3"/>
+    <path d="M16 18H3"/>
+    <path d="M18 9v6"/>
+    <path d="M21 12h-6"/>
+</svg>
+
+                              </button>
+
+                              <div x-show="listsOpen"
+                                   @keydown.escape.window="listsOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="listsOpen = false">
+                                  <div id="lists-episode-95396-1-8"></div>
+                                </div>
+                              </div>
+                            </div>
+
+                            
+                            <div x-data="{ historyOpen: false }">
+                              <button class="p-2 bg-amber-600 hover:bg-amber-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="View your activity history"
+                                      hx-get="/history_modal/tmdb/episode/95396/1/8"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#history-episode-95396-1-8"
+                                      hx-trigger="click once"
+                                      @click="historyOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/>
+    <path d="M16 2v4"/>
+    <path d="M8 2v4"/>
+    <path d="M3 10h5"/>
+    <path d="M17.5 17.5 16 16.3V14"/>
+    <circle cx="16" cy="16" r="6"/>
+</svg>
+
+                              </button>
+                              <div x-show="historyOpen"
+                                   @keydown.escape.window="historyOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="historyOpen = false">
+                                  <div id="history-episode-95396-1-8"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="md:h-[calc(3*1.5rem)] md:overflow-y-auto px-4">
+                          <p class="text-sm text-gray-300 leading-relaxed text-pretty cursor-text"
+                             :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                             @click="obfuscated = false">The team prepares a plan. Mark attends Devon and Ricken’s party.</p>
+                        </div>
+                      </div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+                <div class="bg-[#2a2f35] rounded-lg overflow-hidden shadow-lg">
+                  <div class="flex flex-col md:flex-row" x-data="{ obfuscated:
+                    
+                      false
+                    
+                    , hasImage:
+                    
+                      true
+                    
+                    }">
+                    <img src="https://www.themoviedb.org/assets/2/v4/glyphicons/basic/glyphicons-basic-38-picture-grey-c2ebdbb057f2a7614185931650f8cee23fa137b93812ccb132b9df511df1cfac.svg"
+                         alt="E9"
+                         data-src="https://image.tmdb.org/t/p/w500/dzx8D2B0ELncXuCNwtPCags43Q.jpg"
+                         class="lazyload md:w-64 md:h-40 shrink-0 object-cover cursor-default"
+                         :class="{ 'blur': obfuscated && hasImage, 'cursor-pointer': obfuscated && hasImage, 'cursor-default': !obfuscated || !hasImage }"
+                         @click="obfuscated = false">
+                    <div class="py-3 flex-1 flex flex-col">
+                      <div class="flex-1">
+                        <div class="flex justify-between items-start mb-2 space-x-2 px-4">
+                          <div>
+                            <h2 class="text-xl font-semibold mb-1 line-clamp-1 cursor-text"
+                                :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                                @click="obfuscated = false">The We We Are</h2>
+                            <p class="text-sm text-gray-400">
+                              Episode 9 • 2022-04-07
+                              • 44m
+                            </p>
+                          </div>
+                          <div class="flex space-x-2">
+                            
+                            <div x-data="{ trackOpen: false }">
+                              <button @click="trackOpen = true"
+                                      title="Track Episode"
+                                      class="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition duration-300 cursor-pointer">
+                                
+                                  <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+    <line x1="2" x2="22" y1="2" y2="22"/>
+</svg>
+
+                                
+                              </button>
+
+                              
+
+
+<div x-show="trackOpen"
+     @keydown.escape.window="trackOpen = false"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="w-100 max-h-[90vh] px-4 md:px-0 relative z-60"
+       @click.outside="trackOpen = false">
+    <div class="bg-[#2a2f35] p-6 rounded-lg max-h-[70svh] overflow-y-auto">
+
+      
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-white">Track Episode</h2>
+        <button class="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                @click="trackOpen = false"><svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 12 12"/>
+</svg>
+</button>
+      </div>
+
+      
+      <div class="bg-[#343a40] rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-4">
+          <img alt="The We We Are"
+               class="w-20 h-20 rounded object-cover shrink-0"
+               src="https://image.tmdb.org/t/p/w500/dzx8D2B0ELncXuCNwtPCags43Q.jpg">
+          <div>
+            <h3 class="text-lg font-semibold mb-1 line-clamp-1">The We We Are</h3>
+            <p class="text-sm text-gray-400">Episode 9</p>
+            
+              <p class="text-sm text-gray-400 mt-1">Not watched yet</p>
+            
+          </div>
+        </div>
+      </div>
+
+      
+      
+
+      
+      
+      <form hx-post="/episode_save?next=/details/tmdb/tv/95396/severance/season/1"
+            hx-swap="none"
+            x-data="{
+              trackTime: true,
+              inputType: 'datetime-local',
+              inputDateTime: '',
+              dropdownOpen: false,
+              pointerOnPickerIcon: false,
+              localNow(offsetMs = 0) {
+                const iso = new Date(Date.now() + offsetMs - new Date().getTimezoneOffset() * 60000).toISOString();
+                return this.trackTime ? iso.slice(0, 16) : iso.slice(0, 10);
+              },
+              init() { this.inputDateTime = this.localNow(); }
+            }">
+        <input type="hidden" name="csrfmiddlewaretoken" value="KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ">
+        <input type="hidden" name="media_id" value="95396">
+        <input type="hidden" name="season_number" value="1">
+        <input type="hidden" name="source" value="tmdb">
+        <input type="hidden"
+               name="episode_number"
+               value="9">
+
+        <label class="block text-sm font-medium text-gray-300 mb-2">Watch Date</label>
+
+        
+        <div class="relative">
+          <input class="w-full p-3 bg-[#343a40] rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#4a9eff] appearance-none"
+                 x-bind:type="inputType"
+                 name="end_date"
+                 @pointerdown="pointerOnPickerIcon = $event.clientX >= $el.getBoundingClientRect().right - 40"
+                 @focus="if (!pointerOnPickerIcon) { $el.showPicker?.() }"
+                 @click="pointerOnPickerIcon = false"
+                 x-model="inputDateTime">
+        </div>
+
+        
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <div class="relative inline-flex shadow-sm rounded-md"
+               @click.outside="dropdownOpen = false">
+
+            
+            <button type="submit"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-md transition duration-300 cursor-pointer font-medium"
+                    title="Add watched entry with current settings">Add watch</button>
+
+            
+            <button type="button"
+                    @click="dropdownOpen = !dropdownOpen"
+                    :style="dropdownOpen ? 'background-color: #4338ca;' : 'background-color: #4f46e5;'"
+                    class="px-2 py-2 text-white rounded-r-md border-l border-indigo-500 transition duration-300 cursor-pointer flex items-center justify-center">
+              <svg class="w-4 h-4 transition-transform duration-200"
+                   :class="{'rotate-180': dropdownOpen}"
+                   fill="none"
+                   stroke="currentColor"
+                   viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+              </svg>
+            </button>
+
+            
+            <div x-show="dropdownOpen"
+                 style="display: none"
+                 x-transition
+                 class="absolute right-0 bottom-full mb-2 w-48 bg-[#2a2f35] border border-gray-600 rounded-md shadow-2xl overflow-hidden">
+
+              
+              <button type="button"
+                      @click="inputDateTime = localNow(); dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Fills in the current date and time">Fill in current time</button>
+
+              
+                
+                <button type="button"
+                        @click="inputDateTime = localNow(44 * 60000); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the date and time the episode will be finished if started now">
+                  Fill in end time
+                </button>
+              
+
+              
+              
+                <button type="button"
+                        @click="inputDateTime = '2022\u002D04\u002D07T' + localNow().slice(11, 16); dropdownOpen = false"
+                        class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                        title="Fills in the air date of the episode, if available">Fill in air date</button>
+              
+
+              
+              <button type="button"
+                      @click="inputDateTime = ''; dropdownOpen = false"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+                      title="Clears the watch date and time">Fill in no date</button>
+            </div>
+
+          </div>
+        </div>
+      </form>
+      
+    </div>
+  </div>
+</div>
+
+
+                            </div>
+
+                            
+                            <div x-data="{ listsOpen: false }">
+                              <button class="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="Add to custom lists"
+                                      hx-get="/lists_modal/tmdb/episode/95396/1/9"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#lists-episode-95396-1-9"
+                                      hx-trigger="click once"
+                                      @click="listsOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M11 12H3"/>
+    <path d="M16 6H3"/>
+    <path d="M16 18H3"/>
+    <path d="M18 9v6"/>
+    <path d="M21 12h-6"/>
+</svg>
+
+                              </button>
+
+                              <div x-show="listsOpen"
+                                   @keydown.escape.window="listsOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="listsOpen = false">
+                                  <div id="lists-episode-95396-1-9"></div>
+                                </div>
+                              </div>
+                            </div>
+
+                            
+                            <div x-data="{ historyOpen: false }">
+                              <button class="p-2 bg-amber-600 hover:bg-amber-700 text-white rounded-full transition duration-300 cursor-pointer"
+                                      title="View your activity history"
+                                      hx-get="/history_modal/tmdb/episode/95396/1/9"
+                                      hx-vals='{"return_url": "/details/tmdb/tv/95396/severance/season/1"}'
+                                      hx-target="#history-episode-95396-1-9"
+                                      hx-trigger="click once"
+                                      @click="historyOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/>
+    <path d="M16 2v4"/>
+    <path d="M8 2v4"/>
+    <path d="M3 10h5"/>
+    <path d="M17.5 17.5 16 16.3V14"/>
+    <circle cx="16" cy="16" r="6"/>
+</svg>
+
+                              </button>
+                              <div x-show="historyOpen"
+                                   @keydown.escape.window="historyOpen = false"
+                                   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="w-96 max-h-[90vh] px-4 md:px-0 relative z-60"
+                                     @click.outside="historyOpen = false">
+                                  <div id="history-episode-95396-1-9"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="md:h-[calc(3*1.5rem)] md:overflow-y-auto px-4">
+                          <p class="text-sm text-gray-300 leading-relaxed text-pretty cursor-text"
+                             :class="{ 'blur': obfuscated, 'cursor-pointer': obfuscated, 'cursor-text': !obfuscated }"
+                             @click="obfuscated = false">The team discovers troubling revelations.</p>
+                        </div>
+                      </div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            </div>
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </div>
+  </div>
+
+            </div>
+          </main>
+        </div>
+      </div>
+    
+
+    <div class="fixed top-24 right-0 left-0 lg:left-64 z-50 flex justify-center pointer-events-none">
+      <div id="messages-list"
+           class="w-full max-w-xl px-4 space-y-2 pointer-events-auto">
+        
+  
+<div class="flex items-center gap-2 rounded-md border px-3 py-2 shadow-lg text-white toast-info opacity-0"
+     x-data="{
+         init() {
+           setTimeout(() => this.$el.classList.add('opacity-100', 'transform-none'), 10);
+           this.$el.classList.add('transition-all', 'duration-300', 'ease-out', 'transform', 'translate-y-[-1rem]');
+
+           
+             setTimeout(() => this.$el.remove(), 5000);
+           
+         }
+     }">
+
+  
+    <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4 text-indigo-300 shrink-0">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M12 16v-4"/>
+    <path d="M12 8h.01"/>
+</svg>
+
+  
+
+  <p class="text-sm font-medium flex-1">Severance Season 1 was marked as in progress automatically.</p>
+  <button class="text-current opacity-70 hover:opacity-100 transition-opacity cursor-pointer"
+          @click="$el.parentElement.remove()">
+    <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 12 12"/>
+</svg>
+
+  </button>
+</div>
+
+
+
+
+
+      </div>
+    </div>
+
+    <div id="persistent-messages-actions">
+  <form class="hidden"
+        hx-post="/user_messages/mark_shown"
+        hx-trigger="load"
+        hx-swap="none">
+    <input type="hidden" name="csrfmiddlewaretoken" value="KGlYXhloJfJVSUqBXBPOMJGt9hoJk091WVAvIisWHROQjyLIMjWBgBzw3T822OqJ">
+    <input type="hidden" name="message_ids" value="1">
+  </form>
+
+</div>
+
+    
+    
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/static/js/serviceworker.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+
+    <script src="/static/js/mediaStatusDateHandler.js?1790860493"></script>
+    <script src="/static/js/searchShortcut.js?1790860493"></script>
+  </body>
+</html>

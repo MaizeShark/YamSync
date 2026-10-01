@@ -1,0 +1,1512 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en" class="scheme-dark bg-[#212529]">
+  <head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="Yamtrack, Media Tracker">
+    <meta name="description" content="Search and track media on Yamtrack.">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-title" content="Yamtrack">
+
+    <title>
+      
+  Integrations - Yamtrack
+
+    </title>
+
+    
+    
+
+    <link rel="stylesheet"
+          type="text/css"
+          href="/static/css/main.css?1790860493">
+
+    <script src="/static/js/libraries/htmx-2.0.4.min.js"></script>
+    <script defer src="/static/js/libraries/alpinejs-3.14.9.min.js"></script>
+    <script src="/static/js/libraries/lazysizes-5.3.2.min.js" async></script>
+
+    <link rel="apple-touch-icon"
+          sizes="180x180"
+          href="/static/favicon/apple-touch-icon.png">
+    <link rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/static/favicon/favicon-32x32.png">
+    <link rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="/static/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon/site.webmanifest">
+    <link rel="mask-icon"
+          href="/static/favicon/safari-pinned-tab.svg">
+    <link rel="shortcut icon" href="/static/favicon/favicon.ico">
+    <meta name="msapplication-TileColor" content="#181a1b">
+    <meta name="msapplication-config"
+          content="/static/favicon/browserconfig.xml">
+    <meta name="theme-color" content="#181a1b">
+
+  </head>
+
+  <body>
+    
+      
+      <div class="flex min-h-screen bg-[#212529] text-gray-100"
+           x-data="{ isMobileMenuOpen: false }">
+
+        
+        <div x-show="isMobileMenuOpen"
+             class="fixed inset-0 bg-black/50 z-30 lg:hidden"
+             @click="isMobileMenuOpen = false"></div>
+
+        
+        <aside class="fixed top-0 left-0 z-40 h-screen w-64 bg-[#1a1d20] transform transition-transform duration-300 ease-in-out border-r border-[#2c3136] -translate-x-full lg:translate-x-0 lg:sticky flex flex-col"
+               :class="isMobileMenuOpen ? 'translate-x-0' : ''">
+          <div class="h-16 border-b border-[#2c3136] flex items-center px-6">
+            <h1 class="text-2xl font-semibold text-gray-100">Yamtrack</h1>
+          </div>
+          <nav class="p-4 flex-1 overflow-y-auto">
+            
+              <ul class="space-y-1 mb-6">
+                <li>
+                  <a href="/"
+                     class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                    
+                      <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+</svg>
+
+
+                    
+                    <span>Home</span>
+                  </a>
+                </li>
+
+                
+                
+                  <li>
+                    
+                      <a href="/demo/tv"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <rect width="20" height="15" x="2" y="7" rx="2" ry="2"/>
+            <polyline points="17 2 12 7 7 2"/>
+                 </svg>
+                        <span>TV Shows</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/season"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0
+            1.83l8.58 3.91 a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/>
+            <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/>
+            <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>
+                 </svg>
+                        <span>TV Seasons</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/movie"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <rect width="18" height="18" x="3" y="3" rx="2"/>
+            <path d="M7 3v18"/>
+            <path d="M3 7.5h4"/>
+            <path d="M3 12h18"/>
+            <path d="M3 16.5h4"/>
+            <path d="M17 3v18"/>
+            <path d="M17 7.5h4"/>
+            <path d="M17 16.5h4"/>
+                 </svg>
+                        <span>Movies</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/anime"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="10 8 16 12 10 16 10 8"/>
+                 </svg>
+                        <span>Anime</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/manga"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2
+            0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+            <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+            <path d="M10 9H8"/>
+            <path d="M16 13H8"/>
+            <path d="M16 17H8"/>
+                 </svg>
+                        <span>Manga</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/game"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <line x1="6" x2="10" y1="11" y2="11"/>
+            <line x1="8" x2="8" y1="9" y2="13"/>
+            <line x1="15" x2="15.01" y1="12" y2="12"/>
+            <line x1="18" x2="18.01" y1="10" y2="10"/>
+            <path d="M17.32 5H6.68a4 4 0 0 0-3.978
+            3.59c-.006.052-.01.101-.017.152C2.6049.416
+            2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5
+            2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2
+            2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0
+            3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4
+            4 0 0 0 17.32 5z"/>
+                 </svg>
+                        <span>Games</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/book"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5
+            2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+                 </svg>
+                        <span>Books</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/comic"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <rect width="8" height="18" x="3" y="3" rx="1"/>
+            <path d="M7 3v18"/>
+            <path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1
+            5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/>
+                 </svg>
+                        <span>Comics</span>
+                      </a>
+                    
+                  </li>
+                
+                  <li>
+                    
+                      <a href="/demo/boardgame"
+                         class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-5 h-5">
+                      
+            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+            <circle cx="8" cy="8" r="2"/>
+            <path d="M16 8h-2"/>
+            <circle cx="16" cy="16" r="2"/>
+            <path d="M8 16v-2"/>
+                 </svg>
+                        <span>Boardgames</span>
+                      </a>
+                    
+                  </li>
+                
+              </ul>
+            
+
+            
+            
+
+            
+              <div class="border-t border-[#2c3136] pt-4">
+                <ul class="space-y-1">
+                  
+                  <li>
+                    <a href="/create"
+                       class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                      
+                        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M8 12h8"/>
+    <path d="M12 8v8"/>
+</svg>
+
+
+                      
+                      <span>Create Custom</span>
+                    </a>
+                  </li>
+
+                  
+                  <li>
+                    <a href="/statistics"
+                       class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                      
+                        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <line x1="18" x2="18" y1="20" y2="10"/>
+    <line x1="12" x2="12" y1="20" y2="4"/>
+    <line x1="6" x2="6" y1="20" y2="14"/>
+</svg>
+
+
+                      
+                      <span>Statistics</span>
+                    </a>
+                  </li>
+
+                  
+                  <li>
+                    <a href="/journal"
+                       class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                      
+                        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/>
+    <path d="M16 2v4"/>
+    <path d="M8 2v4"/>
+    <path d="M3 10h5"/>
+    <path d="M17.5 17.5 16 16.3V14"/>
+    <circle cx="16" cy="16" r="6"/>
+</svg>
+
+
+                      
+                      <span>Journal</span>
+                    </a>
+                  </li>
+
+                  
+                  <li>
+                    <a href="/lists"
+                       class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                      
+                        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M12 10v6"/>
+    <path d="M9 13h6"/>
+    <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9
+             L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
+</svg>
+
+
+                      
+                      <span>Lists</span>
+                    </a>
+                  </li>
+
+                  
+                  <li>
+                    <a href="/calendar"
+                       class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-gray-400 hover:text-white hover:bg-[#23272b]">
+                      
+                        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M8 2v4"/>
+    <path d="M16 2v4"/>
+    <rect width="18" height="18" x="3" y="4" rx="2"/>
+    <path d="M3 10h18"/>
+</svg>
+
+
+                      
+                      <span>Calendar</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            
+          </nav>
+
+          
+            <div class="p-4 border-t border-[#2c3136] mt-auto">
+              <div class="space-y-2">
+                
+                
+                
+                
+                
+                
+                <a href="/settings/account"
+                   class="flex items-center space-x-3 px-4 py-2 rounded-md transition-colors duration-200 text-sm text-white bg-[#2c3136]">
+                  
+                    <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 text-indigo-400 ">
+    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2
+               2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73
+               2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0
+               0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2
+               2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1
+               1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2
+               0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2
+               2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0
+               1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+    <circle cx="12" cy="12" r="3"/>
+</svg>
+
+
+                  
+                  <span>Settings</span>
+                </a>
+
+                <form method="post" action="/accounts/logout/" class="w-full">
+                  <input type="hidden" name="csrfmiddlewaretoken" value="whjiNCPnQnkQWyNGNID1gUxZhliEXbiCIwyPyDWVOZpLnc8NCqKOKMq2bX2XFZzk">
+                  <button type="submit"
+                          class="w-full flex items-center space-x-3 px-4 py-2 rounded-md text-gray-400 hover:bg-[#23272b] hover:text-white transition-colors duration-200 text-sm cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+    <polyline points="16 17 21 12 16 7"/>
+    <line x1="21" x2="9" y1="12" y2="12"/>
+</svg>
+
+
+                    <span>Logout</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          
+
+          
+          
+        </aside>
+
+        
+        <div class="flex-1 min-w-0 flex flex-col min-h-screen">
+          
+          <div class="sticky top-0 z-10 bg-[#1a1d20] border-b border-[#2c3136] shadow-md">
+            <div class="container mx-auto px-4">
+              <div class="flex items-center justify-between lg:justify-center h-16">
+                
+                <button @click="isMobileMenuOpen = !isMobileMenuOpen"
+                        class="lg:hidden pe-3 text-gray-400 hover:text-white transition-colors duration-200">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-6 h-6">
+    <line x1="4" x2="20" y1="12" y2="12"/>
+    <line x1="4" x2="20" y1="6" y2="6"/>
+    <line x1="4" x2="20" y1="18" y2="18"/>
+</svg>
+
+
+                </button>
+
+                
+                
+                  
+                
+
+                
+                
+                  <div class="relative w-full max-w-2xl">
+                    <form method="get"
+                          action="/search"
+                          x-data=" { isOpen: false, selectedType: { display: 'Books', value: 'book' }, mediaTypes: [{&#x27;display&#x27;: &#x27;TV Shows&#x27;, &#x27;value&#x27;: &#x27;tv&#x27;}, {&#x27;display&#x27;: &#x27;Movies&#x27;, &#x27;value&#x27;: &#x27;movie&#x27;}, {&#x27;display&#x27;: &#x27;Anime&#x27;, &#x27;value&#x27;: &#x27;anime&#x27;}, {&#x27;display&#x27;: &#x27;Manga&#x27;, &#x27;value&#x27;: &#x27;manga&#x27;}, {&#x27;display&#x27;: &#x27;Games&#x27;, &#x27;value&#x27;: &#x27;game&#x27;}, {&#x27;display&#x27;: &#x27;Books&#x27;, &#x27;value&#x27;: &#x27;book&#x27;}, {&#x27;display&#x27;: &#x27;Comics&#x27;, &#x27;value&#x27;: &#x27;comic&#x27;}, {&#x27;display&#x27;: &#x27;Boardgames&#x27;, &#x27;value&#x27;: &#x27;boardgame&#x27;}], getPlaceholder() { return `Search ${this.selectedType.display.toLowerCase()}...` } }">
+                      <div class="flex">
+                        <div class="relative grow">
+                          
+                          <input type="search"
+                                 id="global-search"
+                                 name="q"
+                                 value=""
+                                 :placeholder="getPlaceholder()"
+                                 class="w-full py-2 pl-10 pr-4 text-sm text-gray-300 bg-[#272c31] rounded-l-md focus:outline-none focus:ring-2 focus:ring-[#4a9eff] focus:ring-inset placeholder-gray-500">
+                          <button type="submit"
+                                  class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200 focus:outline-none cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <circle cx="11" cy="11" r="8"/>
+    <path d="m21 21-4.3-4.3"/>
+</svg>
+
+
+                          </button>
+                        </div>
+
+                        <input type="hidden" name="media_type" :value="selectedType.value">
+
+                        
+                        <button type="button"
+                                @click="isOpen = !isOpen"
+                                @click.away="isOpen = false"
+                                class="flex items-center justify-between max-w-27.5 sm:max-w-none sm:w-32 px-2 sm:px-4 py-2 text-sm text-gray-300 bg-[#272c31] rounded-r-md focus:outline-none focus:ring-2 focus:ring-[#4a9eff] focus:ring-inset hover:bg-[#2a2e33] transition-colors duration-200 cursor-pointer">
+                          <span class="truncate sm:whitespace-normal" x-text="selectedType.display"></span>
+                          <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4 ml-2">
+    <path d="m6 9 6 6 6-6"/>
+</svg>
+
+
+                        </button>
+                        <ul x-cloak
+                            x-show="isOpen"
+                            @keydown.escape.window="isOpen = false"
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="transform opacity-0 scale-95"
+                            x-transition:enter-end="transform opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-75"
+                            x-transition:leave-start="transform opacity-100 scale-100"
+                            x-transition:leave-end="transform opacity-0 scale-95"
+                            class="absolute z-20 py-1 mt-12 overflow-auto text-sm text-gray-300 bg-[#2a2e33] rounded-md shadow-lg right-0 w-32">
+                          <template x-for="type in mediaTypes" :key="type.value">
+                            <li @click="selectedType = type; isOpen = false"
+                                class="px-4 py-2 cursor-pointer hover:bg-[#343a40] transition duration-150 ease-in-out"
+                                x-text="type.display"></li>
+                          </template>
+                        </ul>
+                      </div>
+                    </form>
+                  </div>
+                
+              </div>
+            </div>
+          </div>
+
+          <main class="flex-1 relative bg-[#212529]">
+            <div class="container mx-auto px-8 py-12">
+              
+  <div class="mx-auto max-w-6xl">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold">Settings</h1>
+      <p class="text-gray-400 mt-2 text-sm">Configure your account and preferences</p>
+    </div>
+    <div class="flex flex-col md:flex-row gap-8">
+      <div class="md:w-64 shrink-0">
+        <div class="bg-[#2a2f35] rounded-lg overflow-hidden sticky top-20">
+          <nav class="p-2 space-y-1">
+            
+            <a href="/settings/account"
+               class="w-full flex items-center space-x-3 px-2 py-2 rounded-md transition-colors text-left border-l-2 cursor-pointer text-sm text-gray-400 border-transparent hover:bg-[#313842] hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+    <circle cx="12" cy="7" r="4"/>
+</svg>
+
+              <span>Account</span>
+            </a>
+
+            
+            <a href="/settings/preferences"
+               class="w-full flex items-center space-x-3 px-2 py-2 rounded-md transition-colors text-left border-l-2 cursor-pointer text-sm text-gray-400 border-transparent hover:bg-[#313842] hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <line x1="4" x2="4" y1="21" y2="14"/>
+    <line x1="4" x2="4" y1="10" y2="3"/>
+    <line x1="12" x2="12" y1="21" y2="12"/>
+    <line x1="12" x2="12" y1="8" y2="3"/>
+    <line x1="20" x2="20" y1="21" y2="16"/>
+    <line x1="20" x2="20" y1="12" y2="3"/>
+    <line x1="2" x2="6" y1="14" y2="14"/>
+    <line x1="10" x2="14" y1="8" y2="8"/>
+    <line x1="18" x2="22" y1="16" y2="16"/>
+</svg>
+
+              <span>Preferences</span>
+            </a>
+
+            
+            <a href="/settings/notifications"
+               class="w-full flex items-center space-x-3 px-2 py-2 rounded-md transition-colors text-left border-l-2 cursor-pointer text-sm text-gray-400 border-transparent hover:bg-[#313842] hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+</svg>
+
+              <span>Notifications</span>
+            </a>
+
+            
+            <a href="/settings/integrations"
+               class="w-full flex items-center space-x-3 px-2 py-2 rounded-md transition-colors text-left border-l-2 cursor-pointer text-sm bg-[#39404b] text-white border-indigo-500">
+              <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <ellipse cx="12" cy="5" rx="9" ry="3"/>
+    <path d="M3 5V19A9 3 0 0 0 21 19V5"/>
+    <path d="M3 12A9 3 0 0 0 21 12"/>
+</svg>
+
+              <span>Integrations</span>
+            </a>
+
+            
+            <a href="/settings/import"
+               class="w-full flex items-center space-x-3 px-2 py-2 rounded-md transition-colors text-left border-l-2 cursor-pointer text-sm text-gray-400 border-transparent hover:bg-[#313842] hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+    <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+    <path d="M12 12v6"/>
+    <path d="m15 15-3-3-3 3"/>
+</svg>
+
+              <span>Import Data</span>
+            </a>
+
+            
+            <a href="/settings/export"
+               class="w-full flex items-center space-x-3 px-2 py-2 rounded-md transition-colors text-left border-l-2 cursor-pointer text-sm text-gray-400 border-transparent hover:bg-[#313842] hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+    <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+    <path d="M12 18v-6"/>
+    <path d="m9 15 3 3 3-3"/>
+</svg>
+
+              <span>Export Data</span>
+            </a>
+
+            
+            <a href="/settings/advanced"
+               class="w-full flex items-center space-x-3 px-2 py-2 rounded-md transition-colors text-left border-l-2 cursor-pointer text-sm text-gray-400 border-transparent hover:bg-[#313842] hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4
+               13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52
+               0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+    <path d="M12 8v4"/>
+    <path d="M12 16h.01"/>
+</svg>
+
+              <span>Advanced</span>
+            </a>
+
+            
+            <a href="/settings/about"
+               class="w-full flex items-center space-x-3 px-2 py-2 rounded-md transition-colors text-left border-l-2 cursor-pointer text-sm text-gray-400 border-transparent hover:bg-[#313842] hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M12 16v-4"/>
+    <path d="M12 8h.01"/>
+</svg>
+
+              <span>About</span>
+            </a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- min-w-0 prevents flex item overflow, happens when creating periodic import for Simkl -->
+      <div class="flex-1 min-w-0">
+        
+  
+  
+  
+  
+  
+  
+  <div class="space-y-6">
+    <div class="bg-[#2a2f35] rounded-lg p-6">
+      <div class="flex items-center mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-6 h-6 text-indigo-400 mr-3">
+    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+</svg>
+
+        <h2 class="text-xl font-semibold">Token</h2>
+      </div>
+      <p class="text-gray-400 mb-5 text-sm">This token is used to authenticate webhook requests from your media servers.</p>
+      <div class="bg-[#39404b] p-2 rounded-md mb-4">
+        <div class="flex items-center gap-2">
+          <input readonly=""
+                 id="token"
+                 class="flex-1 py-2 pr-2 pl-3 bg-[#39404b] rounded-md text-gray-300 text-sm border-0 focus:ring-0 outline-none font-mono"
+                 type="text"
+                 value="nu0xav4EKHiOOOspxe-Rxv7vxyDGNhjs">
+          <span class="flex items-center cursor-pointer group pr-3"
+                title="Copy"
+                data-copy-target="#token">
+            <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 text-gray-400 group-hover:text-indigo-400 transition-colors">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+    <path d="M5 15V5a2 2 0 0 1 2-2h10"/>
+</svg>
+
+          </span>
+        </div>
+      </div>
+      <div class="flex justify-between items-center">
+        <div class="flex items-center text-amber-400 text-sm">
+          <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4 mr-2 shrink-0">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" x2="12" y1="8" y2="12"/>
+    <line x1="12" x2="12.01" y1="16" y2="16"/>
+</svg>
+
+          <p>Regenerating will invalidate the previous token</p>
+        </div>
+        <div class="flex space-x-3">
+          <form method="post" action="/regenerate_token">
+            <input type="hidden" name="csrfmiddlewaretoken" value="whjiNCPnQnkQWyNGNID1gUxZhliEXbiCIwyPyDWVOZpLnc8NCqKOKMq2bX2XFZzk">
+            <button type="submit"
+                    class="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4 mr-2">
+    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+    <path d="M3 3v5h5"/>
+    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+    <path d="M16 16h5v5"/>
+</svg>
+
+              Regenerate
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="bg-[#2a2f35] rounded-lg p-6">
+      <div class="flex items-center mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-6 h-6 text-indigo-400 mr-3">
+    <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
+    <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
+    <line x1="6" x2="6.01" y1="6" y2="6"/>
+    <line x1="6" x2="6.01" y1="18" y2="18"/>
+</svg>
+
+        <h2 class="text-xl font-semibold">Media Servers</h2>
+      </div>
+      <p class="text-gray-400 mb-5 text-sm">Connect your media servers to automatically track your watching progress.</p>
+      <div x-data="{ activeIntegration: 'jellyfin' }">
+        <div class="mb-4 flex gap-2 overflow-x-auto"
+             role="tablist"
+             aria-label="Integration services">
+          <button type="button"
+                  class="flex items-center px-4 py-2 rounded-md transition-colors text-sm cursor-pointer"
+                  :class="activeIntegration === 'jellyfin' ? 'bg-indigo-600 text-white' : 'bg-[#39404b] text-gray-300 hover:bg-[#454d59]'"
+                  @click="activeIntegration = 'jellyfin'"
+                  role="tab"
+                  :aria-selected="activeIntegration === 'jellyfin'">
+            <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4 mr-2">
+    <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
+    <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
+    <line x1="6" x2="6.01" y1="6" y2="6"/>
+    <line x1="6" x2="6.01" y1="18" y2="18"/>
+</svg>
+
+            Jellyfin
+          </button>
+          <button type="button"
+                  class="flex items-center px-4 py-2 rounded-md transition-colors text-sm cursor-pointer"
+                  :class="activeIntegration === 'plex' ? 'bg-indigo-600 text-white' : 'bg-[#39404b] text-gray-300 hover:bg-[#454d59]'"
+                  @click="activeIntegration = 'plex'"
+                  role="tab"
+                  :aria-selected="activeIntegration === 'plex'">
+            <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4 mr-2">
+    <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
+    <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
+    <line x1="6" x2="6.01" y1="6" y2="6"/>
+    <line x1="6" x2="6.01" y1="18" y2="18"/>
+</svg>
+
+            Plex
+          </button>
+          <button type="button"
+                  class="flex items-center px-4 py-2 rounded-md transition-colors text-sm cursor-pointer"
+                  :class="activeIntegration === 'emby' ? 'bg-indigo-600 text-white' : 'bg-[#39404b] text-gray-300 hover:bg-[#454d59]'"
+                  @click="activeIntegration = 'emby'"
+                  role="tab"
+                  :aria-selected="activeIntegration === 'emby'">
+            <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4 mr-2">
+    <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
+    <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
+    <line x1="6" x2="6.01" y1="6" y2="6"/>
+    <line x1="6" x2="6.01" y1="18" y2="18"/>
+</svg>
+
+            Emby
+          </button>
+        </div>
+        <div x-cloak x-show="activeIntegration === 'jellyfin'" role="tabpanel">
+          <div class="bg-[#39404b] p-5 rounded-lg mb-6">
+            <div class="flex items-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 text-indigo-400 mr-2">
+    <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
+    <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
+    <line x1="6" x2="6.01" y1="6" y2="6"/>
+    <line x1="6" x2="6.01" y1="18" y2="18"/>
+</svg>
+
+              <h3 class="text-base font-medium">Jellyfin</h3>
+            </div>
+            <p class="text-gray-400 mb-4 text-sm">Connect Jellyfin to automatically track your watching progress.</p>
+            <div class="bg-[#262a2f] p-4 rounded-md mb-4">
+              <h4 class="text-sm font-medium mb-3">Webhook Events</h4>
+              <p class="text-gray-400 mb-4 text-sm">
+                Play and Stop events are always processed. Enable these to sync manual watched changes from the unofficial Webhooks plugin.
+              </p>
+              <form method="post"
+                    action="/update_jellyfin_webhook_events"
+                    class="space-y-3">
+                <input type="hidden" name="csrfmiddlewaretoken" value="whjiNCPnQnkQWyNGNID1gUxZhliEXbiCIwyPyDWVOZpLnc8NCqKOKMq2bX2XFZzk">
+                <div class="flex items-center justify-between p-3 bg-[#39404b] rounded-md">
+                  <div class="flex-1">
+                    <div class="flex items-center text-gray-200 mb-1">
+                      <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 mr-2">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="m9 12 2 2 4-4"/>
+</svg>
+
+                      <span class="text-sm font-medium">Process MarkPlayed events</span>
+                    </div>
+                    <p class="text-xs text-gray-400 ml-7">Mark media as watched when it is manually marked played in Jellyfin.</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer ml-4">
+                    <input class="sr-only peer"
+                           type="checkbox"
+                           name="jellyfin_mark_played_enabled"
+                           >
+                    <div class="w-9 h-5 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-px after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-indigo-600">
+                    </div>
+                  </label>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-[#39404b] rounded-md">
+                  <div class="flex-1">
+                    <div class="flex items-center text-gray-200 mb-1">
+                      <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 mr-2 text-amber-400">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" x2="12" y1="8" y2="12"/>
+    <line x1="12" x2="12.01" y1="16" y2="16"/>
+</svg>
+
+                      <span class="text-sm font-medium">Process MarkUnplayed events</span>
+                    </div>
+                    <p class="text-xs text-gray-400 ml-7">
+                      Remove watched progress when it is manually marked unplayed in Jellyfin. This event can delete media from Yamtrack.
+                    </p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer ml-4">
+                    <input class="sr-only peer"
+                           type="checkbox"
+                           name="jellyfin_mark_unplayed_enabled"
+                           >
+                    <div class="w-9 h-5 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-px after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-indigo-600">
+                    </div>
+                  </label>
+                </div>
+                <div class="pt-1">
+                  <button type="submit"
+                          class="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4 mr-2">
+    <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+    <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/>
+    <path d="M7 3v4a1 1 0 0 0 1 1h7"/>
+</svg>
+
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+            <div class="bg-[#262a2f] p-4 rounded-md mb-4">
+              <h4 class="text-sm font-medium mb-3">Official Webhook Plugin</h4>
+              <ol class="list-decimal list-inside space-y-2 text-sm text-gray-300">
+                <li>You will need to have TMDB and TVDB as metadata providers in Jellyfin.</li>
+                <li>Install the Webhook plugin from the 'Jellyfin Stable' repo via your server's Plugin Catalog.</li>
+                <li>
+                  Restart your server, then configure the plugin:
+                  <ul class="list-disc list-inside ml-6 mt-2 space-y-1 text-gray-400">
+                    <li>Click on the "Add Generic Destination" button to create a new webhook.</li>
+                    <li>Name: Yamtrack</li>
+                    
+                    <li>
+                      <div class="inline-flex items-center gap-2 w-[calc(100%-30px)]">URL:
+                        <input readonly id="jellyfin-webhook-url-official" class="w-full bg-[#262a2f] rounded-md text-gray-400 text-sm border-0 focus:ring-0 outline-none font-mono" type="text" value="http://localhost:8765/webhook/jellyfin/nu0xav4EKHiOOOspxe-Rxv7vxyDGNhjs">
+                        <span class="flex items-center cursor-pointer group" title="Copy" data-copy-target="#jellyfin-webhook-url-official">
+                          <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 text-gray-400 group-hover:text-indigo-400 transition-colors">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+    <path d="M5 15V5a2 2 0 0 1 2-2h10"/>
+</svg>
+
+                        </span>
+                      </div>
+                    </li>
+                    
+                    <li>Notification Type: Playback Start and Playback Stop</li>
+                    <li>User Filter: Your Jellyfin User</li>
+                    <li>Finally, under the "Template" section, paste the following code.</li>
+                    <div class="relative mt-2">
+                      <textarea readonly id="jellyfin-json-template" class="w-full bg-[#39404b] rounded-md text-gray-300 text-sm border-0 focus:ring-0 outline-none font-mono p-3 resize-none overflow-auto max-h-72" rows="14">
+{
+  "Event": "{{#if_equals NotificationType 'PlaybackStart'}}Play{{/if_equals}}{{#if_equals NotificationType 'PlaybackStop'}}Stop{{/if_equals}}",
+  "Item": {
+    "Type": "{{ItemType}}",
+    "ProviderIds": {
+      "Tmdb": "{{Provider_tmdb}}",
+      "Imdb": "{{Provider_imdb}}",
+      "Tvdb": "{{Provider_tvdb}}"
+    },
+    "UserData": {
+      "Played": {{#if_equals PlayedToCompletion 'True'}}true{{else}}false{{/if_equals}}
+    }{{#if_equals ItemType 'Episode'}},
+    "SeriesName": "{{SeriesName}}",
+    "ParentIndexNumber": {{SeasonNumber}},
+    "IndexNumber": {{EpisodeNumber}}
+    {{/if_equals}}
+  }
+}</textarea>
+                      <span class="absolute top-3 right-3 flex items-center cursor-pointer group"
+                        title="Copy"
+                        data-copy-target="#jellyfin-json-template">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 text-gray-400 group-hover:text-indigo-400 transition-colors">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+    <path d="M5 15V5a2 2 0 0 1 2-2h10"/>
+</svg>
+
+                      </span>
+                    </div>
+                  </ul>
+                </li>
+              </ol>
+            </div>
+            <div class="bg-[#262a2f] p-4 rounded-md">
+              <h4 class="text-sm font-medium mb-3">Unofficial Webhooks Plugin</h4>
+              <ol class="list-decimal list-inside space-y-2 text-sm text-gray-300">
+                <li>You will need to have TMDB and TVDB as metadata providers in Jellyfin.</li>
+                <li>
+                  Add this repository
+                  <a href="https://raw.githubusercontent.com/shemanaev/jellyfin-plugin-repo/master/manifest.json"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  class="text-indigo-400 hover:underline">link</a>
+                  to your "Plugins Catalog" in Jellyfin settings.
+                </li>
+                <li>
+                  From your "Plugins Catalog", install the
+                  <a href="https://github.com/shemanaev/jellyfin-plugin-webhooks"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-indigo-400 hover:underline">Unofficial Webhooks plugin</a>.
+                  </li>
+                  <li>
+                    Restart your server, then configure the plugin:
+                    <ul class="list-disc list-inside ml-6 mt-2 space-y-1 text-gray-400">
+                      
+                  <li>
+                    <div class="inline-flex items-center gap-2 w-[calc(100%-30px)]">URL:
+                      <input readonly id="jellyfin-webhook-url-unofficial" class="w-full bg-[#262a2f] rounded-md text-gray-400 text-sm border-0 focus:ring-0 outline-none font-mono" type="text" value="http://localhost:8765/webhook/jellyfin/nu0xav4EKHiOOOspxe-Rxv7vxyDGNhjs">
+                      <span class="flex items-center cursor-pointer group" title="Copy" data-copy-target="#jellyfin-webhook-url-unofficial">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 text-gray-400 group-hover:text-indigo-400 transition-colors">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+    <path d="M5 15V5a2 2 0 0 1 2-2h10"/>
+</svg>
+
+                      </span>
+                    </div>
+                  </li>
+                      
+                      <li>Payload format: Default</li>
+                      <li>Listen to events only for: Your Jellyfin User</li>
+                      <li>Events: Play, Stop, MarkPlayed and MarkUnplayed</li>
+                    </ul>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </div>
+          <div x-cloak x-show="activeIntegration === 'plex'" role="tabpanel">
+            <div class="bg-[#39404b] p-5 rounded-lg mb-6">
+              <div class="flex items-center mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 text-indigo-400 mr-2">
+    <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
+    <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
+    <line x1="6" x2="6.01" y1="6" y2="6"/>
+    <line x1="6" x2="6.01" y1="18" y2="18"/>
+</svg>
+
+                <h3 class="text-base font-medium">Plex</h3>
+              </div>
+              <p class="text-gray-400 mb-4 text-sm">Connect Plex to automatically track your watching progress.</p>
+              <div class="bg-[#262a2f] p-3 rounded-md mb-4">
+                <h4 class="text-sm font-medium mb-3">Plex Usernames</h4>
+                <form method="post"
+                      action="/update_plex_usernames"
+                      class="space-y-2">
+                  <input type="hidden" name="csrfmiddlewaretoken" value="whjiNCPnQnkQWyNGNID1gUxZhliEXbiCIwyPyDWVOZpLnc8NCqKOKMq2bX2XFZzk">
+                  <div>
+                    <p class="text-gray-400 mb-4 text-sm">
+                      This username (or several, comma separated) will be used to filter which events are sent to your webhook.
+                    </p>
+                    <input name="plex_usernames"
+                           class="w-full py-2 px-3 bg-[#39404b] rounded-md text-white text-sm border border-gray-600 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                           type="text"
+                           placeholder="username1, username2, username3"
+                           value="">
+                  </div>
+                  <div class="pt-2">
+                    <button type="submit"
+                            class="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm cursor-pointer">
+                      <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4 mr-2">
+    <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+    <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/>
+    <path d="M7 3v4a1 1 0 0 0 1 1h7"/>
+</svg>
+
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              </div>
+              <div class="bg-[#262a2f] p-4 rounded-md">
+                <h4 class="text-sm font-medium mb-3">Setup Instructions</h4>
+                <ol class="list-decimal list-inside space-y-2 text-sm text-gray-300">
+                  <li>You will need to have a PlexPass in order to have webhooks enabled</li>
+                  <li>Go to Settings > Server > Network and enable Webhooks</li>
+                  <li>
+                    In Plex settings, go to
+                    <a href="https://app.plex.tv/desktop/#!/settings/webhooks"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="text-indigo-400 hover:underline">Webhooks</a>.
+                  </li>
+                  <li>
+                    In the Webhooks section, click on "Add Webhook" and enter the following URL:
+                    <ul class="list-disc list-inside ml-6 mt-2 space-y-1 text-gray-400">
+                      <li>
+                        <div class="inline-flex items-center gap-2 w-[calc(100%-30px)]">
+                          <input readonly
+                                 id="plex-webhook-url"
+                                 class="w-full bg-[#262a2f] rounded-md text-gray-400 text-sm border-0 focus:ring-0 outline-none font-mono"
+                                 type="text"
+                                 value="http://localhost:8765/webhook/plex/nu0xav4EKHiOOOspxe-Rxv7vxyDGNhjs">
+                          <span class="flex items-center cursor-pointer group"
+                                title="Copy"
+                                data-copy-target="#plex-webhook-url">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 text-gray-400 group-hover:text-indigo-400 transition-colors">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+    <path d="M5 15V5a2 2 0 0 1 2-2h10"/>
+</svg>
+
+                          </span>
+                        </div>
+                      </li>
+                    </ul>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </div>
+          <div x-cloak x-show="activeIntegration === 'emby'" role="tabpanel">
+            <div class="bg-[#39404b] p-5 rounded-lg mb-6">
+              <div class="flex items-center mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 text-indigo-400 mr-2">
+    <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
+    <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
+    <line x1="6" x2="6.01" y1="6" y2="6"/>
+    <line x1="6" x2="6.01" y1="18" y2="18"/>
+</svg>
+
+                <h3 class="text-base font-medium">Emby</h3>
+              </div>
+              <p class="text-gray-400 mb-4 text-sm">Connect Emby to automatically track your watching progress.</p>
+              <div class="bg-[#262a2f] p-4 rounded-md">
+                <h4 class="text-sm font-medium mb-3">Setup Instructions</h4>
+                <ol class="list-decimal list-inside space-y-2 text-sm text-gray-300">
+                  <li>In Emby, go to Settings > Notifications</li>
+                  <li>In the Notifications section, click on "Add Notification"</li>
+                  <li>
+                    In the Notification settings:
+                    <ul class="list-disc list-inside ml-6 mt-2 space-y-2 text-gray-400">
+                      
+                  <li>
+                    <div class="inline-flex items-center gap-2 w-[calc(100%-30px)]">URL:
+                      <input readonly
+                             id="emby-webhook-url"
+                             class="w-full bg-[#262a2f] rounded-md text-gray-400 text-sm border-0 focus:ring-0 outline-none font-mono"
+                             type="text"
+                             value="http://localhost:8765/webhook/emby/nu0xav4EKHiOOOspxe-Rxv7vxyDGNhjs">
+                      <span class="flex items-center cursor-pointer group"
+                            title="Copy"
+                            data-copy-target="#emby-webhook-url">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5 text-gray-400 group-hover:text-indigo-400 transition-colors">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+    <path d="M5 15V5a2 2 0 0 1 2-2h10"/>
+</svg>
+
+                      </span>
+                    </div>
+                  </li>
+                      
+                      <li>Request content type: multipart/form-data</li>
+                      <li>Events: Play and Stop</li>
+                      <li>Limit user events to: Your Emby User</li>
+                      <li>"Limit library events to" and "Limit devices events to" are optional</li>
+                    </ul>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+      </div>
+    </div>
+  </div>
+
+            </div>
+          </main>
+        </div>
+      </div>
+    
+
+    <div class="fixed top-24 right-0 left-0 lg:left-64 z-50 flex justify-center pointer-events-none">
+      <div id="messages-list"
+           class="w-full max-w-xl px-4 space-y-2 pointer-events-auto">
+        
+  
+<div class="flex items-center gap-2 rounded-md border px-3 py-2 shadow-lg text-white toast-info opacity-0"
+     x-data="{
+         init() {
+           setTimeout(() => this.$el.classList.add('opacity-100', 'transform-none'), 10);
+           this.$el.classList.add('transition-all', 'duration-300', 'ease-out', 'transform', 'translate-y-[-1rem]');
+
+           
+             setTimeout(() => this.$el.remove(), 5000);
+           
+         }
+     }">
+
+  
+    <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4 text-indigo-300 shrink-0">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M12 16v-4"/>
+    <path d="M12 8h.01"/>
+</svg>
+
+  
+
+  <p class="text-sm font-medium flex-1">Severance Season 1 was marked as in progress automatically.</p>
+  <button class="text-current opacity-70 hover:opacity-100 transition-opacity cursor-pointer"
+          @click="$el.parentElement.remove()">
+    <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-4 h-4">
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 12 12"/>
+</svg>
+
+  </button>
+</div>
+
+
+
+
+
+      </div>
+    </div>
+
+    <div id="persistent-messages-actions">
+  <form class="hidden"
+        hx-post="/user_messages/mark_shown"
+        hx-trigger="load"
+        hx-swap="none">
+    <input type="hidden" name="csrfmiddlewaretoken" value="whjiNCPnQnkQWyNGNID1gUxZhliEXbiCIwyPyDWVOZpLnc8NCqKOKMq2bX2XFZzk">
+    <input type="hidden" name="message_ids" value="1">
+  </form>
+
+</div>
+
+    
+    <script src="/static/js/copy-item.js?1790860493"></script>
+  
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/static/js/serviceworker.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+
+    <script src="/static/js/mediaStatusDateHandler.js?1790860493"></script>
+    <script src="/static/js/searchShortcut.js?1790860493"></script>
+  </body>
+</html>

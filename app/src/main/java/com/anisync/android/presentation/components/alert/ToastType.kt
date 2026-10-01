@@ -74,7 +74,8 @@ enum class ToastType(
             is ApiError.Offline -> OFFLINE
             is ApiError.Timeout -> TIMEOUT
             is ApiError.Validation -> VALIDATION_ERROR
-            is ApiError.GraphQLError, is ApiError.Unknown -> ERROR
+            is ApiError.LoginFailed -> PERMISSION_DENIED
+            is ApiError.GraphQLError, is ApiError.ParseError, is ApiError.Unknown -> ERROR
         }
 
         /** The last resort for a failure that never reached the classifier and only has a status. */
